@@ -636,15 +636,13 @@ async function cargarNegocios(){
     const data = await res.json();
 
     const cluster = L.markerClusterGroup({
-        chunkedLoading: true,
-        chunkDelay: 50,
-        chunkInterval: 200
+        chunkedLoading:true
     });
 
     data.forEach(n => {
 
-        const lat = parseFloat(n.lat);
-        const lng = parseFloat(n.lng);
+        const lat = parseFloat(n.latitud);
+        const lng = parseFloat(n.longitud);
 
         if(!lat || !lng) return;
 
@@ -656,7 +654,6 @@ async function cargarNegocios(){
     });
 
     return cluster;
-}
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -782,6 +779,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
