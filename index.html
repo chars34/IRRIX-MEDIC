@@ -665,26 +665,30 @@ async function cargarNegocios(){
     const data = await res.json();
 
     const cluster = L.markerClusterGroup();
+data.forEach(p => {
 
-    data.forEach(n => {
+    const lat = parseFloat(p.lat);
+    const lng = parseFloat(p.lng);
 
-        const lat = parseFloat(n.lat);
-        const lng = parseFloat(n.lng);
+    if(isNaN(lat) || isNaN(lng)) return;
 
-        if(isNaN(lat) || isNaN(lng)) return;
-
-   const marker = L.circleMarker([lat,lng],{
-    radius:4,
-    color:"#2563eb",
-    fillOpacity:0.8
-})
-        .bindPopup(`<b>${n.nombre}</b><br>${n.categoria}`);
-
-        cluster.addLayer(marker);
-
+    const marker = L.circleMarker([lat, lng],{
+        radius:4,
+        color:"#2563eb",
+        fillOpacity:0.8
     });
 
+    marker.bindPopup(`
+        <b>${p.nombre}</b><br>
+        ${p.categoria}
+    `);
+
+    cluster.addLayer(marker);
+
+});
+map.addLayer(cluster);
     return cluster;   // ⭐ IMPORTANTE
+    
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -810,6 +814,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
