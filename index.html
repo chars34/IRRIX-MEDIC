@@ -82,6 +82,11 @@
             font-weight:bold;
             color:white;
         }
+        .marker-cluster {
+background: transparent !important;
+border: none !important;
+box-shadow: none !important;
+}
 
         .cluster-small{ background:#16a34a; }
         .cluster-medium{ background:#f59e0b; }
@@ -174,6 +179,18 @@
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
+                   <div class="flex gap-2 mb-2">
+
+<select id="filtroCategoria" class="border rounded p-1 text-sm">
+<option value="todos">Mostrar todo</option>
+<option value="restaurant">🍽 Restaurantes</option>
+<option value="pharmacy">💊 Farmacias</option>
+<option value="hospital">🏥 Hospitales</option>
+<option value="cafe">☕ Cafés</option>
+<option value="supermarket">🛒 Supermercados</option>
+</select>
+
+</div>
                     <div id="map" class="h-full w-full rounded-xl"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100">Explora las zonas de intervención urbana interactuando con el mapa y selecciona un municipio.</p>
@@ -346,7 +363,13 @@
         let map = null;
         let capaMunicipios = null;
         let datosIARRICache = null; // Caché para no volver a descargar el CSV
-
+let capas = {
+restaurant: L.layerGroup(),
+pharmacy: L.layerGroup(),
+hospital: L.layerGroup(),
+cafe: L.layerGroup(),
+supermarket: L.layerGroup()
+};
         // ============================
         // UTILIDADES Y CÁLCULOS
         // ============================
@@ -671,52 +694,38 @@
             return [];
         }
 
-        async function cargarNegocios(){
-            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-            const data = await res.json();
+    async function cargarNegocios(){
 
-            const cluster = L.markerClusterGroup({
-                maxClusterRadius: 60,
-                disableClusteringAtZoom: 12,
-                iconCreateFunction: function(cluster){
-                    const count = cluster.getChildCount();
-                    let size = "small";
-                    if(count > 1000) size = "large";
-                    else if(count > 200) size = "medium";
+const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+const data = await res.json();
 
-                  return L.divIcon({
-    html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
-    className: "custom-cluster",
-    iconSize: L.point(40,40)
+data.forEach(n => {
+
+const lat = parseFloat(n.lat);
+const lng = parseFloat(n.lng);
+
+if(isNaN(lat) || isNaN(lng)) return;
+
+const categoria = n.categoria;
+
+let marker = L.circleMarker([lat,lng],{
+radius:3,
+color:"#2563eb"
 });
-                }
-            });
 
-            // 🔹 CREAR MARCADORES
-            data.forEach(n => {
-                const lat = parseFloat(n.lat);
-                const lng = parseFloat(n.lng);
+marker.bindPopup(`
+<b>${n.nombre || "Unidad"}</b><br>
+${n.municipio || ""}
+`);
 
-                if(isNaN(lat) || isNaN(lng)) return;
+if(capas[categoria]){
+capas[categoria].addLayer(marker);
+}
 
-                const marker = L.circleMarker([lat,lng],{
-                    renderer: map.getRenderer(map),
-                    radius:2,
-                    color:"#059669",
-                    fillColor:"#10b981",
-                    fillOpacity:0.7
-                });
+});
 
-                marker.bindPopup(`
-                    <b>${n.nombre || "Unidad de Salud"}</b><br>
-                    ${n.municipio || ""}
-                `);
-
-                cluster.addLayer(marker);
-            });
-
-            return cluster;
-        }
+return true;
+}
 
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -818,6 +827,7 @@
                 }).addTo(map);
 
                 const capaSalud = await cargarNegocios();
+                Object.values(capas).forEach(c => map.addLayer(c));
                 if(capaSalud) map.addLayer(capaSalud);
 
                 agregarLeyenda(); // <-- Añadimos la leyenda visualmente
@@ -883,9 +893,25 @@
             renderMisiones();
             checkLogros();
         });
+        document.getElementById("filtroCategoria").addEventListener("change", e => {
+
+if(!map) return;
+
+let cat = e.target.value;
+
+Object.values(capas).forEach(c => map.removeLayer(c));
+
+if(cat === "todos"){
+Object.values(capas).forEach(c => map.addLayer(c));
+}else{
+map.addLayer(capas[cat]);
+}
+
+});
     </script>
 </body>
 </html>
+
 
 
 
