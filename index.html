@@ -83,24 +83,24 @@
             color:white;
         }
         .marker-cluster {
-background: transparent !important;
-border: none !important;
-box-shadow: none !important;
-}
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
 
         .cluster-small{ background:#16a34a; }
         .cluster-medium{ background:#f59e0b; }
         .cluster-large{ background:#dc2626; }
 
-.custom-cluster{
-    background: transparent;
-    border: none;
-}
+        .custom-cluster{
+            background: transparent;
+            border: none;
+        }
 
-.screen {
-    padding-bottom: 200px;
-    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+        .screen {
+            padding-bottom: 200px;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -181,16 +181,16 @@ box-shadow: none !important;
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
                    <div class="flex gap-2 mb-2">
 
-<select id="filtroCategoria" class="border rounded p-1 text-sm">
-<option value="todos">Mostrar todo</option>
-<option value="restaurant">🍽 Restaurantes</option>
-<option value="pharmacy">💊 Farmacias</option>
-<option value="hospital">🏥 Hospitales</option>
-<option value="cafe">☕ Cafés</option>
-<option value="supermarket">🛒 Supermercados</option>
-</select>
+                        <select id="filtroCategoria" class="border rounded p-1 text-sm">
+                            <option value="todos">Mostrar todo</option>
+                            <option value="restaurant">🍽 Restaurantes</option>
+                            <option value="pharmacy">💊 Farmacias</option>
+                            <option value="hospital">🏥 Hospitales</option>
+                            <option value="cafe">☕ Cafés</option>
+                            <option value="supermarket">🛒 Supermercados</option>
+                        </select>
 
-</div>
+                    </div>
                     <div id="map" class="h-full w-full rounded-xl"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100">Explora las zonas de intervención urbana interactuando con el mapa y selecciona un municipio.</p>
@@ -363,13 +363,14 @@ box-shadow: none !important;
         let map = null;
         let capaMunicipios = null;
         let datosIARRICache = null; // Caché para no volver a descargar el CSV
-let capas = {
-restaurant: L.layerGroup(),
-pharmacy: L.layerGroup(),
-hospital: L.layerGroup(),
-cafe: L.layerGroup(),
-supermarket: L.layerGroup()
-};
+        let capas = {
+            restaurant: L.layerGroup(),
+            pharmacy: L.layerGroup(),
+            hospital: L.layerGroup(),
+            cafe: L.layerGroup(),
+            supermarket: L.layerGroup()
+        };
+
         // ============================
         // UTILIDADES Y CÁLCULOS
         // ============================
@@ -694,38 +695,35 @@ supermarket: L.layerGroup()
             return [];
         }
 
-    async function cargarNegocios(){
+        async function cargarNegocios(){
+            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+            const data = await res.json();
 
-const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-const data = await res.json();
+            data.forEach(n => {
+                const lat = parseFloat(n.lat);
+                const lng = parseFloat(n.lng);
 
-data.forEach(n => {
+                if(isNaN(lat) || isNaN(lng)) return;
 
-const lat = parseFloat(n.lat);
-const lng = parseFloat(n.lng);
+                const categoria = n.categoria;
 
-if(isNaN(lat) || isNaN(lng)) return;
+                let marker = L.circleMarker([lat,lng],{
+                    radius:3,
+                    color:"#2563eb"
+                });
 
-const categoria = n.categoria;
+                marker.bindPopup(`
+                    <b>${n.nombre || "Unidad"}</b><br>
+                    ${n.municipio || ""}
+                `);
 
-let marker = L.circleMarker([lat,lng],{
-radius:3,
-color:"#2563eb"
-});
+                if(capas[categoria]){
+                    capas[categoria].addLayer(marker);
+                }
+            });
 
-marker.bindPopup(`
-<b>${n.nombre || "Unidad"}</b><br>
-${n.municipio || ""}
-`);
-
-if(capas[categoria]){
-capas[categoria].addLayer(marker);
-}
-
-});
-
-return true;
-}
+            return true;
+        }
 
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -826,9 +824,8 @@ return true;
                     }
                 }).addTo(map);
 
-                const capaSalud = await cargarNegocios();
+                await cargarNegocios();
                 Object.values(capas).forEach(c => map.addLayer(c));
-                if(capaSalud) map.addLayer(capaSalud);
 
                 agregarLeyenda(); // <-- Añadimos la leyenda visualmente
 
@@ -863,10 +860,10 @@ return true;
                     let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
 
                     // Lógica invertida arreglada
-                   let color = m.iarri >= 0.15 ? "text-green-600" :
-            m.iarri >= 0.10 ? "text-yellow-500" :
-            m.iarri >= 0.05 ? "text-orange-500" :
-            "text-red-600";
+                    let color = m.iarri >= 0.15 ? "text-green-600" :
+                    m.iarri >= 0.10 ? "text-yellow-500" :
+                    m.iarri >= 0.05 ? "text-orange-500" :
+                    "text-red-600";
 
                     html+=`
                     <div class="flex justify-between border-b py-2 text-sm items-center">
@@ -892,27 +889,23 @@ return true;
             cargarMunicipios();
             renderMisiones();
             checkLogros();
+
+            // Lógica de filtro reubicada dentro del bloque de inicialización para prevenir problemas de carga y cierre
+            document.getElementById("filtroCategoria").addEventListener("change", e => {
+                if(!map) return;
+
+                let cat = e.target.value;
+
+                Object.values(capas).forEach(c => map.removeLayer(c));
+
+                if(cat === "todos"){
+                    Object.values(capas).forEach(c => map.addLayer(c));
+                } else if(capas[cat]){
+                    map.addLayer(capas[cat]);
+                }
+            });
         });
-        document.getElementById("filtroCategoria").addEventListener("change", e => {
 
-if(!map) return;
-
-let cat = e.target.value;
-
-Object.values(capas).forEach(c => map.removeLayer(c));
-
-if(cat === "todos"){
-Object.values(capas).forEach(c => map.addLayer(c));
-}else{
-map.addLayer(capas[cat]);
-}
-
-});
     </script>
 </body>
 </html>
-
-
-
-
-
