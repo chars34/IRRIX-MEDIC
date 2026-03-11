@@ -216,7 +216,7 @@
                         <option value="restaurant">🍽 Restaurantes</option>
                         <option value="pharmacy">💊 Farmacias</option>
                         <option value="hospital">🏥 Hospitales</option>
-                        <option value="cafe">☕ Cafés</option>
+                      <option value="gym">🏋️ Gimnasios</option>
                         <option value="supermarket">🛒 Supermercados</option>
                     </select>
                 </div>
@@ -396,13 +396,14 @@
         let datosIARRICache = null; 
 
         // Restaurado a "cafe" para hacer match con el select solicitado
-        let capas = {
-            restaurant: L.layerGroup(),
-            cafe: L.layerGroup(), 
-            hospital: L.layerGroup(),
-            pharmacy: L.layerGroup(),
-            supermarket: L.layerGroup()
-        };
+       let capas = {
+    restaurant: L.layerGroup(),
+    cafe: L.layerGroup(), 
+    hospital: L.layerGroup(),
+    pharmacy: L.layerGroup(),
+    supermarket: L.layerGroup(),
+    gym: L.layerGroup()
+};
 
         // ============================
         // UTILIDADES Y CÁLCULOS
@@ -723,6 +724,31 @@
         // ============================
         // MAPA Y DATOS GEOGRÁFICOS
         // ============================
+        function clasificarCategoria(c){
+    if(!c) return null;
+
+    if(c.startsWith("621")){
+        return "hospital";
+    }
+
+    if(c.startsWith("722")){
+        return "restaurant";
+    }
+
+    if(c.startsWith("462")){
+        return "supermarket";
+    }
+
+    if(c.startsWith("46411")){
+        return "pharmacy";
+    }
+
+    if(c.startsWith("71394")){
+        return "gym";
+    }
+
+    return null;
+}
         async function cargarMunicipios(){
             return [];
         }
@@ -737,7 +763,7 @@
 
                 if(isNaN(lat) || isNaN(lng)) return;
 
-                const categoria = n.categoria;
+               const categoria = clasificarCategoria(n.codigo_scian);
 
                 let marker = L.circleMarker([lat,lng],{
                     radius:3,
@@ -795,6 +821,7 @@
                             <label><input type="checkbox" value="hospital" class="filtro-cb" checked> 🏥 Hospitales</label>
                             <label><input type="checkbox" value="pharmacy" class="filtro-cb" checked> 💊 Farmacias</label>
                             <label><input type="checkbox" value="supermarket" class="filtro-cb" checked> 🛒 Supermercados</label>
+                            <label><input type="checkbox" value="gym" class="filtro-cb" checked> 🏋️ Gimnasios</label>
                         </div>
                     `;
 
@@ -983,3 +1010,4 @@
     </script>
 </body>
 </html>
+
