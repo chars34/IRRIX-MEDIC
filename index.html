@@ -314,7 +314,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         // ============================
         // ESTADO GLOBAL
@@ -686,7 +686,7 @@ data.forEach(p => {
     cluster.addLayer(marker);
 
 });
-map.addLayer(cluster);
+
     return cluster;   // ⭐ IMPORTANTE
     
 }
@@ -709,52 +709,123 @@ map.addLayer(cluster);
             legend.addTo(map);
         }
 
-        async function initMap(){
-            if(map){
-                map.invalidateSize();
-                return;
+     async function initMap(){
+
+    if(map){
+        map.invalidateSize();
+        return;
+    }
+
+    // Crear mapa
+    map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
+
+    L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        { attribution:"© OpenStreetMap" }
+    ).addTo(map);
+
+    try{
+
+        // =========================
+        // CARGAR GEOJSON MUNICIPIOS
+        // =========================
+        const geoRes = await fetch("./puebla_municipios.json");
+        const geoData = await geoRes.json();
+
+        // =========================
+        // CARGAR CSV IARRI
+        // =========================
+        const ranking = await cargarIARRI();
+
+        const rankingMap = {};
+
+        ranking.forEach(m=>{
+            rankingMap[normalizarNombre(m.municipio)] = m;
+        });
+
+        // =========================
+        // DIBUJAR MUNICIPIOS
+        // =========================
+        capaMunicipios = L.geoJSON(geoData,{
+
+            style:function(feature){
+
+                const nombre = normalizarNombre(
+                    feature.properties.NOMGEO ||
+                    feature.properties.NOM_MUN ||
+                    feature.properties.NOMBRE
+                );
+
+                const m = rankingMap[nombre];
+
+                if(!m){
+                    return {
+                        color:"#bbb",
+                        weight:1,
+                        fillOpacity:0.1
+                    };
+                }
+
+                return {
+                    color:"#888",
+                    weight:1,
+                    fillColor:colorIARRI(m.iarri),
+                    fillOpacity:0.6
+                };
+            },
+
+            onEachFeature:function(feature,layer){
+
+                const nombreOriginal =
+                    feature.properties.NOMGEO ||
+                    feature.properties.NOM_MUN ||
+                    feature.properties.NOMBRE;
+
+                const nombre = normalizarNombre(nombreOriginal);
+
+                const m = rankingMap[nombre];
+
+                if(m){
+
+                    layer.bindPopup(
+                        `<b>${nombreOriginal}</b><br>
+                        IARRI: ${m.iarri.toFixed(3)}<br>
+                        Nivel: ${nivelIARRI(m.iarri)}`
+                    );
+
+                    layer.bindTooltip(nombreOriginal,{sticky:true});
+
+                    layer.on("click",()=>{
+                        registrarVisita(nombreOriginal);
+                    });
+                }
+
             }
 
-            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { attribution:"© OpenStreetMap" }).addTo(map);
+        }).addTo(map);
 
-            try {
-               const geoData = await fetch("./puebla_municipios.json").then(r=>r.json());
-                const ranking = await cargarIARRI();
-                const rankingMap = {};
+        // =========================
+        // LEYENDA
+        // =========================
+        agregarLeyenda();
 
-                ranking.forEach(m => {
-                    rankingMap[normalizarNombre(m.municipio)] = m;
-                });
+        // =========================
+        // CARGAR DENUE SALUD
+        // =========================
+        const capaSalud = await cargarNegocios();
 
-                capaMunicipios = L.geoJSON(geoData, {
-                    style: function(feature){
-                        const nombre = normalizarNombre(feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE);
-                        const m = rankingMap[nombre];
-                        if(!m) return {color:"#bbb", weight:1, fillOpacity:0.1};
-                        return { color:"#888", weight:1, fillColor:colorIARRI(m.iarri), fillOpacity:0.5 };
-                    },
-                    onEachFeature: function(feature, layer){
-                        const nombre = feature.properties.NOMGEO?.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
-                        const m = rankingMap[nombre];
-                        if(m){
-                            layer.bindPopup(`<b>${feature.properties.NOMGEO}</b><br>IARRI: ${m.iarri.toFixed(3)}<br>Nivel: ${nivelIARRI(m.iarri)}`);
-                            layer.bindTooltip(feature.properties.NOMGEO, {sticky:true});
-                            layer.on("click", () => registrarVisita(feature.properties.NOMGEO));
-                        }
-                    }
-                }).addTo(map);
-
-                agregarLeyenda();
-
-                // Cargar marcadores (ejecutar en paralelo si son muchas peticiones para mejorar velocidad)
-    const capaSalud = await cargarNegocios();
-if(capaSalud) map.addLayer(capaSalud);
-
-            } catch (error) {
-                console.error("Error inicializando el mapa:", error);
-            }
+        if(capaSalud){
+            map.addLayer(capaSalud);
         }
+
+        console.log("Mapa cargado correctamente");
+
+    }
+    catch(error){
+        console.error("Error inicializando el mapa:", error);
+    }
+
+}
 
         // ============================
         // RANKING
@@ -814,6 +885,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
