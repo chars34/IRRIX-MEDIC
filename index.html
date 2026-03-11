@@ -853,9 +853,9 @@
                     let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
 
                     // Lógica invertida arreglada
-                    let color = m.iarri < 0.05 ? "text-red-600" :
+                    let color = m.iarri < 0.15 ? "text-red-600" :
             m.iarri < 0.10 ? "text-orange-500" :
-            m.iarri < 0.15 ? "text-yellow-500" :
+            m.iarri < 0.05 ? "text-yellow-500" :
             "text-green-600";
 
                     html+=`
@@ -886,4 +886,5 @@
     </script>
 </body>
 </html>
+
 
