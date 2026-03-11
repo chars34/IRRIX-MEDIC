@@ -388,11 +388,12 @@
         }
 
         function nivelIARRI(v){
-            if(v < 0.3) return "Bajo";
-            if(v < 0.5) return "Medio";
-            if(v < 0.7) return "Alto";
-            return "Crítico";
-        }
+    if(v < 0.0124) return "Crítico";
+    if(v < 0.0264) return "Alto";
+    if(v < 0.0479) return "Medio";
+    if(v < 0.0894) return "Bajo";
+    return "Muy Bajo";
+}
 
         async function fetchAPI(url){
             try {
@@ -809,6 +810,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
