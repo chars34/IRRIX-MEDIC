@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -684,32 +683,53 @@ async function cargarNegocios(){
 
     const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
     const data = await res.json();
-const cluster = L.markerClusterGroup({
 
-    maxClusterRadius: 60,
-    disableClusteringAtZoom: 12,
+    const cluster = L.markerClusterGroup({
 
-    iconCreateFunction: function(cluster){
+        maxClusterRadius: 60,
+        disableClusteringAtZoom: 12,
 
-        const count = cluster.getChildCount();
+        iconCreateFunction: function(cluster){
 
-        let size = "small";
+            const count = cluster.getChildCount();
 
-        if(count > 1000) size = "large";
-        else if(count > 200) size = "medium";
+            let size = "small";
+            if(count > 1000) size = "large";
+            else if(count > 200) size = "medium";
 
-        return L.divIcon({
-            html: `<div class="cluster-circle">${count}</div>`,
-            className: `cluster-${size}`,
-            iconSize: L.point(40,40)
+            return L.divIcon({
+                html: `<div class="cluster-circle">${count}</div>`,
+                className: `cluster-${size}`,
+                iconSize: L.point(40,40)
+            });
+        }
+    });
+
+    // 🔹 CREAR MARCADORES
+    data.forEach(n => {
+
+        const lat = parseFloat(n.latitud);
+        const lng = parseFloat(n.longitud);
+
+        if(!lat || !lng) return;
+
+        const marker = L.circleMarker([lat,lng],{
+            radius:4,
+            color:"#059669",
+            fillColor:"#10b981",
+            fillOpacity:0.8
         });
 
-    }
+        marker.bindPopup(`
+            <b>${n.nombre || "Unidad de Salud"}</b><br>
+            ${n.municipio || ""}
+        `);
 
-});
+        cluster.addLayer(marker);
 
-    return cluster;   // ⭐ IMPORTANTE
-    
+    });
+
+    return cluster;
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -906,6 +926,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
