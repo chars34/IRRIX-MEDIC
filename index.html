@@ -626,8 +626,19 @@
     return [];
 }
 
-     async function cargarNegocios(tipo,icono){
-    return L.layerGroup([]);
+    async function cargarNegocios(tipo,icono){
+
+    const res = await fetch("./denue_salud.json");
+    const data = await res.json();
+
+    const markers = data
+        .filter(n => n.tipo === tipo)
+        .map(n => L.marker(
+            [n.lat, n.lng],
+            {icon: icono}
+        ).bindPopup(`<b>${n.nombre}</b><br>${n.municipio}`));
+
+    return L.layerGroup(markers);
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -768,3 +779,4 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
