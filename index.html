@@ -827,12 +827,12 @@
 
                     div.innerHTML = `
                         <div class="flex flex-col gap-1">
-                            <label><input type="checkbox" value="restaurant" class="filtro-cb" checked> 🍔 Restaurantes</label>
-                            <label><input type="checkbox" value="cafe" class="filtro-cb" checked> ☕ Cafés</label>
-                            <label><input type="checkbox" value="hospital" class="filtro-cb" checked> 🏥 Hospitales</label>
-                            <label><input type="checkbox" value="pharmacy" class="filtro-cb" checked> 💊 Farmacias</label>
-                            <label><input type="checkbox" value="supermarket" class="filtro-cb" checked> 🛒 Supermercados</label>
-                            <label><input type="checkbox" value="gym" class="filtro-cb" checked> 🏋️ Gimnasios</label>
+                           <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
+<label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
+<label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
+<label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
+<label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
+<label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
                         </div>
                     `;
 
@@ -930,7 +930,7 @@
                 }).addTo(map);
 
                 await cargarNegocios();
-                Object.values(capas).forEach(c => map.addLayer(c));
+          
 
                 agregarLeyenda(); 
                 agregarMenuFiltros(); // <--- Llamada al menú flotante
@@ -1021,5 +1021,6 @@
     </script>
 </body>
 </html>
+
 
 
