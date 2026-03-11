@@ -74,7 +74,28 @@
         .nav-item.active .nav-icon {
             filter: grayscale(0%) opacity(1);
         }
+.cluster-circle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    font-weight:bold;
+    color:white;
+}
 
+.cluster-small{
+    background:#16a34a;
+}
+
+.cluster-medium{
+    background:#f59e0b;
+}
+
+.cluster-large{
+    background:#dc2626;
+}
         .screen {
             padding-bottom: 200px;
             animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -663,27 +684,27 @@ async function cargarNegocios(){
 
     const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
     const data = await res.json();
+const cluster = L.markerClusterGroup({
 
-    const cluster = L.markerClusterGroup();
-data.forEach(p => {
+    maxClusterRadius: 60,
+    disableClusteringAtZoom: 12,
 
-    const lat = parseFloat(p.lat);
-    const lng = parseFloat(p.lng);
+    iconCreateFunction: function(cluster){
 
-    if(isNaN(lat) || isNaN(lng)) return;
+        const count = cluster.getChildCount();
 
-    const marker = L.circleMarker([lat, lng],{
-        radius:4,
-        color:"#2563eb",
-        fillOpacity:0.8
-    });
+        let size = "small";
 
-    marker.bindPopup(`
-        <b>${p.nombre}</b><br>
-        ${p.categoria}
-    `);
+        if(count > 1000) size = "large";
+        else if(count > 200) size = "medium";
 
-    cluster.addLayer(marker);
+        return L.divIcon({
+            html: `<div class="cluster-circle">${count}</div>`,
+            className: `cluster-${size}`,
+            iconSize: L.point(40,40)
+        });
+
+    }
 
 });
 
@@ -770,7 +791,7 @@ data.forEach(p => {
                     color:"#888",
                     weight:1,
                     fillColor:colorIARRI(m.iarri),
-                    fillOpacity:0.6
+                    fillOpacity:0.35
                 };
             },
 
@@ -885,6 +906,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
