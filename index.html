@@ -750,7 +750,7 @@ async function cargarNegocios(){
             legend.addTo(map);
         }
 
-     async function initMap(){
+async function initMap(){
 
     if(map){
         map.invalidateSize();
@@ -811,7 +811,7 @@ async function cargarNegocios(){
                     color:"#888",
                     weight:1,
                     fillColor:colorIARRI(m.iarri),
-                    fillOpacity:0.35
+                    fillOpacity:0.6
                 };
             },
 
@@ -842,6 +842,31 @@ async function cargarNegocios(){
                 }
 
             }
+
+        }).addTo(map);
+
+        // =========================
+        // LEYENDA
+        // =========================
+        agregarLeyenda();
+
+        // =========================
+        // CARGAR DENUE SALUD
+        // =========================
+        const capaSalud = await cargarNegocios();
+
+        if(capaSalud){
+            map.addLayer(capaSalud);
+        }
+
+        console.log("Mapa cargado correctamente");
+
+    }
+    catch(error){
+        console.error("Error inicializando el mapa:", error);
+    }
+
+}
 
         }).addTo(map);
 
