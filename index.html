@@ -672,15 +672,18 @@ async function cargarNegocios(){
 
         if(isNaN(lat) || isNaN(lng)) return;
 
-        const marker = L.marker([lat,lng])
+   const marker = L.circleMarker([lat,lng],{
+    radius:4,
+    color:"#2563eb",
+    fillOpacity:0.8
+})
         .bindPopup(`<b>${n.nombre}</b><br>${n.categoria}`);
 
         cluster.addLayer(marker);
 
     });
 
-    map.addLayer(cluster);
-
+    return cluster;   // ⭐ IMPORTANTE
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -741,7 +744,7 @@ async function cargarNegocios(){
 
                 // Cargar marcadores (ejecutar en paralelo si son muchas peticiones para mejorar velocidad)
     const capaSalud = await cargarNegocios();
-capaSalud.addTo(map);
+if(capaSalud) map.addLayer(capaSalud);
 
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
@@ -806,6 +809,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
