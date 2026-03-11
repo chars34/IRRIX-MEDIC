@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -71,28 +71,22 @@
         .nav-item.active .nav-icon {
             filter: grayscale(0%) opacity(1);
         }
-.cluster-circle{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    font-weight:bold;
-    color:white;
-}
 
-.cluster-small{
-    background:#16a34a;
-}
+        .cluster-circle{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            font-weight:bold;
+            color:white;
+        }
 
-.cluster-medium{
-    background:#f59e0b;
-}
+        .cluster-small{ background:#16a34a; }
+        .cluster-medium{ background:#f59e0b; }
+        .cluster-large{ background:#dc2626; }
 
-.cluster-large{
-    background:#dc2626;
-}
         .screen {
             padding-bottom: 200px;
             animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -332,7 +326,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         // ============================
         // ESTADO GLOBAL
@@ -367,35 +361,30 @@
                 .trim()
                 .toUpperCase();
         }
+
         function clasificarRiesgo(iarri){
+            if(iarri < 0.013){
+                return {nivel:"Bajo", color:"#2ecc71"};
+            }
+            if(iarri < 0.037){
+                return {nivel:"Medio", color:"#f1c40f"};
+            }
+            if(iarri < 0.073){
+                return {nivel:"Alto", color:"#e67e22"};
+            }
+            return {nivel:"Crítico", color:"#e74c3c"};
+        }
 
-    if(iarri < 0.013){
-        return {nivel:"Bajo", color:"#2ecc71"};
-    }
-
-    if(iarri < 0.037){
-        return {nivel:"Medio", color:"#f1c40f"};
-    }
-
-    if(iarri < 0.073){
-        return {nivel:"Alto", color:"#e67e22"};
-    }
-
-    return {nivel:"Crítico", color:"#e74c3c"};
-}
         function estiloMunicipio(feature){
-
-    const iarri = feature.properties.IARRI;
-    const r = clasificarRiesgo(iarri);
-
-    return {
-        fillColor: r.color,
-        weight:1,
-        color:"#555",
-        fillOpacity:0.8
-    };
-
-}
+            const iarri = feature.properties.IARRI;
+            const r = clasificarRiesgo(iarri);
+            return {
+                fillColor: r.color,
+                weight:1,
+                color:"#555",
+                fillOpacity:0.8
+            };
+        }
 
         function colorIARRI(v){
             if(v < 0.0124) return "#dc2626";   // rojo
@@ -406,12 +395,12 @@
         }
 
         function nivelIARRI(v){
-    if(v < 0.0124) return "Crítico";
-    if(v < 0.0264) return "Alto";
-    if(v < 0.0479) return "Medio";
-    if(v < 0.0894) return "Bajo";
-    return "Muy Bajo";
-}
+            if(v < 0.0124) return "Crítico";
+            if(v < 0.0264) return "Alto";
+            if(v < 0.0479) return "Medio";
+            if(v < 0.0894) return "Bajo";
+            return "Muy Bajo";
+        }
 
         async function fetchAPI(url){
             try {
@@ -617,19 +606,19 @@
             let irma = (g*0.35)+(b*0.25)+(c*0.25)+(a*0.15);
             irma = Math.max(0,Math.min(1,irma));
 
-            let nivel="", color="", icono="", explicacion="";
+            let nivel="", colorText="", colorBg="", icono="", explicacion="";
 
             if(irma>0.75){
-                nivel="Crítico"; color="red"; icono="🚨";
+                nivel="Crítico"; colorText="text-red-600"; colorBg="bg-red-500"; icono="🚨";
                 explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
             } else if(irma>0.55){
-                nivel="Alto"; color="orange"; icono="⚠️";
+                nivel="Alto"; colorText="text-orange-500"; colorBg="bg-orange-500"; icono="⚠️";
                 explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
             } else if(irma>0.35){
-                nivel="Medio"; color="yellow"; icono="🟡";
+                nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-yellow-500"; icono="🟡";
                 explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
             } else {
-                nivel="Bajo"; color="green"; icono="🟢";
+                nivel="Bajo"; colorText="text-green-600"; colorBg="bg-green-500"; icono="🟢";
                 explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
             }
 
@@ -645,15 +634,15 @@
                     </div>
                     <div class="text-right">
                         <p class="text-xs text-gray-500">Nivel</p>
-                        <p class="font-bold text-${color}-600">${icono} ${nivel}</p>
+                        <p class="font-bold ${colorText}">${icono} ${nivel}</p>
                     </div>
                 </div>
                 <div class="text-center mb-3">
                     <p class="text-xs text-gray-500">Índice IRMA</p>
-                    <p class="text-3xl font-black text-${color}-600">${irma.toFixed(3)}</p>
+                    <p class="text-3xl font-black ${colorText}">${irma.toFixed(3)}</p>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
-                    <div class="bg-${color}-500 h-3 rounded-full" style="width:${porcentaje}%"></div>
+                    <div class="${colorBg} h-3 rounded-full" style="width:${porcentaje}%"></div>
                 </div>
                 <p class="text-xs text-gray-600 text-center leading-relaxed mb-3">${explicacion}</p>
                 <div class="mt-3 bg-green-50 border border-green-100 p-3 rounded-xl">
@@ -673,62 +662,56 @@
         // ============================
         // MAPA Y DATOS GEOGRÁFICOS
         // ============================
-       async function cargarMunicipios(){
-    return [];
-}
-
-async function cargarNegocios(){
-
-    const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-    const data = await res.json();
-
-    const cluster = L.markerClusterGroup({
-
-        maxClusterRadius: 60,
-        disableClusteringAtZoom: 12,
-
-        iconCreateFunction: function(cluster){
-
-            const count = cluster.getChildCount();
-
-            let size = "small";
-            if(count > 1000) size = "large";
-            else if(count > 200) size = "medium";
-
-           return L.divIcon({
-    html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
-    iconSize: L.point(40,40)
-});
+        async function cargarMunicipios(){
+            return [];
         }
-    });
 
-    // 🔹 CREAR MARCADORES
-    data.forEach(n => {
+        async function cargarNegocios(){
+            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+            const data = await res.json();
 
-        const lat = parseFloat(n.lat);
-        const lng = parseFloat(n.lng);
+            const cluster = L.markerClusterGroup({
+                maxClusterRadius: 60,
+                disableClusteringAtZoom: 12,
+                iconCreateFunction: function(cluster){
+                    const count = cluster.getChildCount();
+                    let size = "small";
+                    if(count > 1000) size = "large";
+                    else if(count > 200) size = "medium";
 
-        if(isNaN(lat) || isNaN(lng)) return;
+                    return L.divIcon({
+                        html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
+                        iconSize: L.point(40,40)
+                    });
+                }
+            });
 
-       const marker = L.circleMarker([lat,lng],{
-renderer: map.getRenderer(map),
-radius:2,
-color:"#059669",
-fillColor:"#10b981",
-fillOpacity:0.7
-});
+            // 🔹 CREAR MARCADORES
+            data.forEach(n => {
+                const lat = parseFloat(n.lat);
+                const lng = parseFloat(n.lng);
 
-        marker.bindPopup(`
-            <b>${n.nombre || "Unidad de Salud"}</b><br>
-            ${n.municipio || ""}
-        `);
+                if(isNaN(lat) || isNaN(lng)) return;
 
-        cluster.addLayer(marker);
+                const marker = L.circleMarker([lat,lng],{
+                    renderer: map.getRenderer(map),
+                    radius:2,
+                    color:"#059669",
+                    fillColor:"#10b981",
+                    fillOpacity:0.7
+                });
 
-    });
+                marker.bindPopup(`
+                    <b>${n.nombre || "Unidad de Salud"}</b><br>
+                    ${n.municipio || ""}
+                `);
 
-    return cluster;
-}
+                cluster.addLayer(marker);
+            });
+
+            return cluster;
+        }
+
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
             legend.onAdd = function(){
@@ -748,116 +731,107 @@ fillOpacity:0.7
             legend.addTo(map);
         }
 
-async function initMap(){
+        async function initMap(){
+            if(map){
+                map.invalidateSize();
+                return;
+            }
 
-    if(map){
-        map.invalidateSize();
-        return;
-    }
+            // Crear mapa
+            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
 
-    // Crear mapa
-    map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
+            L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                { attribution:"© OpenStreetMap" }
+            ).addTo(map);
 
-    L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        { attribution:"© OpenStreetMap" }
-    ).addTo(map);
+            try {
+                // =========================
+                // CARGAR GEOJSON MUNICIPIOS
+                // =========================
+                const geoRes = await fetch("./puebla_municipios.json");
+                const geoData = await geoRes.json();
 
-    try{
+                // =========================
+                // CARGAR CSV IARRI
+                // =========================
+                const ranking = await cargarIARRI();
+                const rankingMap = {};
 
-        // =========================
-        // CARGAR GEOJSON MUNICIPIOS
-        // =========================
-        const geoRes = await fetch("./puebla_municipios.json");
-        const geoData = await geoRes.json();
+                ranking.forEach(m=>{
+                    rankingMap[normalizarNombre(m.municipio)] = m;
+                });
 
-        // =========================
-        // CARGAR CSV IARRI
-        // =========================
-        const ranking = await cargarIARRI();
+                // =========================
+                // DIBUJAR MUNICIPIOS
+                // =========================
+                capaMunicipios = L.geoJSON(geoData,{
+                    style:function(feature){
+                        const nombre = normalizarNombre(
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE
+                        );
+                        const m = rankingMap[nombre];
 
-        const rankingMap = {};
+                        if(!m){
+                            return {
+                                color:"#bbb",
+                                weight:1,
+                                fillOpacity:0.1
+                            };
+                        }
+                        return {
+                            color:"#888",
+                            weight:1,
+                            fillColor:colorIARRI(m.iarri),
+                            fillOpacity:0.6
+                        };
+                    },
+                    onEachFeature:function(feature,layer){
+                        const nombreOriginal =
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE;
 
-        ranking.forEach(m=>{
-            rankingMap[normalizarNombre(m.municipio)] = m;
-        });
+                        const nombre = normalizarNombre(nombreOriginal);
+                        const m = rankingMap[nombre];
 
-        // =========================
-        // DIBUJAR MUNICIPIOS
-        // =========================
-       capaMunicipios = L.geoJSON(geoData,{
+                        if(m){
+                            layer.bindPopup(
+                                `<b>${nombreOriginal}</b><br>
+                                IARRI: ${m.iarri.toFixed(3)}<br>
+                                Nivel: ${nivelIARRI(m.iarri)}`
+                            );
+                            layer.bindTooltip(nombreOriginal,{sticky:true});
+                            layer.on("click",()=>{
+                                registrarVisita(nombreOriginal);
+                            });
+                        }
+                    }
+                }).addTo(map);
 
-    style:function(feature){
+                const capaSalud = await cargarNegocios();
+                if(capaSalud) map.addLayer(capaSalud);
 
-        const nombre = normalizarNombre(
-            feature.properties.NOMGEO ||
-            feature.properties.NOM_MUN ||
-            feature.properties.NOMBRE
-        );
+                agregarLeyenda(); // <-- Añadimos la leyenda visualmente
 
-        const m = rankingMap[nombre];
-
-        if(!m){
-            return {
-                color:"#bbb",
-                weight:1,
-                fillOpacity:0.1
-            };
+                console.log("Mapa cargado correctamente");
+            } catch (error) { // <-- ¡Cierre arreglado!
+                console.error("Error inicializando el mapa:", error);
+            }
         }
 
-        return {
-            color:"#888",
-            weight:1,
-            fillColor:colorIARRI(m.iarri),
-            fillOpacity:0.6
-        };
-    },
-
-    onEachFeature:function(feature,layer){
-
-        const nombreOriginal =
-            feature.properties.NOMGEO ||
-            feature.properties.NOM_MUN ||
-            feature.properties.NOMBRE;
-
-        const nombre = normalizarNombre(nombreOriginal);
-
-        const m = rankingMap[nombre];
-
-        if(m){
-
-            layer.bindPopup(
-                `<b>${nombreOriginal}</b><br>
-                IARRI: ${m.iarri.toFixed(3)}<br>
-                Nivel: ${nivelIARRI(m.iarri)}`
-            );
-
-            layer.bindTooltip(nombreOriginal,{sticky:true});
-
-            layer.on("click",()=>{
-                registrarVisita(nombreOriginal);
-            });
-        }
-    }
-
-}).addTo(map);
-
-const capaSalud = await cargarNegocios();
-if(capaSalud) map.addLayer(capaSalud);
-
-console.log("Mapa cargado correctamente");
-    }
-}
         // ============================
         // RANKING
         // ============================
         async function cargarRanking(){
             try {
-                const data = await cargarIARRI(); // Usa la función centralizada en lugar de refetching
+                const data = await cargarIARRI(); 
                 if (!data || data.length === 0) throw new Error("Datos vacíos");
 
-                data.sort((a,b)=>b.iarri-a.iarri);
-                const peor = data[0]; // Como los ordenaste de mayor a menor, el peor índice está al inicio
+                data.sort((a,b)=>a.iarri-b.iarri); // Ajustado para que valores bajos (riesgo alto) se visualicen acordes
+                const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
                     misiones.push({
@@ -867,23 +841,23 @@ console.log("Mapa cargado correctamente");
                 }
 
                 const top10 = data.slice(0,10);
-let html="";
+                let html="";
 
-top10.forEach((m,i)=>{
+                top10.forEach((m,i)=>{
+                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
 
-    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
+                    // Lógica invertida arreglada
+                    let color = m.iarri < 0.0124 ? "text-red-600" :
+                                m.iarri < 0.0264 ? "text-orange-500" :
+                                m.iarri < 0.0479 ? "text-yellow-500" :
+                                "text-green-600";
 
-    let color = m.iarri < 0.06 ? "text-red-600" :
-                m.iarri < 0.04 ? "text-orange-500" :
-                m.iarri < 0.02 ? "text-yellow-500" :
-                "text-green-600";
-
-    html+=`
-    <div class="flex justify-between border-b py-2 text-sm items-center">
-        <span class="font-medium">${medal} ${m.municipio}</span>
-        <span class="font-bold ${color}">${m.iarri.toFixed(3)}</span>
-    </div>`;
-});
+                    html+=`
+                    <div class="flex justify-between border-b py-2 text-sm items-center">
+                        <span class="font-medium">${medal} ${m.municipio}</span>
+                        <span class="font-bold ${color}">${m.iarri.toFixed(3)}</span>
+                    </div>`;
+                });
 
                 document.getElementById("ranking").innerHTML = html;
 
@@ -906,24 +880,3 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
