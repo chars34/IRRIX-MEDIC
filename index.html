@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -626,17 +627,28 @@
     return [];
 }
 
-   async function cargarNegocios(){
+  async function cargarNegocios(){
 
     const res = await fetch("./denue_salud.json");
     const data = await res.json();
 
-    const markers = data.map(n =>
-        L.marker([n.lat, n.lng])
-        .bindPopup(`<b>${n.nombre}</b><br>${n.municipio}`)
-    );
+    const cluster = L.markerClusterGroup();
 
-    return L.layerGroup(markers);
+    data.forEach(n => {
+
+        const lat = parseFloat(n.lat);
+        const lng = parseFloat(n.lng);
+
+        if(!lat || !lng) return;
+
+        const marker = L.marker([lat,lng])
+        .bindPopup(`<b>${n.nombre}</b>`);
+
+        cluster.addLayer(marker);
+
+    });
+
+    return cluster;
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -762,6 +774,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
