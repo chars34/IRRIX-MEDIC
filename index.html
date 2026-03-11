@@ -106,6 +106,52 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        #panelFiltros{
+
+position:absolute;
+top:10px;
+left:10px;
+
+width:220px;
+max-height:80vh;
+
+overflow-y:auto;
+
+background:white;
+padding:15px;
+border-radius:12px;
+
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+
+z-index:1000;
+
+}
+
+#panelFiltros h2{
+
+font-size:16px;
+font-weight:bold;
+margin-bottom:10px;
+color:#2563eb;
+
+}
+
+#panelFiltros label{
+
+display:block;
+margin:6px 0;
+cursor:pointer;
+font-size:14px;
+
+}
+
+#panelFiltros label:hover{
+
+background:#f3f4f6;
+padding-left:4px;
+border-radius:6px;
+
+}
 
         #map {
             height: 500px !important;
@@ -210,16 +256,18 @@
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
                 
-                <div class="flex gap-2 mb-2">
-                    <select id="filtroCategoria" class="border rounded p-1 text-sm">
-                        <option value="todos">Mostrar todo</option>
-                        <option value="restaurant">🍽 Restaurantes</option>
-                        <option value="pharmacy">💊 Farmacias</option>
-                        <option value="hospital">🏥 Hospitales</option>
-                      <option value="gym">🏋️ Gimnasios</option>
-                        <option value="supermarket">🛒 Supermercados</option>
-                    </select>
-                </div>
+               <div id="panelFiltros">
+
+<h2>🌎 Entorno Metabólico</h2>
+
+<label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
+<label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
+<label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
+<label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
+<label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
+<label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
+
+</div>
 
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
                     <div id="map" class="h-full w-full rounded-xl"></div>
@@ -816,49 +864,7 @@
         // ============================
         // MENÚ FLOTANTE DE FILTROS
         // ============================
-        function agregarMenuFiltros() {
-            const FiltrosControl = L.Control.extend({
-                options: { position: 'topright' },
-                onAdd: function (map) {
-                    const div = L.DomUtil.create('div', 'leaflet-control-filtros');
-                    
-                    L.DomEvent.disableClickPropagation(div);
-                    L.DomEvent.disableScrollPropagation(div);
-
-                    div.innerHTML = `
-                        <div class="flex flex-col gap-1">
-                           <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
-<label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
-<label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
-<label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
-<label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
-<label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
-                        </div>
-                    `;
-
-                    setTimeout(() => {
-                        div.querySelectorAll('.filtro-cb').forEach(cb => {
-                            cb.addEventListener('change', (e) => {
-                                // Sincroniza visualmente con el dropdown
-                                document.getElementById("filtroCategoria").value = "todos"; 
-                                
-                                const cat = e.target.value;
-                                if (e.target.checked) {
-                                    if (capas[cat]) map.addLayer(capas[cat]);
-                                } else {
-                                    if (capas[cat]) map.removeLayer(capas[cat]);
-                                }
-                            });
-                        });
-                    }, 0);
-
-                    return div;
-                }
-            });
-
-            map.addControl(new FiltrosControl());
-        }
-
+        
         async function initMap(){
             if(map){
                 map.invalidateSize();
@@ -933,7 +939,7 @@
           
 
                 agregarLeyenda(); 
-                agregarMenuFiltros(); // <--- Llamada al menú flotante
+               
 
                 console.log("Mapa cargado correctamente");
             } catch (error) {
@@ -1021,6 +1027,7 @@
     </script>
 </body>
 </html>
+
 
 
 
