@@ -626,9 +626,9 @@
     return [];
 }
 
-    async function cargarNegocios(tipo){
+   async function cargarNegocios(){
 
-    const res = await fetch(`./denue_${tipo}.json`);
+    const res = await fetch("./denue_salud.json");
     const data = await res.json();
 
     const markers = data.map(n =>
@@ -696,21 +696,8 @@
                 agregarLeyenda();
 
                 // Cargar marcadores (ejecutar en paralelo si son muchas peticiones para mejorar velocidad)
-       const [capaSalud, capaAlimentos, capaGym, capaFarmacias] = await Promise.all([
-    cargarNegocios("salud"),
-    cargarNegocios("alimentos"),
-    cargarNegocios("gym"),
-    cargarNegocios("farmacias")
-]);
-                
-                capaAlimentos.addTo(map); // Default prendido
-
-              L.control.layers(null, {
-    "🏥 Salud": capaSalud,
-    "🍔 Alimentos": capaAlimentos,
-    "💪 Gimnasios": capaGym,
-    "💊 Farmacias": capaFarmacias
-}, { collapsed:false }).addTo(map);
+    const capaSalud = await cargarNegocios();
+setTimeout(()=>capaSalud.addTo(map),100);
 
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
@@ -775,6 +762,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
