@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -844,22 +843,7 @@ async function initMap(){
 
             }
 
-      
-        }).addTo(map);
 
-        // =========================
-        // LEYENDA
-        // =========================
-        agregarLeyenda();
-
-        // =========================
-        // CARGAR DENUE SALUD
-        // =========================
-        const capaSalud = await cargarNegocios();
-
-        if(capaSalud){
-            map.addLayer(capaSalud);
-        }
 
         console.log("Mapa cargado correctamente");
 
@@ -928,6 +912,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
