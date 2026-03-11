@@ -708,15 +708,15 @@ async function cargarNegocios(){
         const lat = parseFloat(n.lat);
         const lng = parseFloat(n.lng);
 
-        if(!lat || !lng) return;
+        if(isNaN(lat) || isNaN(lng)) return;
 
-        const marker = L.circleMarker([lat,lng],{
-           radius:3,
-renderer: L.canvas(),
+       const marker = L.circleMarker([lat,lng],{
+renderer: map.getRenderer(map),
+radius:2,
 color:"#059669",
 fillColor:"#10b981",
-fillOpacity:0.8
-        });
+fillOpacity:0.7
+});
 
         marker.bindPopup(`
             <b>${n.nombre || "Unidad de Salud"}</b><br>
@@ -846,6 +846,7 @@ const capaSalud = await cargarNegocios();
 if(capaSalud) map.addLayer(capaSalud);
 
 console.log("Mapa cargado correctamente");
+    }
         // ============================
         // RANKING
         // ============================
@@ -904,6 +905,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
