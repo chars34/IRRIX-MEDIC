@@ -631,28 +631,27 @@
 
 async function cargarNegocios(){
 
-    const res = await fetch("./denue_salud.json");
+    const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
     const data = await res.json();
 
-    const cluster = L.markerClusterGroup({
-        chunkedLoading:true
-    });
+    const cluster = L.markerClusterGroup();
 
     data.forEach(n => {
 
         const lat = parseFloat(n.lat);
         const lng = parseFloat(n.lng);
 
-        if(!lat || !lng) return;
+        if(isNaN(lat) || isNaN(lng)) return;
 
         const marker = L.marker([lat,lng])
-        .bindPopup(`<b>${n.nombre}</b><br>Unidad de salud`);
+        .bindPopup(`<b>${n.nombre}</b><br>${n.categoria}`);
 
         cluster.addLayer(marker);
 
     });
 
-    return cluster;
+    map.addLayer(cluster);
+
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -778,6 +777,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
