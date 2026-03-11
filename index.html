@@ -626,17 +626,15 @@
     return [];
 }
 
-    async function cargarNegocios(tipo,icono){
+    async function cargarNegocios(tipo){
 
-    const res = await fetch("./denue_salud.json");
+    const res = await fetch(`./denue_${tipo}.json`);
     const data = await res.json();
 
-    const markers = data
-        .filter(n => n.tipo === tipo)
-        .map(n => L.marker(
-            [n.lat, n.lng],
-            {icon: icono}
-        ).bindPopup(`<b>${n.nombre}</b><br>${n.municipio}`));
+    const markers = data.map(n =>
+        L.marker([n.lat, n.lng])
+        .bindPopup(`<b>${n.nombre}</b><br>${n.municipio}`)
+    );
 
     return L.layerGroup(markers);
 }
@@ -698,23 +696,21 @@
                 agregarLeyenda();
 
                 // Cargar marcadores (ejecutar en paralelo si son muchas peticiones para mejorar velocidad)
-                const [capaRestaurantes, capaGimnasios, capaHospitales, capaFarmacias, capaSuper] = await Promise.all([
-                    cargarNegocios("restaurante","🍔"),
-                    cargarNegocios("gimnasio","💪"),
-                    cargarNegocios("hospital","🏥"),
-                    cargarNegocios("farmacia","💊"),
-                    cargarNegocios("supermercado","🛒")
-                ]);
+       const [capaSalud, capaAlimentos, capaGym, capaFarmacias] = await Promise.all([
+    cargarNegocios("salud"),
+    cargarNegocios("alimentos"),
+    cargarNegocios("gym"),
+    cargarNegocios("farmacias")
+]);
                 
                 capaRestaurantes.addTo(map); // Default prendido
 
-                L.control.layers(null, {
-                    "🍔 Restaurantes": capaRestaurantes,
-                    "💪 Gimnasios": capaGimnasios,
-                    "🏥 Hospitales": capaHospitales,
-                    "💊 Farmacias": capaFarmacias,
-                    "🛒 Supermercados": capaSuper
-                }, { collapsed:false }).addTo(map);
+              L.control.layers(null, {
+    "🏥 Salud": capaSalud,
+    "🍔 Alimentos": capaAlimentos,
+    "💪 Gimnasios": capaGym,
+    "💊 Farmacias": capaFarmacias
+}, { collapsed:false }).addTo(map);
 
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
@@ -779,4 +775,5 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
