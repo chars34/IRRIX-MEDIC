@@ -396,13 +396,13 @@
         let datosIARRICache = null; 
 
         // Restaurado a "cafe" para hacer match con el select solicitado
-       let capas = {
-    restaurant: L.layerGroup(),
-    cafe: L.layerGroup(), 
-    hospital: L.layerGroup(),
-    pharmacy: L.layerGroup(),
-    supermarket: L.layerGroup(),
-    gym: L.layerGroup()
+     let capas = {
+    restaurant: L.markerClusterGroup({chunkedLoading:true}),
+    cafe: L.markerClusterGroup({chunkedLoading:true}),
+    hospital: L.markerClusterGroup({chunkedLoading:true}),
+    pharmacy: L.markerClusterGroup({chunkedLoading:true}),
+    supermarket: L.markerClusterGroup({chunkedLoading:true}),
+    gym: L.markerClusterGroup({chunkedLoading:true})
 };
 
         // ============================
@@ -724,28 +724,23 @@
         // ============================
         // MAPA Y DATOS GEOGRÁFICOS
         // ============================
-        function clasificarCategoria(c){
+  function clasificarCategoria(c){
+
     if(!c) return null;
 
-    if(c.startsWith("621")){
-        return "hospital";
-    }
+    c = c.toString();
 
-    if(c.startsWith("722")){
-        return "restaurant";
-    }
+    if(c.startsWith("621")) return "hospital";
 
-    if(c.startsWith("462")){
-        return "supermarket";
-    }
+    if(c.startsWith("46411")) return "pharmacy";
 
-    if(c.startsWith("46411")){
-        return "pharmacy";
-    }
+    if(c.startsWith("462")) return "supermarket";
 
-    if(c.startsWith("71394")){
-        return "gym";
-    }
+    if(c.startsWith("71394")) return "gym";
+
+    if(c.startsWith("72251")) return "cafe";
+
+    if(c.startsWith("722")) return "restaurant";
 
     return null;
 }
@@ -753,36 +748,52 @@
             return [];
         }
 
-        async function cargarNegocios(){
-            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-            const data = await res.json();
+    async function cargarNegocios(){
 
-            data.forEach(n => {
-                const lat = parseFloat(n.lat);
-                const lng = parseFloat(n.lng);
+    const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+    const data = await res.json();
 
-                if(isNaN(lat) || isNaN(lng)) return;
+    const batch = 500;   // procesa 500 puntos por ciclo
+    let i = 0;
 
-               const categoria = clasificarCategoria(n.codigo_scian);
+    function procesarChunk(){
 
-                let marker = L.circleMarker([lat,lng],{
-                    radius:3,
-                    color:"#2563eb"
-                });
+        const limite = Math.min(i + batch, data.length);
 
-                marker.bindPopup(`
-                    <b>${n.nombre || "Unidad"}</b><br>
-                    ${n.municipio || ""}
-                `);
+        for(; i < limite; i++){
 
-                if(capas[categoria]){
-                    capas[categoria].addLayer(marker);
-                }
+            const n = data[i];
+
+            const lat = parseFloat(n.lat);
+            const lng = parseFloat(n.lng);
+
+            if(isNaN(lat) || isNaN(lng)) continue;
+
+            const categoria = clasificarCategoria(n.codigo_scian);
+
+            if(!categoria) continue;
+
+            const marker = L.circleMarker([lat,lng],{
+                radius:4,
+                color:"#2563eb"
             });
 
-            return true;
+            marker.bindPopup(`
+                <b>${n.nombre || "Unidad"}</b><br>
+                ${n.municipio || ""}
+            `);
+
+            capas[categoria].addLayer(marker);
         }
 
+        if(i < data.length){
+            requestAnimationFrame(procesarChunk);
+        }
+    }
+
+    procesarChunk();
+
+}
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
             legend.onAdd = function(){
@@ -1010,4 +1021,5 @@
     </script>
 </body>
 </html>
+
 
