@@ -106,52 +106,40 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
         #panelFiltros{
+            position:absolute;
+            top:10px;
+            left:10px;
+            width:220px;
+            max-height:80vh;
+            overflow-y:auto;
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,0.2);
+            z-index:1000;
+        }
 
-position:absolute;
-top:10px;
-left:10px;
+        #panelFiltros h2{
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:10px;
+            color:#2563eb;
+        }
 
-width:220px;
-max-height:80vh;
+        #panelFiltros label{
+            display:block;
+            margin:6px 0;
+            cursor:pointer;
+            font-size:14px;
+        }
 
-overflow-y:auto;
-
-background:white;
-padding:15px;
-border-radius:12px;
-
-box-shadow:0 8px 20px rgba(0,0,0,0.2);
-
-z-index:1000;
-
-}
-
-#panelFiltros h2{
-
-font-size:16px;
-font-weight:bold;
-margin-bottom:10px;
-color:#2563eb;
-
-}
-
-#panelFiltros label{
-
-display:block;
-margin:6px 0;
-cursor:pointer;
-font-size:14px;
-
-}
-
-#panelFiltros label:hover{
-
-background:#f3f4f6;
-padding-left:4px;
-border-radius:6px;
-
-}
+        #panelFiltros label:hover{
+            background:#f3f4f6;
+            padding-left:4px;
+            border-radius:6px;
+        }
 
         #map {
             height: 500px !important;
@@ -256,18 +244,15 @@ border-radius:6px;
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
                 
-               <div id="panelFiltros">
-
-<h2>🌎 Entorno Metabólico</h2>
-
-<label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
-<label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
-<label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
-<label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
-<label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
-<label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
-
-</div>
+                <div id="panelFiltros">
+                    <h2>🌎 Entorno Metabólico</h2>
+                    <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
+                    <label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
+                    <label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
+                    <label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
+                    <label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
+                    <label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
+                </div>
 
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
                     <div id="map" class="h-full w-full rounded-xl"></div>
@@ -443,15 +428,14 @@ border-radius:6px;
         let capaMunicipios = null;
         let datosIARRICache = null; 
 
-        // Restaurado a "cafe" para hacer match con el select solicitado
-     let capas = {
-    restaurant: L.markerClusterGroup({chunkedLoading:true}),
-    cafe: L.markerClusterGroup({chunkedLoading:true}),
-    hospital: L.markerClusterGroup({chunkedLoading:true}),
-    pharmacy: L.markerClusterGroup({chunkedLoading:true}),
-    supermarket: L.markerClusterGroup({chunkedLoading:true}),
-    gym: L.markerClusterGroup({chunkedLoading:true})
-};
+        let capas = {
+            restaurant: L.markerClusterGroup({chunkedLoading:true}),
+            cafe: L.markerClusterGroup({chunkedLoading:true}),
+            hospital: L.markerClusterGroup({chunkedLoading:true}),
+            pharmacy: L.markerClusterGroup({chunkedLoading:true}),
+            supermarket: L.markerClusterGroup({chunkedLoading:true}),
+            gym: L.markerClusterGroup({chunkedLoading:true})
+        };
 
         // ============================
         // UTILIDADES Y CÁLCULOS
@@ -772,76 +756,61 @@ border-radius:6px;
         // ============================
         // MAPA Y DATOS GEOGRÁFICOS
         // ============================
-  function clasificarCategoria(c){
+        function clasificarCategoria(c){
+            if(!c) return null;
+            c = c.toString();
+            if(c.startsWith("621")) return "hospital";
+            if(c.startsWith("46411")) return "pharmacy";
+            if(c.startsWith("462")) return "supermarket";
+            if(c.startsWith("71394")) return "gym";
+            if(c.startsWith("72251")) return "cafe";
+            if(c.startsWith("722")) return "restaurant";
+            return null;
+        }
 
-    if(!c) return null;
-
-    c = c.toString();
-
-    if(c.startsWith("621")) return "hospital";
-
-    if(c.startsWith("46411")) return "pharmacy";
-
-    if(c.startsWith("462")) return "supermarket";
-
-    if(c.startsWith("71394")) return "gym";
-
-    if(c.startsWith("72251")) return "cafe";
-
-    if(c.startsWith("722")) return "restaurant";
-
-    return null;
-}
         async function cargarMunicipios(){
             return [];
         }
 
-    async function cargarNegocios(){
+        async function cargarNegocios(){
+            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+            const data = await res.json();
+            const batch = 500;   // procesa 500 puntos por ciclo
+            let i = 0;
 
-    const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-    const data = await res.json();
+            function procesarChunk(){
+                const limite = Math.min(i + batch, data.length);
+                for(; i < limite; i++){
+                    const n = data[i];
+                    const lat = parseFloat(n.lat);
+                    const lng = parseFloat(n.lng);
 
-    const batch = 500;   // procesa 500 puntos por ciclo
-    let i = 0;
+                    if(isNaN(lat) || isNaN(lng)) continue;
 
-    function procesarChunk(){
+                    const categoria = clasificarCategoria(n.codigo_scian);
 
-        const limite = Math.min(i + batch, data.length);
+                    if(!categoria) continue;
 
-        for(; i < limite; i++){
+                    const marker = L.circleMarker([lat,lng],{
+                        radius:4,
+                        color:"#2563eb"
+                    });
 
-            const n = data[i];
+                    marker.bindPopup(`
+                        <b>${n.nombre || "Unidad"}</b><br>
+                        ${n.municipio || ""}
+                    `);
 
-            const lat = parseFloat(n.lat);
-            const lng = parseFloat(n.lng);
+                    capas[categoria].addLayer(marker);
+                }
 
-            if(isNaN(lat) || isNaN(lng)) continue;
-
-            const categoria = clasificarCategoria(n.codigo_scian);
-
-            if(!categoria) continue;
-
-            const marker = L.circleMarker([lat,lng],{
-                radius:4,
-                color:"#2563eb"
-            });
-
-            marker.bindPopup(`
-                <b>${n.nombre || "Unidad"}</b><br>
-                ${n.municipio || ""}
-            `);
-
-            capas[categoria].addLayer(marker);
+                if(i < data.length){
+                    requestAnimationFrame(procesarChunk);
+                }
+            }
+            procesarChunk();
         }
 
-        if(i < data.length){
-            requestAnimationFrame(procesarChunk);
-        }
-    }
-
-    procesarChunk();
-
-}
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
             legend.onAdd = function(){
@@ -862,7 +831,7 @@ border-radius:6px;
         }
 
         // ============================
-        // MENÚ FLOTANTE DE FILTROS
+        // INICIALIZACIÓN DE MAPA
         // ============================
         
         async function initMap(){
@@ -936,11 +905,8 @@ border-radius:6px;
                 }).addTo(map);
 
                 await cargarNegocios();
-          
-
                 agregarLeyenda(); 
                
-
                 console.log("Mapa cargado correctamente");
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
@@ -1001,33 +967,21 @@ border-radius:6px;
             renderMisiones();
             checkLogros();
 
-            // Lógica combinada para el select que dejaste
-            document.getElementById("filtroCategoria")?.addEventListener("change", e => {
-                if(!map) return;
-
-                let cat = e.target.value;
-
-                // Apagamos todas las capas
-                Object.values(capas).forEach(c => map.removeLayer(c));
-
-                if(cat === "todos"){
-                    Object.values(capas).forEach(c => map.addLayer(c));
-                    // Check todas las casillas del menú flotante
-                    document.querySelectorAll('.filtro-cb').forEach(cb => cb.checked = true);
-                } else if(capas[cat]){
-                    map.addLayer(capas[cat]);
-                    // Check solo la seleccionada en el menú flotante
-                    document.querySelectorAll('.filtro-cb').forEach(cb => {
-                        cb.checked = (cb.value === cat);
-                    });
-                }
+            // Lógica corregida para que los checkboxes interactúen con las capas del mapa
+            document.querySelectorAll('.filtro-cb').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    if(!map) return;
+                    let cat = e.target.value;
+                    
+                    if(e.target.checked) {
+                        map.addLayer(capas[cat]);
+                    } else {
+                        map.removeLayer(capas[cat]);
+                    }
+                });
             });
         });
 
     </script>
 </body>
 </html>
-
-
-
-
