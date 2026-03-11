@@ -960,6 +960,9 @@ setTimeout(()=>{
                 console.error("Error inicializando el mapa:", error);
             }
         }
+		mapa.getContainer().addEventListener("touchmove", function(e){
+    e.preventDefault();
+}, {passive:false});
 
         // ============================
         // RANKING
@@ -1033,6 +1036,7 @@ setTimeout(()=>{
     </script>
 </body>
 </html>
+
 
 
 
