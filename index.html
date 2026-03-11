@@ -349,6 +349,35 @@
                 .trim()
                 .toUpperCase();
         }
+        function clasificarRiesgo(iarri){
+
+    if(iarri < 0.013){
+        return {nivel:"Bajo", color:"#2ecc71"};
+    }
+
+    if(iarri < 0.037){
+        return {nivel:"Medio", color:"#f1c40f"};
+    }
+
+    if(iarri < 0.073){
+        return {nivel:"Alto", color:"#e67e22"};
+    }
+
+    return {nivel:"Crítico", color:"#e74c3c"};
+}
+        function estiloMunicipio(feature){
+
+    const iarri = feature.properties.IARRI;
+    const r = clasificarRiesgo(iarri);
+
+    return {
+        fillColor: r.color,
+        weight:1,
+        color:"#555",
+        fillOpacity:0.8
+    };
+
+}
 
         function colorIARRI(v){
             if(v < 0.0124) return "#dc2626";   // rojo
@@ -777,6 +806,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
