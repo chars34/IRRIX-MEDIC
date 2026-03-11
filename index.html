@@ -127,751 +127,6 @@
             0% { opacity: 1; transform: translateY(0) scale(1); }
             100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
         }
-    </style>
-</head>
-<body class="text-gray-800">
-
-    <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-2xl flex flex-col">
-        <header class="p-5 border-b bg-white/90 backdrop-blur-md sticky top-0 z-50">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-black text-green-800 tracking-tight">IARRI-MX</h1>
-                    <p class="text-xs text-gray-500 font-medium">ARQ Metabólica MX</p>
-                </div>
-                <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-inner">
-                    AM
-                </div>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden">
-                <div class="relative z-10">
-                    <span id="total-points" class="text-3xl font-black text-green-600 transition-all duration-300">0</span>
-                    <span class="text-sm font-bold text-green-800 ml-1">pts</span>
-                </div>
-                <div class="text-right relative z-10">
-                    <p id="user-level" class="text-xs text-green-800 font-black uppercase tracking-wider bg-green-200/80 px-3 py-1.5 rounded-lg shadow-sm"></p>
-                </div>
-                <div class="absolute -right-4 -bottom-4 opacity-10 text-6xl">🏆</div>
-            </div>
-        </header>
-
-        <main class="flex-1 overflow-y-auto pb-32">
-            
-            <div id="screen-home" class="screen p-5 space-y-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido Arquitecto</h2>
-                    <p class="text-gray-500 text-sm mt-1">Gestiona el territorio, completa retos de sostenibilidad y mejora tu nivel de urbanismo metabólico.</p>
-                </div>
-                
-                <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" 
-                     alt="Ciudad sostenible" 
-                     class="w-full h-52 object-cover rounded-2xl shadow-md">
-
-                <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 shadow-sm flex gap-4 items-start">
-                    <div class="text-3xl">🚀</div>
-                    <div>
-                        <h3 class="font-bold text-blue-800 mb-1">¡Sube de nivel!</h3>
-                        <p class="text-sm text-blue-600/90 leading-relaxed">Completa retos urbanos y microcursos de aprendizaje para ganar puntos y convertirte en un experto avanzado.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
-                <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
-                   <div class="flex gap-2 mb-2">
-
-                        <select id="filtroCategoria" class="border rounded p-1 text-sm">
-                            <option value="todos">Mostrar todo</option>
-                            <option value="restaurant">🍽 Restaurantes</option>
-                            <option value="pharmacy">💊 Farmacias</option>
-                            <option value="hospital">🏥 Hospitales</option>
-                            <option value="cafe">☕ Cafés</option>
-                            <option value="supermarket">🛒 Supermercados</option>
-                        </select>
-
-                    </div>
-                    <div id="map" class="h-full w-full rounded-xl"></div>
-                </div>
-                <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100">Explora las zonas de intervención urbana interactuando con el mapa y selecciona un municipio.</p>
-            </div>
-
-            <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
-                <h2 class="text-xl font-bold text-gray-800 mb-2">Educación Interactiva</h2>
-                <p class="text-sm text-gray-500 mb-4">Mejora tus habilidades en urbanismo táctico y ecología.</p>
-
-                <div class="border border-purple-100 p-5 rounded-2xl bg-gradient-to-b from-white to-purple-50 shadow-sm">
-                    <div class="flex gap-3 mb-3">
-                        <div class="text-2xl">🌱</div>
-                        <div>
-                            <h3 class="font-bold text-purple-900 mb-1">Intro al Metabolismo Urbano</h3>
-                            <p class="text-xs text-purple-700/80 line-clamp-2">Aprende los conceptos básicos de entradas y salidas de recursos en la ciudad moderna.</p>
-                        </div>
-                    </div>
-                    <button onclick="addPoints(50, this)" class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all text-white p-3 rounded-xl font-bold flex justify-center items-center gap-2 shadow-md shadow-purple-200">
-                        Completar Microcurso <span class="bg-purple-800 px-2 py-0.5 rounded-lg text-xs">+50 pts</span>
-                    </button>
-                </div>
-
-                <div class="border border-indigo-100 p-5 rounded-2xl bg-gradient-to-b from-white to-indigo-50 shadow-sm">
-                    <div class="flex gap-3 mb-3">
-                        <div class="text-2xl">🏙️</div>
-                        <div>
-                            <h3 class="font-bold text-indigo-900 mb-1">Diseño de Espacios Públicos</h3>
-                            <p class="text-xs text-indigo-700/80 line-clamp-2">Estrategias prácticas para la recuperación de calles, parques y zonas peatonales.</p>
-                        </div>
-                    </div>
-                    <button onclick="addPoints(75, this)" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all text-white p-3 rounded-xl font-bold flex justify-center items-center gap-2 shadow-md shadow-indigo-200">
-                        Completar Microcurso <span class="bg-indigo-800 px-2 py-0.5 rounded-lg text-xs">+75 pts</span>
-                    </button>
-                </div>
-            </div>
-
-            <div id="screen-fundamentacion" class="screen hidden p-5 space-y-5">
-                <h2 class="text-xl font-bold text-gray-800">Fundamentación Científica</h2>
-
-                <div class="bg-green-50 p-5 rounded-2xl border border-green-100 text-sm">
-                    <h3 class="font-bold text-green-800 mb-2 flex items-center gap-2"><span class="text-lg">🧬</span> Resistencia a la Insulina</h3>
-                    <p class="text-green-700/80 leading-relaxed">
-                        La resistencia a la insulina está asociada a sedentarismo, mala alimentación,
-                        estrés ambiental y falta de espacios públicos saludables en los entornos urbanos.
-                    </p>
-                </div>
-                
-                <h3 class="font-bold text-lg">Calculadora IRMA</h3>
-                <p class="text-sm text-gray-600">
-                El Índice de Riesgo Metabólico Ambiental (IRMA) combina factores individuales 
-                con el entorno urbano del municipio.
-                </p>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-bold">Municipio</label>
-                    <input id="municipio" list="lista-municipios" placeholder="Ej: Puebla" class="border p-2 w-full rounded">
-                    <datalist id="lista-municipios">
-                        <option value="Puebla"></option>
-                        <option value="Tehuacan"></option>
-                        <option value="San Martin Texmelucan"></option>
-                        <option value="Atlixco"></option>
-                        <option value="San Pedro Cholula"></option>
-                    </datalist>
-
-                    <label class="text-sm font-bold">Glucosa mg/dL (70 - 180)</label>
-                    <input id="glucosa" type="number" min="70" max="180" class="border p-2 w-full rounded">
-
-                    <label class="text-sm font-bold">IMC (18 - 40)</label>
-                    <input id="imc" type="number" min="18" max="40" class="border p-2 w-full rounded">
-
-                    <label class="text-sm font-bold">Cintura cm (70 - 130)</label>
-                    <input id="cintura" type="number" min="70" max="130" class="border p-2 w-full rounded">
-
-                    <label class="text-sm font-bold">Actividad física horas/semana (0 - 7)</label>
-                    <input id="actividad" type="number" min="0" max="7" class="border p-2 w-full rounded">
-
-                    <button onclick="calcularIRMA()" class="bg-green-700 text-white p-3 rounded-xl w-full font-bold">
-                        Calcular IRMA
-                    </button>
-
-                    <div class="text-xs mt-6 border-t pt-4 text-gray-600">
-                        <div id="resultado" class="mt-3 p-3 bg-gray-100 rounded-xl text-sm"></div>
-                        <b class="text-gray-700">Fuentes oficiales</b>
-                        <div class="mt-2 space-y-1">
-                            <p>🌍 <span class="font-semibold text-green-700">OMS</span> — Riesgo metabólico, obesidad y actividad física.</p>
-                            <p>🇲🇽 <span class="font-semibold text-blue-700">INEGI</span> — Censo de Población y datos municipales.</p>
-                            <p>🏥 <span class="font-semibold text-purple-700">INSP / ENSANUT</span> — Salud y nutrición en México.</p>
-                            <p>🏙 <span class="font-semibold text-orange-700">DENUE</span> — Infraestructura económica y urbana.</p>
-                            <p>🧬 <span class="font-semibold text-red-700">ADA / IDF</span> — Guías médicas sobre glucosa y diabetes.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="screen-retos" class="screen hidden p-5">
-                <h2 class="text-xl font-bold mb-3">🎯 Misiones Urbanas</h2>
-
-                <div class="bg-gray-100 p-3 rounded-xl text-sm mb-4">
-                    🔥 Racha diaria: <span id="racha">0</span> días<br>
-                    🏆 Logros desbloqueados: <span id="logros-count">0</span>
-                </div>
-
-                <div id="lista-retos" class="space-y-3"></div>
-            </div>
-
-            <div id="screen-ranking" class="screen hidden p-5">
-                <div class="bg-white p-4 rounded-2xl shadow-md">
-                    <h2 class="text-lg font-bold mb-3">🏆 Top 10 Municipios (IARRI)</h2>
-
-                    <div id="ranking" class="space-y-1">
-                        Cargando datos...
-                    </div>
-
-                    <p class="text-gray-700 text-sm mt-4 leading-relaxed">
-                        🧠 <b class="text-blue-600">IARRI</b> 
-                        (<b>Índice de Riesgo Metabólico Relacionado con el Ambiente</b>) 
-                        mide cómo el <span class="text-green-600 font-semibold">entorno urbano</span> 
-                        puede influir en la salud metabólica de la población.
-                        <br><br>
-                        🔎 Este índice combina factores como:
-                        <br>🌳 <span class="text-green-700">Disponibilidad de áreas verdes</span>
-                        <br>🏙️ <span class="text-blue-700">Condiciones urbanas del municipio</span>
-                        <br>📉 <span class="text-orange-600">Nivel de marginación social</span>
-                        <br><br>
-                        📊 <b>Interpretación:</b>
-                        <br>🟢 Valores altos → entorno más saludable  
-                        <br>🟡 Valores medios → riesgo moderado  
-                        <br>🔴 Valores bajos → mayor riesgo metabólico
-                    </p>
-                </div>
-            </div>
-        </main>
-
-        <nav class="nav-bar">
-            <div onclick="switchScreen('home')" class="nav-item active" id="nav-home">
-                <span class="nav-icon">🏠</span> Inicio
-            </div>
-            <div onclick="switchScreen('territorio')" class="nav-item" id="nav-territorio">
-                <span class="nav-icon">🗺️</span> Mapa
-            </div>
-            <div onclick="switchScreen('retos')" class="nav-item" id="nav-retos">
-                <span class="nav-icon">🎯</span> Retos
-            </div>
-            <div onclick="switchScreen('aprendizaje')" class="nav-item" id="nav-aprendizaje">
-                <span class="nav-icon">📚</span> Aprende
-            </div>
-            <div onclick="switchScreen('fundamentacion')" class="nav-item" id="nav-fundamentacion">
-                <span class="nav-icon">🧬</span> Ciencia
-            </div>
-            <div onclick="switchScreen('ranking')" class="nav-item" id="nav-ranking">
-                <span class="nav-icon">🏆</span> Rank
-            </div>
-        </nav>
-
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script>
-        // ============================
-        // ESTADO GLOBAL
-        // ============================
-       
-        let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || {
-            totalPoints: 0,
-            level: "Básico"
-        };
-        let municipiosVisitados = new Set();
-        let chartInstance = null;
-        let map = null;
-        let capaMunicipios = null;
-        let datosIARRICache = null; // Caché para no volver a descargar el CSV
-        let capas = {
-            restaurant: L.layerGroup(),
-            pharmacy: L.layerGroup(),
-            hospital: L.layerGroup(),
-            cafe: L.layerGroup(),
-            supermarket: L.layerGroup()
-        };
-
-        // ============================
-        // UTILIDADES Y CÁLCULOS
-        // ============================
-        function normalizarNombre(nombre){
-            if(!nombre) return "";
-            return nombre
-                .toString()
-                .replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a")
-                .replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e")
-                .replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i")
-                .replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o")
-                .replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u")
-                .replace(/Ã±/g,"n")
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g,"")
-                .replace(/[^a-zA-Z ]/g,"")
-                .trim()
-                .toUpperCase();
-        }
-
-        function clasificarRiesgo(iarri){
-            if(iarri < 0.013){
-                return {nivel:"Bajo", color:"#2ecc71"};
-            }
-            if(iarri < 0.037){
-                return {nivel:"Medio", color:"#f1c40f"};
-            }
-            if(iarri < 0.073){
-                return {nivel:"Alto", color:"#e67e22"};
-            }
-            return {nivel:"Crítico", color:"#e74c3c"};
-        }
-
-        function estiloMunicipio(feature){
-            const iarri = feature.properties.IARRI;
-            const r = clasificarRiesgo(iarri);
-            return {
-                fillColor: r.color,
-                weight:1,
-                color:"#555",
-                fillOpacity:0.8
-            };
-        }
-
-        function colorIARRI(v){
-            if(v < 0.0124) return "#dc2626";   // rojo
-            if(v < 0.0264) return "#f97316";   // naranja
-            if(v < 0.0479) return "#facc15";   // amarillo
-            if(v < 0.0894) return "#86efac";   // verde claro
-            return "#16a34a";                  // verde
-        }
-
-        function nivelIARRI(v){
-            if(v < 0.0124) return "Crítico";
-            if(v < 0.0264) return "Alto";
-            if(v < 0.0479) return "Medio";
-            if(v < 0.0894) return "Bajo";
-            return "Muy Bajo";
-        }
-
-        async function fetchAPI(url){
-            try {
-                const res = await fetch(url);
-                return await res.json();
-            } catch (error) {
-                console.error(`Error al hacer fetch a ${url}:`, error);
-                return [];
-            }
-        }
-
-        // ============================
-        // CARGA DE DATOS (CSV)
-        // ============================
-        async function cargarIARRI(){
-            if(datosIARRICache) return datosIARRICache;
-            
-            try {
-                const res = await fetch("./IARRI_Puebla_Final.csv");
-                const csvText = await res.text();
-                
-                // Usando PapaParse para evitar problemas con comas anidadas en el texto
-                const parsed = Papa.parse(csvText, { skipEmptyLines: true });
-                const filas = parsed.data.slice(1); // Omitimos la cabecera
-                
-                datosIARRICache = filas.map(c => {
-                    return {
-                        municipio: c[2]?.trim(),
-                        iarri: parseFloat(c[8])
-                    };
-                }).filter(x => x.municipio && !isNaN(x.iarri));
-                
-                return datosIARRICache;
-            } catch (error) {
-                console.error("Error al cargar IARRI CSV:", error);
-                return [];
-            }
-        }
-
-        // ============================
-        // NAVEGACIÓN Y UI
-        // ============================
-        function switchScreen(screen) {
-            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-            
-            const selectedScreen = document.getElementById("screen-" + screen);
-            if(selectedScreen) selectedScreen.classList.remove("hidden");
-
-            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-            const selectedNav = document.getElementById("nav-" + screen);
-            if(selectedNav) selectedNav.classList.add("active");
-
-            // Lógicas por pantalla
-            if (screen === "territorio") setTimeout(initMap, 200);
-            if (screen === "ranking") cargarRanking();
-        }
-
-        function updateLevel() {
-            if (userProgress.totalPoints >= 1000) userProgress.level = "Maestro Urbano";
-            else if (userProgress.totalPoints >= 800) userProgress.level = "Avanzado";
-            else if (userProgress.totalPoints >= 400) userProgress.level = "Intermedio";
-            else userProgress.level = "Básico";
-        }
-
-        function updateUI() {
-            const pts = document.getElementById("total-points");
-            const lvl = document.getElementById("user-level");
-
-            if (pts) {
-                pts.innerText = userProgress.totalPoints;
-                pts.classList.add('scale-110', 'text-green-400');
-                setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300);
-            }
-            if (lvl) lvl.innerText = userProgress.level;
-        }
-
-        function addPoints(points, buttonElement) {
-            userProgress.totalPoints += points;
-            updateLevel();
-            localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-            updateUI();
-            checkLogros();
-
-            if (buttonElement) {
-                const rect = buttonElement.getBoundingClientRect();
-                const floatEl = document.createElement("div");
-                floatEl.className = "point-float";
-                floatEl.innerText = "+" + points;
-                floatEl.style.left = (rect.left + rect.width / 2) + "px";
-                floatEl.style.top = rect.top + "px";
-                document.body.appendChild(floatEl);
-                setTimeout(() => floatEl.remove(), 1000);
-            }
-        }
-
-        // ============================
-        // MISIONES Y LOGROS
-        // ============================
-        let misiones = [
-            { id:"explorar_mapa", nombre:"🗺 Explorador del territorio", descripcion:"Explora 3 municipios en el mapa", puntos:120, progreso:0, objetivo:3, completado:false },
-            { id:"calcular_irma", nombre:"🧬 Detective metabólico", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
-            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos en tu colonia", puntos:100, progreso:0, objetivo:1, completado:false },
-            { id:"parque", nombre:"🌳 Reto parque verde", descripcion:"Visita un parque cercano", puntos:120, progreso:0, objetivo:1, completado:false },
-            { id:"analista", nombre:"📊 Analista urbano", descripcion:"Analiza un municipio con alto riesgo", puntos:180, progreso:0, objetivo:1, completado:false }
-        ];
-
-        let logros = [
-            { id:"primeros_pasos", nombre:"Primer reto", condicion:()=> userProgress.totalPoints >= 100 },
-            { id:"explorador", nombre:"Explorador urbano", condicion:()=> municipiosVisitados.size >= 5 },
-            { id:"maestro", nombre:"Maestro urbano", condicion:()=> userProgress.totalPoints >= 1000 }
-        ];
-
-        function renderMisiones(){
-            const cont = document.getElementById("lista-retos");
-            if(!cont) return;
-
-            let html="";
-            misiones.forEach(m=>{
-                const progreso = Math.round((m.progreso/m.objetivo)*100);
-                html+=`
-                <div class="bg-white border rounded-2xl p-4 shadow">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold">${m.nombre}</span>
-                        <span class="text-green-700 font-bold">+${m.puntos}</span>
-                    </div>
-                    <p class="text-xs text-gray-600 mb-2">${m.descripcion}</p>
-                    <div class="w-full bg-gray-200 h-2 rounded mb-2">
-                        <div class="bg-green-500 h-2 rounded" style="width:${progreso}%"></div>
-                    </div>
-                    <button
-                        onclick="completarMision('${m.id}')"
-                        class="bg-green-600 text-white text-sm w-full p-2 rounded-lg transition-colors"
-                        ${m.completado ? "disabled" : ""}
-                    >
-                        ${m.completado ? "Completado ✔" : "Completar"}
-                    </button>
-                </div>`;
-            });
-            cont.innerHTML = html;
-        }
-
-        function checkLogros(){
-            let desbloqueados = 0;
-            logros.forEach(l => { if(l.condicion()) desbloqueados++; });
-            document.getElementById("logros-count").innerText = desbloqueados;
-        }
-
-        function completarMision(id){
-            const m = misiones.find(x=>x.id===id);
-            if(!m || m.completado) return;
-
-            m.progreso = m.objetivo;
-            m.completado = true;
-            addPoints(m.puntos);
-            renderMisiones();
-        }
-
-        function registrarVisita(nombre){
-            municipiosVisitados.add(nombre);
-            const m = misiones.find(x=>x.id==="explorar_mapa");
-
-            if(m && !m.completado){
-                m.progreso = municipiosVisitados.size;
-                if(m.progreso >= m.objetivo){
-                    m.completado = true;
-                    addPoints(m.puntos);
-                }
-                renderMisiones();
-            }
-        }
-
-        // ============================
-        // CALCULADORA IRMA
-        // ============================
-        function generarRecomendaciones(glucosa, imc, cintura, actividad){
-            let recomendaciones = [];
-            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas. Prioriza alimentos con bajo índice glucémico.");
-            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético: más actividad física y porciones controladas.");
-            if(cintura > 94) recomendaciones.push("📏 La grasa abdominal aumenta el riesgo metabólico. Integra caminatas diarias y ejercicios de fuerza.");
-            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 minutos de actividad física por semana.");
-            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores están dentro de rangos saludables. Mantén tus hábitos actuales.");
-            return recomendaciones;
-        }
-
-        function calcularIRMA(){
-            const municipio = document.getElementById("municipio").value;
-            const glucosa = parseFloat(document.getElementById("glucosa").value);
-            const imc = parseFloat(document.getElementById("imc").value);
-            const cintura = parseFloat(document.getElementById("cintura").value);
-            const actividad = parseFloat(document.getElementById("actividad").value);
-
-            if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
-                document.getElementById("resultado").innerHTML =
-                `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl">⚠️ Completa todos los campos</div>`;
-                return;
-            }
-
-            const g = (glucosa-70)/(180-70);
-            const b = (imc-18)/(40-18);
-            const c = (cintura-70)/(130-70);
-            const a = 1-(actividad/7);
-
-            let irma = (g*0.35)+(b*0.25)+(c*0.25)+(a*0.15);
-            irma = Math.max(0,Math.min(1,irma));
-
-            let nivel="", colorText="", colorBg="", icono="", explicacion="";
-
-            if(irma>0.75){
-                nivel="Crítico"; colorText="text-red-600"; colorBg="bg-red-500"; icono="🚨";
-                explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
-            } else if(irma>0.55){
-                nivel="Alto"; colorText="text-orange-500"; colorBg="bg-orange-500"; icono="⚠️";
-                explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
-            } else if(irma>0.35){
-                nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-yellow-500"; icono="🟡";
-                explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
-            } else {
-                nivel="Bajo"; colorText="text-green-600"; colorBg="bg-green-500"; icono="🟢";
-                explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
-            }
-
-            const porcentaje = Math.round(irma*100);
-            const lista = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li>${r}</li>`).join("");
-
-            document.getElementById("resultado").innerHTML = `
-            <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                <div class="flex justify-between items-center mb-3">
-                    <div>
-                        <p class="text-xs text-gray-500">Municipio</p>
-                        <p class="font-bold text-gray-800">${municipio}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500">Nivel</p>
-                        <p class="font-bold ${colorText}">${icono} ${nivel}</p>
-                    </div>
-                </div>
-                <div class="text-center mb-3">
-                    <p class="text-xs text-gray-500">Índice IRMA</p>
-                    <p class="text-3xl font-black ${colorText}">${irma.toFixed(3)}</p>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
-                    <div class="${colorBg} h-3 rounded-full" style="width:${porcentaje}%"></div>
-                </div>
-                <p class="text-xs text-gray-600 text-center leading-relaxed mb-3">${explicacion}</p>
-                <div class="mt-3 bg-green-50 border border-green-100 p-3 rounded-xl">
-                    <p class="font-bold text-green-800 text-sm mb-1">💡 Recomendaciones personalizadas</p>
-                    <ul class="text-xs text-green-700 space-y-1">${lista}</ul>
-                </div>
-            </div>`;
-            
-            const m = misiones.find(x=>x.id==="calcular_irma");
-            if(m && !m.completado){
-                m.progreso = 1; m.completado = true;
-                addPoints(m.puntos);
-                renderMisiones();
-            }
-        }
-
-        // ============================
-        // MAPA Y DATOS GEOGRÁFICOS
-        // ============================
-        async function cargarMunicipios(){
-            return [];
-        }
-
-        async function cargarNegocios(){
-            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-            const data = await res.json();
-
-            data.forEach(n => {
-                const lat = parseFloat(n.lat);
-                const lng = parseFloat(n.lng);
-
-                if(isNaN(lat) || isNaN(lng)) return;
-
-                const categoria = n.categoria;
-
-                let marker = L.circleMarker([lat,lng],{
-                    radius:3,
-                    color:"#2563eb"
-                });
-
-                marker.bindPopup(`
-                    <b>${n.nombre || "Unidad"}</b><br>
-                    ${n.municipio || ""}
-                `);
-
-                if(capas[categoria]){
-                    capas[categoria].addLayer(marker);
-                }
-            });
-
-            return true;
-        }
-
-        function agregarLeyenda(){
-            const legend = L.control({position:"bottomright"});
-            legend.onAdd = function(){
-                const div = L.DomUtil.create("div","info legend");
-                div.innerHTML = `
-                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:12px;">
-                    <b>Riesgo Metabólico Urbano</b><br>
-                    <div style="margin-top:6px">
-                        <span style="background:#2ecc71;width:12px;height:12px;display:inline-block"></span> Bajo<br>
-                        <span style="background:#f1c40f;width:12px;height:12px;display:inline-block"></span> Medio<br>
-                        <span style="background:#e67e22;width:12px;height:12px;display:inline-block"></span> Alto<br>
-                        <span style="background:#e74c3c;width:12px;height:12px;display:inline-block"></span> Crítico
-                    </div>
-                </div>`;
-                return div;
-            };
-            legend.addTo(map);
-        }
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARQ Metabólica MX</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        body {
-            background-color: #f3f4f6;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        /* Ocultar barra de desplazamiento para un look más "app" */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 28rem;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0 20px 0;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-            border-radius: 20px 20px 0 0;
-        }
-
-        .nav-item {
-            font-size: 11px;
-            font-weight: 600;
-            color: #9ca3af;
-            cursor: pointer;
-            text-align: center;
-            flex: 1;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-item.active {
-            color: #166534;
-            transform: translateY(-2px);
-        }
-
-        .nav-icon {
-            font-size: 22px;
-            display: block;
-            filter: grayscale(100%) opacity(0.5);
-            transition: all 0.3s ease;
-        }
-
-        .nav-item.active .nav-icon {
-            filter: grayscale(0%) opacity(1);
-        }
-
-        .cluster-circle{
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            width:40px;
-            height:40px;
-            border-radius:50%;
-            font-weight:bold;
-            color:white;
-        }
-        .marker-cluster {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        .cluster-small{ background:#16a34a; }
-        .cluster-medium{ background:#f59e0b; }
-        .cluster-large{ background:#dc2626; }
-
-        .custom-cluster{
-            background: transparent;
-            border: none;
-        }
-
-        .screen {
-            padding-bottom: 200px;
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #map {
-            height: 500px !important;
-            z-index: 1;
-            border-radius: 0.75rem;
-        }
-
-        /* Mejoras visuales en alertas de puntos */
-        .point-float {
-            position: absolute;
-            color: #16a34a;
-            font-weight: bold;
-            animation: floatUp 1s ease-out forwards;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
-        }
 
         /* Estilos personalizados para el nuevo menú de Leaflet */
         .leaflet-control-filtros {
@@ -954,6 +209,18 @@
 
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
+                
+                <div class="flex gap-2 mb-2">
+                    <select id="filtroCategoria" class="border rounded p-1 text-sm">
+                        <option value="todos">Mostrar todo</option>
+                        <option value="restaurant">🍽 Restaurantes</option>
+                        <option value="pharmacy">💊 Farmacias</option>
+                        <option value="hospital">🏥 Hospitales</option>
+                        <option value="cafe">☕ Cafés</option>
+                        <option value="supermarket">🛒 Supermercados</option>
+                    </select>
+                </div>
+
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative">
                     <div id="map" class="h-full w-full rounded-xl"></div>
                 </div>
@@ -1128,10 +395,10 @@
         let capaMunicipios = null;
         let datosIARRICache = null; 
 
-        // Actualizamos "cafe" por "gym" para coincidir con la imagen
+        // Restaurado a "cafe" para hacer match con el select solicitado
         let capas = {
             restaurant: L.layerGroup(),
-            gym: L.layerGroup(), 
+            cafe: L.layerGroup(), 
             hospital: L.layerGroup(),
             pharmacy: L.layerGroup(),
             supermarket: L.layerGroup()
@@ -1514,43 +781,29 @@
         // ============================
         function agregarMenuFiltros() {
             const FiltrosControl = L.Control.extend({
-                options: { position: 'topright' }, // Igual a la imagen
+                options: { position: 'topright' },
                 onAdd: function (map) {
                     const div = L.DomUtil.create('div', 'leaflet-control-filtros');
                     
-                    // Evitar que al hacer clic en el menú se arrastre el mapa
                     L.DomEvent.disableClickPropagation(div);
                     L.DomEvent.disableScrollPropagation(div);
 
                     div.innerHTML = `
                         <div class="flex flex-col gap-1">
-                            <label>
-                                <input type="checkbox" value="restaurant" class="filtro-cb" checked>
-                                🍔 Restaurantes
-                            </label>
-                            <label>
-                                <input type="checkbox" value="gym" class="filtro-cb" checked>
-                                💪 Gimnasios
-                            </label>
-                            <label>
-                                <input type="checkbox" value="hospital" class="filtro-cb" checked>
-                                🏥 Hospitales
-                            </label>
-                            <label>
-                                <input type="checkbox" value="pharmacy" class="filtro-cb" checked>
-                                💊 Farmacias
-                            </label>
-                            <label>
-                                <input type="checkbox" value="supermarket" class="filtro-cb" checked>
-                                🛒 Supermercados
-                            </label>
+                            <label><input type="checkbox" value="restaurant" class="filtro-cb" checked> 🍔 Restaurantes</label>
+                            <label><input type="checkbox" value="cafe" class="filtro-cb" checked> ☕ Cafés</label>
+                            <label><input type="checkbox" value="hospital" class="filtro-cb" checked> 🏥 Hospitales</label>
+                            <label><input type="checkbox" value="pharmacy" class="filtro-cb" checked> 💊 Farmacias</label>
+                            <label><input type="checkbox" value="supermarket" class="filtro-cb" checked> 🛒 Supermercados</label>
                         </div>
                     `;
 
-                    // Lógica para activar/desactivar capas al marcar las casillas
                     setTimeout(() => {
                         div.querySelectorAll('.filtro-cb').forEach(cb => {
                             cb.addEventListener('change', (e) => {
+                                // Sincroniza visualmente con el dropdown
+                                document.getElementById("filtroCategoria").value = "todos"; 
+                                
                                 const cat = e.target.value;
                                 if (e.target.checked) {
                                     if (capas[cat]) map.addLayer(capas[cat]);
@@ -1567,13 +820,13 @@
 
             map.addControl(new FiltrosControl());
         }
+
         async function initMap(){
             if(map){
                 map.invalidateSize();
                 return;
             }
 
-            // Crear mapa
             map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
 
             L.tileLayer(
@@ -1582,15 +835,9 @@
             ).addTo(map);
 
             try {
-                // =========================
-                // CARGAR GEOJSON MUNICIPIOS
-                // =========================
                 const geoRes = await fetch("./puebla_municipios.json");
                 const geoData = await geoRes.json();
 
-                // =========================
-                // CARGAR CSV IARRI
-                // =========================
                 const ranking = await cargarIARRI();
                 const rankingMap = {};
 
@@ -1598,9 +845,6 @@
                     rankingMap[normalizarNombre(m.municipio)] = m;
                 });
 
-                // =========================
-                // DIBUJAR MUNICIPIOS
-                // =========================
                 capaMunicipios = L.geoJSON(geoData,{
                     style:function(feature){
                         const nombre = normalizarNombre(
@@ -1650,10 +894,11 @@
                 await cargarNegocios();
                 Object.values(capas).forEach(c => map.addLayer(c));
 
-                agregarLeyenda(); // <-- Añadimos la leyenda visualmente
+                agregarLeyenda(); 
+                agregarMenuFiltros(); // <--- Llamada al menú flotante
 
                 console.log("Mapa cargado correctamente");
-            } catch (error) { // <-- ¡Cierre arreglado!
+            } catch (error) {
                 console.error("Error inicializando el mapa:", error);
             }
         }
@@ -1666,7 +911,7 @@
                 const data = await cargarIARRI(); 
                 if (!data || data.length === 0) throw new Error("Datos vacíos");
 
-                data.sort((a,b)=>b.iarri-a.iarri); // Ajustado para que valores bajos (riesgo alto) se visualicen acordes
+                data.sort((a,b)=>b.iarri-a.iarri); 
                 const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
@@ -1682,7 +927,6 @@
                 top10.forEach((m,i)=>{
                     let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
 
-                    // Lógica invertida arreglada
                     let color = m.iarri >= 0.15 ? "text-green-600" :
                     m.iarri >= 0.10 ? "text-yellow-500" :
                     m.iarri >= 0.05 ? "text-orange-500" :
@@ -1713,18 +957,25 @@
             renderMisiones();
             checkLogros();
 
-            // Lógica de filtro reubicada dentro del bloque de inicialización para prevenir problemas de carga y cierre
-            document.getElementById("filtroCategoria").addEventListener("change", e => {
+            // Lógica combinada para el select que dejaste
+            document.getElementById("filtroCategoria")?.addEventListener("change", e => {
                 if(!map) return;
 
                 let cat = e.target.value;
 
+                // Apagamos todas las capas
                 Object.values(capas).forEach(c => map.removeLayer(c));
 
                 if(cat === "todos"){
                     Object.values(capas).forEach(c => map.addLayer(c));
+                    // Check todas las casillas del menú flotante
+                    document.querySelectorAll('.filtro-cb').forEach(cb => cb.checked = true);
                 } else if(capas[cat]){
                     map.addLayer(capas[cat]);
+                    // Check solo la seleccionada en el menú flotante
+                    document.querySelectorAll('.filtro-cb').forEach(cb => {
+                        cb.checked = (cb.value === cat);
+                    });
                 }
             });
         });
@@ -1732,4 +983,3 @@
     </script>
 </body>
 </html>
-
