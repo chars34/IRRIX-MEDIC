@@ -165,11 +165,17 @@
 	70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); }
 	100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); }
 }
-        #map {
-            height: 500px !important;
-            z-index: 1;
-            border-radius: 0.75rem;
-        }
+       #map {
+
+width:100%;
+height:55vh;
+
+border-radius:20px;
+overflow:hidden;
+
+margin-top:10px;
+
+}
 
         /* Mejoras visuales en alertas de puntos */
         .point-float {
@@ -280,11 +286,11 @@
                 <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-6 h-6 flex items-center justify-center transition-colors">✕</button>
             </div>
             
-            <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
-            <label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
-            <label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
-            <label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
-            <label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
+            <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label><br>
+            <label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label><br>
+            <label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label><br>
+            <label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label><br>
+            <label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label><br>
             <label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
         </div>
 
@@ -882,8 +888,10 @@
                 return;
             }
 
-            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],9);
-
+            map = L.map("map",{preferCanvas:true}).setView([23.5,-102],5);
+setTimeout(()=>{
+    map.invalidateSize();
+},300);
             L.tileLayer(
                 "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
                 { attribution:"© OpenStreetMap" }
@@ -1027,5 +1035,6 @@
     </script>
 </body>
 </html>
+
 
 
