@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -696,19 +695,18 @@ async function cargarNegocios(){
             if(count > 1000) size = "large";
             else if(count > 200) size = "medium";
 
-            return L.divIcon({
-                html: `<div class="cluster-circle">${count}</div>`,
-                className: `cluster-${size}`,
-                iconSize: L.point(40,40)
-            });
+           return L.divIcon({
+    html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
+    iconSize: L.point(40,40)
+});
         }
     });
 
     // 🔹 CREAR MARCADORES
     data.forEach(n => {
 
-        const lat = parseFloat(n.latitud);
-        const lng = parseFloat(n.longitud);
+        const lat = parseFloat(n.lat);
+        const lng = parseFloat(n.lng);
 
         if(!lat || !lng) return;
 
@@ -717,7 +715,7 @@ async function cargarNegocios(){
 renderer: L.canvas(),
 color:"#059669",
 fillColor:"#10b981",
-fillOpacity:0.80.8
+fillOpacity:0.8
         });
 
         marker.bindPopup(`
@@ -787,73 +785,67 @@ async function initMap(){
         // =========================
         // DIBUJAR MUNICIPIOS
         // =========================
-        capaMunicipios = L.geoJSON(geoData,{
+       capaMunicipios = L.geoJSON(geoData,{
 
-            style:function(feature){
+    style:function(feature){
 
-                const nombre = normalizarNombre(
-                    feature.properties.NOMGEO ||
-                    feature.properties.NOM_MUN ||
-                    feature.properties.NOMBRE
-                );
+        const nombre = normalizarNombre(
+            feature.properties.NOMGEO ||
+            feature.properties.NOM_MUN ||
+            feature.properties.NOMBRE
+        );
 
-                const m = rankingMap[nombre];
+        const m = rankingMap[nombre];
 
-                if(!m){
-                    return {
-                        color:"#bbb",
-                        weight:1,
-                        fillOpacity:0.1
-                    };
-                }
+        if(!m){
+            return {
+                color:"#bbb",
+                weight:1,
+                fillOpacity:0.1
+            };
+        }
 
-                return {
-                    color:"#888",
-                    weight:1,
-                    fillColor:colorIARRI(m.iarri),
-                    fillOpacity:0.6
-                };
-            },
+        return {
+            color:"#888",
+            weight:1,
+            fillColor:colorIARRI(m.iarri),
+            fillOpacity:0.6
+        };
+    },
 
-            onEachFeature:function(feature,layer){
+    onEachFeature:function(feature,layer){
 
-                const nombreOriginal =
-                    feature.properties.NOMGEO ||
-                    feature.properties.NOM_MUN ||
-                    feature.properties.NOMBRE;
+        const nombreOriginal =
+            feature.properties.NOMGEO ||
+            feature.properties.NOM_MUN ||
+            feature.properties.NOMBRE;
 
-                const nombre = normalizarNombre(nombreOriginal);
+        const nombre = normalizarNombre(nombreOriginal);
 
-                const m = rankingMap[nombre];
+        const m = rankingMap[nombre];
 
-                if(m){
+        if(m){
 
-                    layer.bindPopup(
-                        `<b>${nombreOriginal}</b><br>
-                        IARRI: ${m.iarri.toFixed(3)}<br>
-                        Nivel: ${nivelIARRI(m.iarri)}`
-                    );
+            layer.bindPopup(
+                `<b>${nombreOriginal}</b><br>
+                IARRI: ${m.iarri.toFixed(3)}<br>
+                Nivel: ${nivelIARRI(m.iarri)}`
+            );
 
-                    layer.bindTooltip(nombreOriginal,{sticky:true});
+            layer.bindTooltip(nombreOriginal,{sticky:true});
 
-                    layer.on("click",()=>{
-                        registrarVisita(nombreOriginal);
-                    });
-                }
-
-            }
-
-
-
-        console.log("Mapa cargado correctamente");
-
-    }
-    catch(error){
-        console.error("Error inicializando el mapa:", error);
+            layer.on("click",()=>{
+                registrarVisita(nombreOriginal);
+            });
+        }
     }
 
-}
+}).addTo(map);
 
+const capaSalud = await cargarNegocios();
+if(capaSalud) map.addLayer(capaSalud);
+
+console.log("Mapa cargado correctamente");
         // ============================
         // RANKING
         // ============================
@@ -912,6 +904,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
