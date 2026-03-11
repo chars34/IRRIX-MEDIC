@@ -86,7 +86,7 @@
         .cluster-small{ background:#16a34a; }
         .cluster-medium{ background:#f59e0b; }
         .cluster-large{ background:#dc2626; }
-
+.custom-cluster{
         .screen {
             padding-bottom: 200px;
             animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -679,10 +679,11 @@
                     if(count > 1000) size = "large";
                     else if(count > 200) size = "medium";
 
-                    return L.divIcon({
-                        html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
-                        iconSize: L.point(40,40)
-                    });
+                  return L.divIcon({
+    html: `<div class="cluster-circle cluster-${size}">${count}</div>`,
+    className: "custom-cluster",
+    iconSize: L.point(40,40)
+});
                 }
             });
 
@@ -847,10 +848,10 @@
                     let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
 
                     // Lógica invertida arreglada
-                    let color = m.iarri < 0.0124 ? "text-red-600" :
-                                m.iarri < 0.0264 ? "text-orange-500" :
-                                m.iarri < 0.0479 ? "text-yellow-500" :
-                                "text-green-600";
+                    let color = m.iarri < 0.05 ? "text-red-600" :
+            m.iarri < 0.10 ? "text-orange-500" :
+            m.iarri < 0.15 ? "text-yellow-500" :
+            "text-green-600";
 
                     html+=`
                     <div class="flex justify-between border-b py-2 text-sm items-center">
