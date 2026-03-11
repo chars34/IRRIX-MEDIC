@@ -379,7 +379,7 @@
             if(datosIARRICache) return datosIARRICache;
             
             try {
-                const res = await fetch("/IARRI_Puebla_Final.csv");
+                const res = await fetch("./IARRI_Puebla_Final.csv");
                 const csvText = await res.text();
                 
                 // Usando PapaParse para evitar problemas con comas anidadas en el texto
@@ -622,34 +622,13 @@
         // ============================
         // MAPA Y DATOS GEOGRÁFICOS
         // ============================
-        async function cargarMunicipios(){
-            const municipios = await fetchAPI("/api/municipios");
-            const lista = document.getElementById("lista-municipios");
-            if(!lista || !municipios.length) return;
-            
-            lista.innerHTML = "";
-            municipios.forEach(m=>{
-                const option = document.createElement("option");
-                option.value = m;
-                lista.appendChild(option);
-            });
-        }
+       async function cargarMunicipios(){
+    return [];
+}
 
-        async function cargarNegocios(tipo,icono){
-            const data = await fetchAPI(`/api/negocios?tipo=${tipo}`);
-            const markers = [];
-            data.slice(0,800).forEach(n => {
-                if(!n.lat || !n.lon) return;
-                const lat = parseFloat(n.lat), lon = parseFloat(n.lon);
-                if(isNaN(lat) || isNaN(lon)) return;
-
-                const marker = L.marker([lat,lon]);
-                marker.bindPopup(`<b>${icono} ${n.nombre}</b>`);
-                markers.push(marker);
-            });
-            return L.layerGroup(markers);
-        }
-
+     async function cargarNegocios(tipo,icono){
+    return L.layerGroup([]);
+}
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
             legend.onAdd = function(){
@@ -679,7 +658,7 @@
             L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { attribution:"© OpenStreetMap" }).addTo(map);
 
             try {
-                const geoData = await fetchAPI("/puebla_municipios.json");
+               const geoData = await fetch("./puebla_municipios.json").then(r=>r.json());
                 const ranking = await cargarIARRI();
                 const rankingMap = {};
 
