@@ -714,10 +714,11 @@ async function cargarNegocios(){
         if(!lat || !lng) return;
 
         const marker = L.circleMarker([lat,lng],{
-            radius:4,
-            color:"#059669",
-            fillColor:"#10b981",
-            fillOpacity:0.8
+           radius:3,
+renderer: L.canvas(),
+color:"#059669",
+fillColor:"#10b981",
+fillOpacity:0.80.8
         });
 
         marker.bindPopup(`
@@ -843,31 +844,7 @@ async function initMap(){
 
             }
 
-        }).addTo(map);
-
-        // =========================
-        // LEYENDA
-        // =========================
-        agregarLeyenda();
-
-        // =========================
-        // CARGAR DENUE SALUD
-        // =========================
-        const capaSalud = await cargarNegocios();
-
-        if(capaSalud){
-            map.addLayer(capaSalud);
-        }
-
-        console.log("Mapa cargado correctamente");
-
-    }
-    catch(error){
-        console.error("Error inicializando el mapa:", error);
-    }
-
-}
-
+      
         }).addTo(map);
 
         // =========================
@@ -951,6 +928,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
