@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -627,12 +630,16 @@
     return [];
 }
 
-  async function cargarNegocios(){
+async function cargarNegocios(){
 
     const res = await fetch("./denue_salud.json");
     const data = await res.json();
 
-    const cluster = L.markerClusterGroup();
+    const cluster = L.markerClusterGroup({
+        chunkedLoading: true,
+        chunkDelay: 50,
+        chunkInterval: 200
+    });
 
     data.forEach(n => {
 
@@ -642,13 +649,14 @@
         if(!lat || !lng) return;
 
         const marker = L.marker([lat,lng])
-        .bindPopup(`<b>${n.nombre}</b>`);
+        .bindPopup(`<b>${n.nombre}</b><br>Unidad de salud`);
 
         cluster.addLayer(marker);
 
     });
 
     return cluster;
+}
 }
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -709,7 +717,7 @@
 
                 // Cargar marcadores (ejecutar en paralelo si son muchas peticiones para mejorar velocidad)
     const capaSalud = await cargarNegocios();
-setTimeout(()=>capaSalud.addTo(map),100);
+capaSalud.addTo(map);
 
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
@@ -774,6 +782,7 @@ top10.forEach((m,i)=>{
     </script>
 </body>
 </html>
+
 
 
 
