@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microcurso - Metabolismo Urbano</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100 p-6">
+
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-lg p-6">
+
+<h1 class="text-2xl font-bold text-green-700 mb-4">
+🌱 Metabolismo Urbano
+</h1>
+
+<p class="text-gray-700 mb-4">
+El metabolismo urbano estudia cómo las ciudades consumen recursos
+como agua, energía y alimentos, y cómo generan residuos.
+</p>
+
+<p class="text-gray-700 mb-4">
+Este concepto permite analizar la sostenibilidad de las ciudades,
+identificando entradas (recursos) y salidas (desechos).
+</p>
+
+<h2 class="font-bold text-lg mt-6 mb-2">
+Ejemplo
+</h2>
+
+<ul class="list-disc ml-6 text-gray-700">
+<li>Entrada: agua potable</li>
+<li>Entrada: alimentos</li>
+<li>Salida: residuos sólidos</li>
+<li>Salida: emisiones de CO2</li>
+</ul>
+
+<button onclick="completarCurso()" 
+class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">
+Completar curso (+50 pts)
+</button>
+
+</div>
+
+<script>
+
+function completarCurso(){
+
+alert("🎉 Curso completado +50 puntos");
+
+let puntos = localStorage.getItem("puntos") || 0;
+
+puntos = parseInt(puntos) + 50;
+
+localStorage.setItem("puntos", puntos);
+
+}
+
+</script>
+
+</body>
+</html>
