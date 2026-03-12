@@ -345,7 +345,8 @@
 
                 <div class="space-y-2">
                     <label class="text-sm font-bold">Municipio</label>
-                    <input id="municipio" list="lista-municipios" placeholder="Ej: Puebla" class="border p-2 w-full rounded">
+      <input id="municipio" list="lista-municipios" placeholder="Selecciona municipio"
+class="border p-2 w-full rounded" autocomplete="off">
                     <datalist id="lista-municipios">
                         <option value="Puebla"></option>
                         <option value="Tehuacan"></option>
@@ -462,7 +463,7 @@
         let map = null;
         let capaMunicipios = null;
         let datosIARRICache = null; 
-
+let municipiosValidos = [];
         let capas = {
             restaurant: L.markerClusterGroup({chunkedLoading:true}),
             cafe: L.markerClusterGroup({chunkedLoading:true}),
@@ -568,7 +569,24 @@
                 return [];
             }
         }
+async function cargarMunicipiosCalculadora(){
 
+    const datos = await cargarIARRI();
+
+    const lista = document.getElementById("lista-municipios");
+    lista.innerHTML = "";
+
+    municipiosValidos = [...new Set(datos.map(d => d.municipio))];
+
+    municipiosValidos.sort();
+
+    municipiosValidos.forEach(m=>{
+        const option = document.createElement("option");
+        option.value = m;
+        lista.appendChild(option);
+    });
+
+}
         // ============================
         // NAVEGACIÓN Y UI
         // ============================
@@ -709,6 +727,12 @@
         // ============================
         // CALCULADORA IRMA
         // ============================
+        function alerta(msg){
+    document.getElementById("resultado").innerHTML =
+    `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl">
+    ⚠️ ${msg}
+    </div>`;
+}
         function generarRecomendaciones(glucosa, imc, cintura, actividad){
             let recomendaciones = [];
             if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas. Prioriza alimentos con bajo índice glucémico.");
@@ -719,18 +743,42 @@
             return recomendaciones;
         }
 
-        function calcularIRMA(){
-            const municipio = document.getElementById("municipio").value;
-            const glucosa = parseFloat(document.getElementById("glucosa").value);
-            const imc = parseFloat(document.getElementById("imc").value);
-            const cintura = parseFloat(document.getElementById("cintura").value);
-            const actividad = parseFloat(document.getElementById("actividad").value);
+       function calcularIRMA(){
 
-            if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
-                document.getElementById("resultado").innerHTML =
-                `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl">⚠️ Completa todos los campos</div>`;
-                return;
-            }
+    const municipio = document.getElementById("municipio").value.trim();
+           if(!municipiosValidos.includes(municipio)){
+    alerta("Debes seleccionar un municipio válido de la lista.");
+    return;
+}
+    const glucosa = parseFloat(document.getElementById("glucosa").value);
+    const imc = parseFloat(document.getElementById("imc").value);
+    const cintura = parseFloat(document.getElementById("cintura").value);
+    const actividad = parseFloat(document.getElementById("actividad").value);
+
+    if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
+        alerta("Debes completar todos los campos.");
+        return;
+    }
+
+    if(glucosa < 70 || glucosa > 180){
+        alerta("Glucosa fuera de rango (70-180 mg/dL)");
+        return;
+    }
+
+    if(imc < 18 || imc > 40){
+        alerta("IMC fuera de rango (18-40)");
+        return;
+    }
+
+    if(cintura < 70 || cintura > 130){
+        alerta("Cintura fuera de rango (70-130 cm)");
+        return;
+    }
+
+    if(actividad < 0 || actividad > 7){
+        alerta("Actividad física fuera de rango (0-7 h/semana)");
+        return;
+    }
 
             const g = (glucosa-70)/(180-70);
             const b = (imc-18)/(40-18);
@@ -1013,6 +1061,7 @@
             updateLevel();
             updateUI();
             cargarMunicipios();
+            cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
 
@@ -1034,3 +1083,4 @@
     </script>
 </body>
 </html>
+
