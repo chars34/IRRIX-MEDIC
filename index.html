@@ -1022,7 +1022,7 @@ async function cargarMunicipiosCalculadora(){
                 return;
             }
 
-            map = L.map("map",{preferCanvas:true}).setView([19.4,-99.1],6);
+            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],12);
             
             // CORRECCIÓN: Movido adentro de initMap, instanciado de forma segura y apuntando a 'map'
             map.getContainer().addEventListener("touchmove", function(e){
@@ -1173,19 +1173,72 @@ async function cargarMunicipiosCalculadora(){
                 });
             });
         });
+// SISTEMA DE PROGRESO
+let progreso = JSON.parse(localStorage.getItem("progresoUsuario")) || {
+    puntos: 1640,
+    nivel: 7,
+    cursos: [],
+    retos: []
+};
+        function completarReto(id){
 
+    if(!progreso.retos.includes(id)){
+        progreso.retos.push(id);
+        progreso.puntos += 150;
+        guardarProgreso();
+    }
+
+}
+        function completarCurso(idCurso){
+
+    if(!progreso.cursos.includes(idCurso)){
+        progreso.cursos.push(idCurso);
+        progreso.puntos += 200;
+        guardarProgreso();
+    }
+
+}
+        function ganarPuntos(cantidad){
+
+    progreso.puntos += cantidad;
+
+    guardarProgreso();
+    cargarProgreso();
+
+}
+function cargarProgreso(){
+
+    const pts = document.getElementById("puntosUsuario");
+
+    if(pts){
+        pts.innerText = progreso.puntos + " pts";
+    }
+
+}
+
+document.addEventListener("DOMContentLoaded", cargarProgreso);
+function guardarProgreso(){
+    localStorage.setItem("progresoUsuario", JSON.stringify(progreso));
+}
     </script>
     <script>
 
-var map = L.map('miniMapa').setView([19.04, -98.20], 12);
+document.addEventListener("DOMContentLoaded", () => {
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-attribution:'© OpenStreetMap'
-}).addTo(map);
+const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],12);
 
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{ attribution:'© OpenStreetMap'}
+).addTo(miniMap);
+
+setTimeout(()=>miniMap.invalidateSize(),200);
+
+});
 </script>
 </body>
 </html>
+
 
 
 
