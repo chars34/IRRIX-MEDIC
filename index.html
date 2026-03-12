@@ -288,11 +288,9 @@
 
 <div id="miniMapa" style="height:180px;" class="rounded-lg"></div>
 
-<button onclick="location.href='mapa.html'"
-class="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-
-Ver mapa completo
-
+<button onclick="irMapa()" 
+class="bg-green-600 text-white px-4 py-2 rounded-lg mt-3 w-full">
+🗺 Ver mapa completo
 </button>
 
 </div>
@@ -566,7 +564,23 @@ let municipiosValidos = [];
             supermarket: L.markerClusterGroup({chunkedLoading:true}),
             gym: L.markerClusterGroup({chunkedLoading:true})
         };
+function irMapa(){
 
+    // cambiar pestaña
+    document.querySelectorAll('.tab').forEach(t=>{
+        t.classList.add('hidden');
+    });
+
+    document.getElementById('tabMapa').classList.remove('hidden');
+
+    // actualizar menú
+    document.querySelectorAll('.nav-btn').forEach(b=>{
+        b.classList.remove('text-green-600');
+    });
+
+    document.getElementById('btnMapa').classList.add('text-green-600');
+
+}
         // ============================
         // UTILIDADES Y CÁLCULOS
         // ============================
@@ -1022,21 +1036,21 @@ async function cargarMunicipiosCalculadora(){
                 return;
             }
 
-            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],12);
-            
-            // CORRECCIÓN: Movido adentro de initMap, instanciado de forma segura y apuntando a 'map'
-            map.getContainer().addEventListener("touchmove", function(e){
-                e.preventDefault();
-            }, {passive:false});
+map = L.map("map",{preferCanvas:true})
+.setView([19.04,-98.20],8);
 
-            setTimeout(()=>{
-                map.invalidateSize();
-            },300);
-            
-            L.tileLayer(
-                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-                { attribution:"© OpenStreetMap" }
-            ).addTo(map);
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{ attribution:'© OpenStreetMap' }
+).addTo(map);
+
+municipiosLayer = L.geoJSON(municipios,{
+style: estiloMunicipio
+}).addTo(map);
+
+map.fitBounds(municipiosLayer.getBounds());
+map.setMaxBounds(municipiosLayer.getBounds());
+}
 
             try {
                 const geoRes = await fetch("./puebla_municipios.json");
@@ -1225,7 +1239,7 @@ function guardarProgreso(){
 
 document.addEventListener("DOMContentLoaded", () => {
 
-const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],12);
+const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
 
 L.tileLayer(
 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -1238,6 +1252,7 @@ setTimeout(()=>miniMap.invalidateSize(),200);
 </script>
 </body>
 </html>
+
 
 
 
