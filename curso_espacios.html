@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Diseño de Espacios Públicos</title>
+<title>Curso Espacios Públicos</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -19,40 +21,84 @@
 </h1>
 
 <p class="text-gray-700 mb-4">
-Los espacios públicos son lugares abiertos para la convivencia social
+Los espacios públicos son áreas abiertas para la convivencia social,
 como parques, plazas y calles peatonales.
 </p>
 
 <p class="text-gray-700 mb-4">
-Un buen diseño urbano mejora la movilidad, la seguridad
-y la calidad de vida de las personas.
+Un buen diseño urbano mejora la calidad de vida, la seguridad
+y la sostenibilidad de las ciudades.
 </p>
+
+<h2 class="font-bold mt-4">Tipos de espacios públicos</h2>
 
 <ul class="list-disc ml-6 text-gray-700">
 <li>Parques urbanos</li>
-<li>Plazas públicas</li>
+<li>Plazas</li>
 <li>Calles peatonales</li>
 <li>Infraestructura verde</li>
 </ul>
 
+<hr class="my-4">
+
+<h2 class="font-bold text-lg mb-2">🔎 Aprende más</h2>
+
+<a href="https://www.archdaily.mx/mx/tag/espacio-publico" target="_blank"
+class="block bg-blue-100 p-3 rounded-lg mb-2">
+Arquitectura y diseño de espacios públicos
+</a>
+
+<a href="https://www.un.org/es/climatechange/cities-pollution" target="_blank"
+class="block bg-blue-100 p-3 rounded-lg">
+Ciudades sostenibles
+</a>
+
+<hr class="my-4">
+
+<h2 class="font-bold text-lg mb-2">🧠 Mini Quiz</h2>
+
+<p class="mb-2">¿Cuál es un espacio público?</p>
+
+<button onclick="correcto()" class="bg-green-500 text-white px-4 py-2 rounded m-1">
+Parque urbano
+</button>
+
+<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
+Centro comercial privado
+</button>
+
+<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
+Casa particular
+</button>
+
+<hr class="my-4">
+
 <button onclick="completarCurso()" 
-class="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700">
-Completar curso (+75 pts)
+class="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700">
+Completar curso +75 pts
 </button>
 
 </div>
 
 <script>
 
-function completarCurso(){
+function correcto(){
+alert("Correcto 🎉");
+}
 
-alert("🎉 Curso completado +75 puntos");
+function incorrecto(){
+alert("Respuesta incorrecta");
+}
+
+function completarCurso(){
 
 let puntos = localStorage.getItem("puntos") || 0;
 
 puntos = parseInt(puntos) + 75;
 
 localStorage.setItem("puntos", puntos);
+
+alert("Curso completado +75 pts");
 
 }
 
