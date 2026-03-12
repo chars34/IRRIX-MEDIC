@@ -280,6 +280,22 @@
                 <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" 
                      alt="Ciudad sostenible" 
                      class="w-full h-52 object-cover rounded-2xl shadow-md">
+                <div class="bg-white rounded-xl shadow p-4 mt-4">
+
+<h3 class="font-bold text-lg mb-2">
+🗺 Análisis rápido del territorio
+</h3>
+
+<div id="miniMapa" style="height:180px;" class="rounded-lg"></div>
+
+<button onclick="location.href='mapa.html'"
+class="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+
+Ver mapa completo
+
+</button>
+
+</div>
 <div class="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
 
 <h3 class="font-bold text-green-700">
@@ -1159,8 +1175,18 @@ async function cargarMunicipiosCalculadora(){
         });
 
     </script>
+    <script>
+
+var map = L.map('miniMapa').setView([19.04, -98.20], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+</script>
 </body>
 </html>
+
 
 
 
