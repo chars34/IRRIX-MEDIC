@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Microcurso - Metabolismo Urbano</title>
+
+<title>Curso Metabolismo Urbano</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -18,44 +21,96 @@
 </h1>
 
 <p class="text-gray-700 mb-4">
-El metabolismo urbano estudia cómo las ciudades consumen recursos
-como agua, energía y alimentos, y cómo generan residuos.
+El metabolismo urbano estudia cómo las ciudades funcionan como sistemas que
+consumen recursos como energía, agua y alimentos y generan residuos.
 </p>
 
 <p class="text-gray-700 mb-4">
-Este concepto permite analizar la sostenibilidad de las ciudades,
-identificando entradas (recursos) y salidas (desechos).
+Este enfoque permite analizar la sostenibilidad de las ciudades y mejorar
+la gestión de recursos naturales.
 </p>
 
-<h2 class="font-bold text-lg mt-6 mb-2">
-Ejemplo
-</h2>
+<h2 class="font-bold mt-4">Entradas de recursos</h2>
 
 <ul class="list-disc ml-6 text-gray-700">
-<li>Entrada: agua potable</li>
-<li>Entrada: alimentos</li>
-<li>Salida: residuos sólidos</li>
-<li>Salida: emisiones de CO2</li>
+<li>Agua</li>
+<li>Energía</li>
+<li>Alimentos</li>
+<li>Materiales</li>
 </ul>
 
+<h2 class="font-bold mt-4">Salidas del sistema urbano</h2>
+
+<ul class="list-disc ml-6 text-gray-700">
+<li>Residuos</li>
+<li>Emisiones de CO2</li>
+<li>Aguas residuales</li>
+</ul>
+
+<hr class="my-4">
+
+<h2 class="font-bold text-lg mb-2">🔎 Aprende más</h2>
+
+<div class="space-y-2">
+
+<a href="https://es.wikipedia.org/wiki/Metabolismo_urbano" target="_blank"
+class="block bg-green-100 p-3 rounded-lg">
+📖 Explicación completa del metabolismo urbano
+</a>
+
+<a href="https://metabolismourbano.com/" target="_blank"
+class="block bg-green-100 p-3 rounded-lg">
+🌎 Proyecto de investigación sobre metabolismo urbano
+</a>
+
+</div>
+
+<hr class="my-4">
+
+<h2 class="font-bold text-lg mb-2">🧠 Mini Quiz</h2>
+
+<p class="mb-2">¿Qué analiza el metabolismo urbano?</p>
+
+<button onclick="correcto()" class="bg-green-500 text-white px-4 py-2 rounded m-1">
+Flujos de recursos en la ciudad
+</button>
+
+<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
+Solo edificios
+</button>
+
+<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
+Solo transporte
+</button>
+
+<hr class="my-4">
+
 <button onclick="completarCurso()" 
-class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">
-Completar curso (+50 pts)
+class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">
+Completar curso +50 pts
 </button>
 
 </div>
 
 <script>
 
-function completarCurso(){
+function correcto(){
+alert("Correcto 🎉");
+}
 
-alert("🎉 Curso completado +50 puntos");
+function incorrecto(){
+alert("Respuesta incorrecta");
+}
+
+function completarCurso(){
 
 let puntos = localStorage.getItem("puntos") || 0;
 
 puntos = parseInt(puntos) + 50;
 
 localStorage.setItem("puntos", puntos);
+
+alert("Curso completado +50 pts");
 
 }
 
