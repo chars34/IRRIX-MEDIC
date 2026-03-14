@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -75,8 +72,33 @@
             filter: grayscale(0%) opacity(1);
         }
 
+        .cluster-circle{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            font-weight:bold;
+            color:white;
+        }
+        .marker-cluster {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .cluster-small{ background:#16a34a; }
+        .cluster-medium{ background:#f59e0b; }
+        .cluster-large{ background:#dc2626; }
+
+        .custom-cluster{
+            background: transparent;
+            border: none;
+        }
+
         .screen {
-            padding-bottom: 120px; /* Reducido para no dejar tanto espacio muerto */
+            padding-bottom: 200px;
             animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -85,9 +107,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Panel de filtros (ajustado para salir desde la derecha) */
         #panelFiltros {
             position: absolute;
-            top: 60px;
+            top: 60px; /* Bajado un poco para no chocar con el botón */
             right: 10px;
             width: 220px;
             max-height: 70vh;
@@ -98,26 +121,25 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             z-index: 1000;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform: translateX(250px);
+            transform: translateX(250px); /* Escondido a la derecha */
             opacity: 0;
-            pointer-events: none;
         }
 
         #panelFiltros.active {
             transform: translateX(0);
             opacity: 1;
-            pointer-events: auto;
         }
 
+        /* Botón llamativo en el lado derecho */
         .btn-toggle-filtros {
             position: absolute;
             top: 15px;
-            right: 15px;
+            right: 15px; /* Lado derecho */
             z-index: 1001;
-            background: #166534;
+            background: #166534; /* Verde oscuro */
             color: white;
             padding: 10px 18px;
-            border-radius: 50px;
+            border-radius: 50px; /* Forma de píldora */
             box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4);
             cursor: pointer;
             font-weight: 800;
@@ -126,12 +148,16 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
-            animation: pulse-green 2s infinite;
+            animation: pulse-green 2s infinite; /* Animación de pulso */
         }
 
         .btn-toggle-filtros:hover {
             background: #15803d;
             transform: scale(1.05);
+        }
+
+        .btn-toggle-filtros:active {
+            transform: scale(0.95);
         }
 
         @keyframes pulse-green {
@@ -145,14 +171,13 @@
             height:55vh;
             overflow:hidden;
             touch-action:none;
-            z-index: 1;
         }
 
+        /* Mejoras visuales en alertas de puntos */
         .point-float {
-            position: fixed;
+            position: absolute;
             color: #16a34a;
-            font-size: 24px;
-            font-weight: 900;
+            font-weight: bold;
             animation: floatUp 1s ease-out forwards;
             pointer-events: none;
             z-index: 9999;
@@ -160,7 +185,38 @@
 
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* Estilos personalizados para el nuevo menú de Leaflet */
+        .leaflet-control-filtros {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(4px);
+            border: 1px solid #e5e7eb;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #374151;
+        }
+        .leaflet-control-filtros label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .leaflet-control-filtros label:hover {
+            background: #f3f4f6;
+        }
+        .leaflet-control-filtros input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -196,11 +252,11 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1 overflow-y-auto pb-32">
             
-            <div id="screen-home" class="screen p-5 space-y-6" style="display: block;">
+            <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido</h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido </h2>
                     <div class="bg-white rounded-xl shadow p-4 mt-4">
                         <h3 class="font-bold text-lg mb-2">🔥 Actividad de hoy</h3>
                         <ul class="text-gray-700 text-sm space-y-1">
@@ -218,8 +274,8 @@
                 
                 <div class="bg-white rounded-xl shadow p-4 mt-4">
                     <h3 class="font-bold text-lg mb-2">🗺 Análisis rápido del territorio</h3>
-                    <div id="miniMapa" style="height:180px; z-index: 1;" class="rounded-lg"></div>
-                    <button onclick="switchScreen('territorio')" class="bg-green-600 text-white px-4 py-2 rounded-lg mt-3 w-full font-bold">
+                    <div id="miniMapa" style="height:180px;" class="rounded-lg"></div>
+                    <button onclick="irMapa()" class="bg-green-600 text-white px-4 py-2 rounded-lg mt-3 w-full">
                         🗺 Ver mapa completo
                     </button>
                 </div>
@@ -227,81 +283,113 @@
                 <div class="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
                     <h3 class="font-bold text-green-700">🌱 Reto urbano del día</h3>
                     <p class="text-sm text-gray-700 mt-1">Encuentra una zona con baja área verde en el mapa y propone una mejora.</p>
-                   <button onclick="switchScreen('retos')" class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 w-full">Ir al reto</button>
+                   <button onclick="switchScreen('retos')" class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Ir al reto</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mt-4">
                     <div class="bg-white shadow rounded-xl p-3 text-center">
                         <p class="text-gray-500 text-sm">Zonas Analizadas</p>
-                        <p id="stats-zonas" class="text-xl font-bold text-green-600">0</p>
+                        <p class="text-xl font-bold text-green-600">12</p>
                     </div>
                     <div class="bg-white shadow rounded-xl p-3 text-center">
                         <p class="text-gray-500 text-sm">Retos</p>
                         <p class="text-xl font-bold text-blue-600">5</p>
                     </div>
+                    <div class="bg-white shadow rounded-xl p-3 text-center">
+                        <p class="text-gray-500 text-sm">Cursos</p>
+                        <p class="text-xl font-bold text-purple-600">3</p>
+                    </div>
+                    <div class="bg-white shadow rounded-xl p-3 text-center">
+                        <p class="text-gray-500 text-sm">Nivel</p>
+                        <p class="text-xl font-bold text-orange-500">7</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 shadow-sm flex gap-4 items-start">
+                    <div class="text-3xl">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-blue-800 mb-1">¡Sube de nivel!</h3>
+                        <p class="text-sm text-blue-600/90 leading-relaxed">Completa retos urbanos y microcursos de aprendizaje para ganar puntos y convertirte en un experto avanzado.</p>
+                    </div>
                 </div>
             </div>
 
-            <div id="screen-territorio" class="screen p-5 flex-col h-full" style="display: none;">
+            <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Análisis Territorial</h2>
                 
                 <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative overflow-hidden">
                     
                     <button onclick="toggleFiltros()" class="btn-toggle-filtros">
-                        <span>🔍</span> FILTROS
+                        <span>🔍</span> FILTRAR MAPA
                     </button>
 
                     <div id="panelFiltros">
                         <div class="flex justify-between items-center mb-3 border-b pb-2">
                             <h2 class="text-green-800 font-bold">Capas</h2>
-                            <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-6 h-6 flex items-center justify-center transition-colors font-bold">✕</button>
+                            <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-6 h-6 flex items-center justify-center transition-colors">✕</button>
                         </div>
                         
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label>
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label>
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label>
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label>
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label>
-                        <label class="flex items-center gap-2 mb-2"><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
+                        <label><input type="checkbox" value="restaurant" class="filtro-cb"> 🍽 Restaurantes</label><br>
+                        <label><input type="checkbox" value="cafe" class="filtro-cb"> ☕ Cafés</label><br>
+                        <label><input type="checkbox" value="hospital" class="filtro-cb"> 🏥 Hospitales</label><br>
+                        <label><input type="checkbox" value="pharmacy" class="filtro-cb"> 💊 Farmacias</label><br>
+                        <label><input type="checkbox" value="supermarket" class="filtro-cb"> 🛒 Supermercados</label><br>
+                        <label><input type="checkbox" value="gym" class="filtro-cb"> 🏋️ Gimnasios</label>
                     </div>
 
-                    <div id="map" class="h-full w-full rounded-xl bg-gray-300"></div>
+                    <div id="map" class="h-full w-full rounded-xl"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100">Explora las zonas de intervención urbana interactuando con el mapa y selecciona un municipio.</p>
             </div>
 
-            <div id="screen-aprendizaje" class="screen p-5 space-y-4" style="display: none;">
+            <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Educación Interactiva</h2>
                 <p class="text-sm text-gray-500 mb-4">Mejora tus habilidades en urbanismo táctico y ecología.</p>
 
                 <div class="border border-purple-100 p-5 rounded-2xl bg-gradient-to-b from-white to-purple-50 shadow-sm">
                     <div class="flex gap-3 mb-3">
                         <div class="text-2xl">🌱</div>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-1">Progreso del curso</p>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full w-1/2"></div>
+                            </div>
+                        </div>
                         <div>
                             <h3 class="font-bold text-purple-900 mb-1">Intro al Metabolismo Urbano</h3>
                             <p class="text-xs text-purple-700/80 line-clamp-2">Aprende los conceptos básicos de entradas y salidas de recursos en la ciudad moderna.</p>
                         </div>
                     </div>
-                    <button onclick="completarCursoBasico(this)" class="w-full mt-3 bg-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-purple-700 transition">
-                        Completar Microcurso +50 pts
-                    </button>
+                    <a href="curso_metabolismo.html" target="_blank">
+                        <button class="w-full mt-3 bg-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-purple-700 transition">
+                            Completar Microcurso +50 pts
+                        </button>
+                    </a>
                 </div>
 
                 <div class="border border-indigo-100 p-5 rounded-2xl bg-gradient-to-b from-white to-indigo-50 shadow-sm">
                     <div class="flex gap-3 mb-3">
                         <div class="text-2xl">🏙️</div>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-1">Progreso del curso</p>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                                <div class="bg-green-500 h-3 rounded-full w-1/2"></div>
+                            </div>                         
+                        </div>
                         <div>
                             <h3 class="font-bold text-indigo-900 mb-1">Diseño de Espacios Públicos</h3>
                             <p class="text-xs text-indigo-700/80 line-clamp-2">Estrategias prácticas para la recuperación de calles, parques y zonas peatonales.</p>
                         </div>
                     </div>
-                    <button onclick="completarCursoAvanzado(this)" class="w-full mt-3 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition">
-                        Completar Microcurso +75 pts
-                    </button>
+                    <a href="curso_espacios.html" target="_blank">
+                        <button class="w-full mt-3 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition">
+                            Completar Microcurso +75 pts
+                        </button>
+                    </a>
                 </div>
             </div>
 
-            <div id="screen-fundamentacion" class="screen p-5 space-y-5" style="display: none;">
+            <div id="screen-fundamentacion" class="screen hidden p-5 space-y-5">
                 <h2 class="text-xl font-bold text-gray-800">Fundamentación Científica</h2>
 
                 <div class="bg-green-50 p-5 rounded-2xl border border-green-100 text-sm">
@@ -318,60 +406,81 @@
                 con el entorno urbano del municipio.
                 </p>
 
-                <div class="space-y-3">
-                    <label class="block text-sm font-bold">Municipio</label>
-                    <select id="municipio" class="border p-3 w-full rounded-lg bg-white shadow-sm outline-none focus:ring-2 focus:ring-green-500">
-                        <option value="">Selecciona municipio...</option>
-                    </select>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold">Municipio</label>
+                    <input id="municipio" list="lista-municipios" placeholder="Selecciona municipio" class="border p-2 w-full rounded" autocomplete="off">
+                    <datalist id="lista-municipios">
+                        <option value="Puebla"></option>
+                        <option value="Tehuacan"></option>
+                        <option value="San Martin Texmelucan"></option>
+                        <option value="Atlixco"></option>
+                        <option value="San Pedro Cholula"></option>
+                    </datalist>
 
-                    <label class="block text-sm font-bold">Glucosa mg/dL (70 - 180)</label>
-                    <input id="glucosa" type="number" min="70" max="180" class="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-green-500">
+                    <label class="text-sm font-bold">Glucosa mg/dL (70 - 180)</label>
+                    <input id="glucosa" type="number" min="70" max="180" class="border p-2 w-full rounded">
 
-                    <label class="block text-sm font-bold">IMC (18 - 40)</label>
-                    <input id="imc" type="number" min="18" max="40" class="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-green-500">
+                    <label class="text-sm font-bold">IMC (18 - 40)</label>
+                    <input id="imc" type="number" min="18" max="40" class="border p-2 w-full rounded">
 
-                    <label class="block text-sm font-bold">Cintura cm (70 - 130)</label>
-                    <input id="cintura" type="number" min="70" max="130" class="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-green-500">
+                    <label class="text-sm font-bold">Cintura cm (70 - 130)</label>
+                    <input id="cintura" type="number" min="70" max="130" class="border p-2 w-full rounded">
 
-                    <label class="block text-sm font-bold">Actividad física horas/semana (0 - 7)</label>
-                    <input id="actividad" type="number" min="0" max="7" class="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-green-500">
+                    <label class="text-sm font-bold">Actividad física horas/semana (0 - 7)</label>
+                    <input id="actividad" type="number" min="0" max="7" class="border p-2 w-full rounded">
 
-                    <button onclick="calcularIRMA()" class="bg-green-700 text-white p-4 mt-2 rounded-xl w-full font-bold shadow-md hover:bg-green-800 transition">
+                    <button onclick="calcularIRMA()" class="bg-green-700 text-white p-3 rounded-xl w-full font-bold">
                         Calcular IRMA
                     </button>
 
                     <div class="text-xs mt-6 border-t pt-4 text-gray-600">
-                        <div id="resultado" class="mt-3"></div>
+                        <div id="resultado" class="mt-3 p-3 bg-gray-100 rounded-xl text-sm"></div>
+                        <b class="text-gray-700">Fuentes oficiales</b>
+                        <div class="mt-2 space-y-1">
+                            <p>🌍 <span class="font-semibold text-green-700">OMS</span> — Riesgo metabólico, obesidad y actividad física.</p>
+                            <p>🇲🇽 <span class="font-semibold text-blue-700">INEGI</span> — Censo de Población y datos municipales.</p>
+                            <p>🏥 <span class="font-semibold text-purple-700">INSP / ENSANUT</span> — Salud y nutrición en México.</p>
+                            <p>🏙 <span class="font-semibold text-orange-700">DENUE</span> — Infraestructura económica y urbana.</p>
+                            <p>🧬 <span class="font-semibold text-red-700">ADA / IDF</span> — Guías médicas sobre glucosa y diabetes.</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="screen-retos" class="screen p-5" style="display: none;">
+            <div id="screen-retos" class="screen hidden p-5">
                 <h2 class="text-xl font-bold mb-3">🎯 Misiones Urbanas</h2>
 
                 <div class="bg-gray-100 p-3 rounded-xl text-sm mb-4">
-                    🔥 Racha diaria: <span id="racha" class="font-bold text-orange-500">1</span> días<br>
-                    🏆 Logros desbloqueados: <span id="logros-count" class="font-bold text-blue-500">0</span>
+                    🔥 Racha diaria: <span id="racha">0</span> días<br>
+                    🏆 Logros desbloqueados: <span id="logros-count">0</span>
                 </div>
 
                 <div id="lista-retos" class="space-y-3"></div>
             </div>
 
-            <div id="screen-ranking" class="screen p-5" style="display: none;">
+            <div id="screen-ranking" class="screen hidden p-5">
                 <div class="bg-white p-4 rounded-2xl shadow-md">
-                    <h2 class="text-lg font-bold mb-3">🏆 Top Municipios (IARRI)</h2>
+                    <h2 class="text-lg font-bold mb-3">🏆 Top 10 Municipios (IARRI)</h2>
 
                     <div id="ranking" class="space-y-1">
                         Cargando datos...
                     </div>
 
-                    <p class="text-gray-700 text-sm mt-4 leading-relaxed bg-gray-50 p-3 rounded-lg">
+                    <p class="text-gray-700 text-sm mt-4 leading-relaxed">
                         🧠 <b class="text-blue-600">IARRI</b> 
-                        (<b>Índice de Riesgo Metabólico Ambiental</b>) 
-                        mide cómo el entorno influye en la salud.
+                        (<b>Índice de Riesgo Metabólico Relacionado con el Ambiente</b>) 
+                        mide cómo el <span class="text-green-600 font-semibold">entorno urbano</span> 
+                        puede influir en la salud metabólica de la población.
                         <br><br>
-                        🟢 Altos → Entorno saludable<br>
-                        🔴 Bajos → Mayor riesgo
+                        🔎 Este índice combina factores como:
+                        <br>🌳 <span class="text-green-700">Disponibilidad de áreas verdes</span>
+                        <br>🏙️ <span class="text-blue-700">Condiciones urbanas del municipio</span>
+                        <br>📉 <span class="text-orange-600">Nivel de marginación social</span>
+                        <br><br>
+                        📊 <b>Interpretación:</b>
+                        <br>🟢 Valores altos → entorno más saludable  
+                        <br>🟡 Valores medios → riesgo moderado  
+                        <br>🔴 Valores bajos → mayor riesgo metabólico
                     </p>
                 </div>
             </div>
@@ -402,19 +511,19 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    
     <script>
         // ============================
-        // SISTEMA GLOBAL UNIFICADO
+        // ESTADO GLOBAL
         // ============================
+       
         let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || {
             totalPoints: 0,
-            level: "Básico",
-            retos: [],
-            cursos: []
+            level: "Básico"
         };
         let municipiosVisitados = new Set();
+        let chartInstance = null;
         let map = null;
+        let capaMunicipios = null;
         let datosIARRICache = null; 
         let municipiosValidos = [];
         let capas = {
@@ -426,39 +535,143 @@
             gym: L.markerClusterGroup({chunkedLoading:true})
         };
 
+        function irMapa(){
+            switchScreen('territorio');
+        }
+
         // ============================
-        // NAVEGACIÓN Y UI (CORREGIDO)
+        // UTILIDADES Y CÁLCULOS
         // ============================
-        function switchScreen(screen) {
-            // Ocultamos TODOS forzando el style inline
-            document.querySelectorAll(".screen").forEach(s => {
-                s.style.display = 'none';
-            });
-            
-            // Mostramos solo el seleccionado
-            const selectedScreen = document.getElementById("screen-" + screen);
-            if(selectedScreen) {
-                // Si es el mapa, necesitamos usar flex
-                if(screen === 'territorio') {
-                    selectedScreen.style.display = 'flex';
-                } else {
-                    selectedScreen.style.display = 'block';
-                }
+        function normalizarNombre(nombre){
+            if(!nombre) return "";
+            return nombre
+                .toString()
+                .replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a")
+                .replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e")
+                .replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i")
+                .replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o")
+                .replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u")
+                .replace(/Ã±/g,"n")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g,"")
+                .replace(/[^a-zA-Z ]/g,"")
+                .trim()
+                .toUpperCase();
+        }
+
+        function clasificarRiesgo(iarri){
+            if(iarri < 0.013){
+                return {nivel:"Bajo", color:"#2ecc71"};
             }
+            if(iarri < 0.037){
+                return {nivel:"Medio", color:"#f1c40f"};
+            }
+            if(iarri < 0.073){
+                return {nivel:"Alto", color:"#e67e22"};
+            }
+            return {nivel:"Crítico", color:"#e74c3c"};
+        }
+
+        function estiloMunicipio(feature){
+            const iarri = feature.properties.IARRI;
+            const r = clasificarRiesgo(iarri);
+            return {
+                fillColor: r.color,
+                weight:1,
+                color:"#555",
+                fillOpacity:0.8
+            };
+        }
+
+        function colorIARRI(v){
+            if(v < 0.0124) return "#dc2626";   // rojo
+            if(v < 0.0264) return "#f97316";   // naranja
+            if(v < 0.0479) return "#facc15";   // amarillo
+            if(v < 0.0894) return "#86efac";   // verde claro
+            return "#16a34a";                  // verde
+        }
+
+        function nivelIARRI(v){
+            if(v < 0.0124) return "Crítico";
+            if(v < 0.0264) return "Alto";
+            if(v < 0.0479) return "Medio";
+            if(v < 0.0894) return "Bajo";
+            return "Muy Bajo";
+        }
+
+        async function fetchAPI(url){
+            try {
+                const res = await fetch(url);
+                return await res.json();
+            } catch (error) {
+                console.error(`Error al hacer fetch a ${url}:`, error);
+                return [];
+            }
+        }
+
+        // ============================
+        // CARGA DE DATOS (CSV)
+        // ============================
+        async function cargarIARRI(){
+            if(datosIARRICache) return datosIARRICache;
+            
+            try {
+                const res = await fetch("./IARRI_Puebla_Final.csv");
+                const csvText = await res.text();
+                
+                const parsed = Papa.parse(csvText, { skipEmptyLines: true });
+                const filas = parsed.data.slice(1); 
+                
+                datosIARRICache = filas.map(c => {
+                    return {
+                        municipio: c[2]?.trim(),
+                        iarri: parseFloat(c[8])
+                    };
+                }).filter(x => x.municipio && !isNaN(x.iarri));
+                
+                return datosIARRICache;
+            } catch (error) {
+                console.error("Error al cargar IARRI CSV:", error);
+                return [];
+            }
+        }
+
+        async function cargarMunicipiosCalculadora(){
+            const datos = await cargarIARRI();
+            const lista = document.getElementById("lista-municipios");
+            lista.innerHTML = "";
+
+            municipiosValidos = [...new Set(datos.map(d => d.municipio))];
+            municipiosValidos.sort();
+
+            municipiosValidos.forEach(m=>{
+                const option = document.createElement("option");
+                option.value = m;
+                lista.appendChild(option);
+            });
+        }
+
+        // ============================
+        // NAVEGACIÓN Y UI
+        // ============================
+        function toggleFiltros() {
+            const panel = document.getElementById('panelFiltros');
+            panel.classList.toggle('active');
+        }
+
+        function switchScreen(screen) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+            
+            const selectedScreen = document.getElementById("screen-" + screen);
+            if(selectedScreen) selectedScreen.classList.remove("hidden");
 
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             const selectedNav = document.getElementById("nav-" + screen);
             if(selectedNav) selectedNav.classList.add("active");
 
-            // Lógicas específicas
+            // Lógicas por pantalla
             if (screen === "territorio") setTimeout(initMap, 200);
             if (screen === "ranking") cargarRanking();
-            if (screen === "home") miniMapInit(); // Recarga el minimapa visualmente
-        }
-
-        function toggleFiltros() {
-            const panel = document.getElementById('panelFiltros');
-            panel.classList.toggle('active');
         }
 
         function updateLevel() {
@@ -474,116 +687,40 @@
 
             if (pts) {
                 pts.innerText = userProgress.totalPoints;
-                // Efectito visual al sumar puntos
-                pts.classList.add('text-green-400', 'scale-110');
-                setTimeout(() => pts.classList.remove('text-green-400', 'scale-110'), 300);
+                pts.classList.add('scale-110', 'text-green-400');
+                setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300);
             }
             if (lvl) lvl.innerText = userProgress.level;
-            
-            document.getElementById("stats-zonas").innerText = municipiosVisitados.size;
         }
 
-        function addPoints(points, eventOrElement) {
+        function addPoints(points, buttonElement) {
             userProgress.totalPoints += points;
             updateLevel();
             localStorage.setItem("arqProgress", JSON.stringify(userProgress));
             updateUI();
             checkLogros();
 
-            // Animación flotante
-            if (eventOrElement) {
-                let rect;
-                if(eventOrElement.getBoundingClientRect) {
-                    rect = eventOrElement.getBoundingClientRect();
-                } else if(eventOrElement.target) {
-                    rect = eventOrElement.target.getBoundingClientRect();
-                }
-                
-                if(rect) {
-                    const floatEl = document.createElement("div");
-                    floatEl.className = "point-float";
-                    floatEl.innerText = "+" + points;
-                    floatEl.style.left = (rect.left + rect.width / 2) + "px";
-                    floatEl.style.top = rect.top + "px";
-                    document.body.appendChild(floatEl);
-                    setTimeout(() => floatEl.remove(), 1000);
-                }
+            if (buttonElement) {
+                const rect = buttonElement.getBoundingClientRect();
+                const floatEl = document.createElement("div");
+                floatEl.className = "point-float";
+                floatEl.innerText = "+" + points;
+                floatEl.style.left = (rect.left + rect.width / 2) + "px";
+                floatEl.style.top = rect.top + "px";
+                document.body.appendChild(floatEl);
+                setTimeout(() => floatEl.remove(), 1000);
             }
         }
 
         // ============================
-        // MOCK DATA (RESPALDO SI NO HAY ARCHIVOS LOCALES)
+        // MISIONES Y LOGROS
         // ============================
-        async function cargarIARRI(){
-            if(datosIARRICache) return datosIARRICache;
-            
-            try {
-                const res = await fetch("./IARRI_Puebla_Final.csv");
-                if(!res.ok) throw new Error("CSV no encontrado");
-                
-                const csvText = await res.text();
-                const parsed = Papa.parse(csvText, { skipEmptyLines: true });
-                const filas = parsed.data.slice(1); 
-                
-                datosIARRICache = filas.map(c => {
-                    return {
-                        municipio: c[2]?.trim(),
-                        iarri: parseFloat(c[8])
-                    };
-                }).filter(x => x.municipio && !isNaN(x.iarri));
-            } catch (error) {
-                console.warn("Usando datos simulados de IARRI. No se encontró el CSV local.");
-                datosIARRICache = [
-                    {municipio: "Puebla", iarri: 0.08},
-                    {municipio: "Tehuacán", iarri: 0.04},
-                    {municipio: "Atlixco", iarri: 0.06},
-                    {municipio: "San Pedro Cholula", iarri: 0.09},
-                    {municipio: "San Martín Texmelucan", iarri: 0.015}
-                ];
-            }
-            return datosIARRICache;
-        }
-
-        async function cargarMunicipiosCalculadora(){
-            const datos = await cargarIARRI();
-            const select = document.getElementById("municipio");
-            
-            municipiosValidos = [...new Set(datos.map(d => d.municipio))];
-            municipiosValidos.sort();
-
-            municipiosValidos.forEach(m => {
-                const option = document.createElement("option");
-                option.value = m;
-                option.text = m;
-                select.appendChild(option);
-            });
-        }
-
-        // ============================
-        // CURSOS Y LOGROS
-        // ============================
-        function completarCursoBasico(btn) {
-            if(!userProgress.cursos.includes('basico')) {
-                userProgress.cursos.push('basico');
-                addPoints(50, btn);
-                btn.innerText = "Completado ✔";
-                btn.classList.add("bg-green-600", "cursor-not-allowed");
-            }
-        }
-
-        function completarCursoAvanzado(btn) {
-            if(!userProgress.cursos.includes('avanzado')) {
-                userProgress.cursos.push('avanzado');
-                addPoints(75, btn);
-                btn.innerText = "Completado ✔";
-                btn.classList.add("bg-green-600", "cursor-not-allowed");
-            }
-        }
-
         let misiones = [
             { id:"explorar_mapa", nombre:"🗺 Explorador del territorio", descripcion:"Explora 3 municipios en el mapa", puntos:120, progreso:0, objetivo:3, completado:false },
             { id:"calcular_irma", nombre:"🧬 Detective metabólico", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
-            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos en tu colonia", puntos:100, progreso:0, objetivo:1, completado:false }
+            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos en tu colonia", puntos:100, progreso:0, objetivo:1, completado:false },
+            { id:"parque", nombre:"🌳 Reto parque verde", descripcion:"Visita un parque cercano", puntos:120, progreso:0, objetivo:1, completado:false },
+            { id:"analista", nombre:"📊 Analista urbano", descripcion:"Analiza un municipio con alto riesgo", puntos:180, progreso:0, objetivo:1, completado:false }
         ];
 
         let logros = [
@@ -610,11 +747,11 @@
                         <div class="bg-green-500 h-2 rounded" style="width:${progreso}%"></div>
                     </div>
                     <button
-                        onclick="completarMision('${m.id}', this)"
-                        class="${m.completado ? 'bg-gray-400' : 'bg-green-600'} text-white font-bold text-sm w-full p-2 rounded-lg transition-colors"
+                        onclick="completarMision('${m.id}')"
+                        class="bg-green-600 text-white text-sm w-full p-2 rounded-lg transition-colors"
                         ${m.completado ? "disabled" : ""}
                     >
-                        ${m.completado ? "Completado ✔" : "Completar Reto"}
+                        ${m.completado ? "Completado ✔" : "Completar"}
                     </button>
                 </div>`;
             });
@@ -627,21 +764,20 @@
             document.getElementById("logros-count").innerText = desbloqueados;
         }
 
-        function completarMision(id, btn){
+        function completarMision(id){
             const m = misiones.find(x=>x.id===id);
             if(!m || m.completado) return;
 
             m.progreso = m.objetivo;
             m.completado = true;
-            addPoints(m.puntos, btn);
+            addPoints(m.puntos);
             renderMisiones();
         }
 
         function registrarVisita(nombre){
             municipiosVisitados.add(nombre);
-            updateUI();
-            
             const m = misiones.find(x=>x.id==="explorar_mapa");
+
             if(m && !m.completado){
                 m.progreso = municipiosVisitados.size;
                 if(m.progreso >= m.objetivo){
@@ -657,15 +793,25 @@
         // ============================
         function alerta(msg){
             document.getElementById("resultado").innerHTML =
-            `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl font-medium shadow-sm">
+            `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl">
             ⚠️ ${msg}
             </div>`;
         }
 
+        function generarRecomendaciones(glucosa, imc, cintura, actividad){
+            let recomendaciones = [];
+            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas. Prioriza alimentos con bajo índice glucémico.");
+            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético: más actividad física y porciones controladas.");
+            if(cintura > 94) recomendaciones.push("📏 La grasa abdominal aumenta el riesgo metabólico. Integra caminatas diarias y ejercicios de fuerza.");
+            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 minutos de actividad física por semana.");
+            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores están dentro de rangos saludables. Mantén tus hábitos actuales.");
+            return recomendaciones;
+        }
+
         function calcularIRMA(){
-            const municipio = document.getElementById("municipio").value;
-            if(!municipio){
-                alerta("Debes seleccionar un municipio.");
+            const municipio = document.getElementById("municipio").value.trim();
+            if(!municipiosValidos.includes(municipio)){
+                alerta("Debes seleccionar un municipio válido de la lista.");
                 return;
             }
 
@@ -674,12 +820,31 @@
             const cintura = parseFloat(document.getElementById("cintura").value);
             const actividad = parseFloat(document.getElementById("actividad").value);
 
-            if(isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
-                alerta("Por favor, completa todos los campos numéricos.");
+            if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
+                alerta("Debes completar todos los campos.");
                 return;
             }
 
-            // Cálculos
+            if(glucosa < 70 || glucosa > 180){
+                alerta("Glucosa fuera de rango (70-180 mg/dL)");
+                return;
+            }
+
+            if(imc < 18 || imc > 40){
+                alerta("IMC fuera de rango (18-40)");
+                return;
+            }
+
+            if(cintura < 70 || cintura > 130){
+                alerta("Cintura fuera de rango (70-130 cm)");
+                return;
+            }
+
+            if(actividad < 0 || actividad > 7){
+                alerta("Actividad física fuera de rango (0-7 h/semana)");
+                return;
+            }
+
             const g = (glucosa-70)/(180-70);
             const b = (imc-18)/(40-18);
             const c = (cintura-70)/(130-70);
@@ -688,19 +853,27 @@
             let irma = (g*0.35)+(b*0.25)+(c*0.25)+(a*0.15);
             irma = Math.max(0,Math.min(1,irma));
 
-            let nivel, colorText, colorBg, icono, explicacion;
+            let nivel="", colorText="", colorBg="", icono="", explicacion="";
+
             if(irma>0.75){
                 nivel="Crítico"; colorText="text-red-600"; colorBg="bg-red-500"; icono="🚨";
+                explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
             } else if(irma>0.55){
                 nivel="Alto"; colorText="text-orange-500"; colorBg="bg-orange-500"; icono="⚠️";
+                explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
             } else if(irma>0.35){
                 nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-yellow-500"; icono="🟡";
+                explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
             } else {
                 nivel="Bajo"; colorText="text-green-600"; colorBg="bg-green-500"; icono="🟢";
+                explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
             }
 
+            const porcentaje = Math.round(irma*100);
+            const lista = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li>${r}</li>`).join("");
+
             document.getElementById("resultado").innerHTML = `
-            <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mt-4">
+            <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
                 <div class="flex justify-between items-center mb-3">
                     <div>
                         <p class="text-xs text-gray-500">Municipio</p>
@@ -716,7 +889,12 @@
                     <p class="text-3xl font-black ${colorText}">${irma.toFixed(3)}</p>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
-                    <div class="${colorBg} h-3 rounded-full" style="width:${Math.round(irma*100)}%"></div>
+                    <div class="${colorBg} h-3 rounded-full" style="width:${porcentaje}%"></div>
+                </div>
+                <p class="text-xs text-gray-600 text-center leading-relaxed mb-3">${explicacion}</p>
+                <div class="mt-3 bg-green-50 border border-green-100 p-3 rounded-xl">
+                    <p class="font-bold text-green-800 text-sm mb-1">💡 Recomendaciones personalizadas</p>
+                    <ul class="text-xs text-green-700 space-y-1">${lista}</ul>
                 </div>
             </div>`;
             
@@ -729,122 +907,209 @@
         }
 
         // ============================
-        // MAPA Y DATOS
+        // MAPA Y DATOS GEOGRÁFICOS
         // ============================
-        function colorIARRI(v){
-            if(v < 0.0124) return "#dc2626";
-            if(v < 0.0264) return "#f97316";
-            if(v < 0.0479) return "#facc15";
-            if(v < 0.0894) return "#86efac";
-            return "#16a34a";
+        function clasificarCategoria(c){
+            if(!c) return null;
+            c = c.toString();
+            if(c.startsWith("621")) return "hospital";
+            if(c.startsWith("46411")) return "pharmacy";
+            if(c.startsWith("462")) return "supermarket";
+            if(c.startsWith("71394")) return "gym";
+            if(c.startsWith("72251")) return "cafe";
+            if(c.startsWith("722")) return "restaurant";
+            return null;
         }
 
         async function cargarNegocios(){
-            try {
-                const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
-                if(!res.ok) return;
-                const data = await res.json();
-                
-                data.forEach(n => {
-                    const lat = parseFloat(n.lat || n.latitud);
-                    const lng = parseFloat(n.lng || n.longitud);
-                    if(isNaN(lat) || isNaN(lng)) return;
+            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+            const data = await res.json();
+            const batch = 500;   // procesa 500 puntos por ciclo
+            let i = 0;
 
-                    let cat = null;
-                    let c = String(n.codigo_scian || "");
-                    if(c.startsWith("621")) cat = "hospital";
-                    else if(c.startsWith("46411")) cat = "pharmacy";
-                    else if(c.startsWith("462")) cat = "supermarket";
-                    else if(c.startsWith("71394")) cat = "gym";
-                    else if(c.startsWith("72251")) cat = "cafe";
-                    else if(c.startsWith("722")) cat = "restaurant";
+            function procesarChunk(){
+                const limite = Math.min(i + batch, data.length);
+                for(; i < limite; i++){
+                    const n = data[i];
+                    const lat = parseFloat(n.lat);
+                    const lng = parseFloat(n.lng);
 
-                    if(cat && capas[cat]){
-                        L.circleMarker([lat,lng],{radius:4, color:"#2563eb"})
-                         .bindPopup(`<b>${n.nombre || "Unidad"}</b><br>${n.municipio || ""}`)
-                         .addTo(capas[cat]);
-                    }
-                });
-            } catch (e) { console.warn("Error cargando negocios:", e); }
+                    if(isNaN(lat) || isNaN(lng)) continue;
+
+                    const categoria = clasificarCategoria(n.codigo_scian);
+
+                    if(!categoria) continue;
+
+                    const marker = L.circleMarker([lat,lng],{
+                        radius:4,
+                        color:"#2563eb"
+                    });
+
+                    marker.bindPopup(`
+                        <b>${n.nombre || "Unidad"}</b><br>
+                        ${n.municipio || ""}
+                    `);
+
+                    capas[categoria].addLayer(marker);
+                }
+
+                if(i < data.length){
+                    requestAnimationFrame(procesarChunk);
+                }
+            }
+            procesarChunk();
         }
 
+        function agregarLeyenda(){
+            const legend = L.control({position:"bottomright"});
+            legend.onAdd = function(){
+                const div = L.DomUtil.create("div","info legend");
+                div.innerHTML = `
+                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:12px;">
+                    <b>Riesgo Metabólico Urbano</b><br>
+                    <div style="margin-top:6px">
+                        <span style="background:#2ecc71;width:12px;height:12px;display:inline-block"></span> Bajo<br>
+                        <span style="background:#f1c40f;width:12px;height:12px;display:inline-block"></span> Medio<br>
+                        <span style="background:#e67e22;width:12px;height:12px;display:inline-block"></span> Alto<br>
+                        <span style="background:#e74c3c;width:12px;height:12px;display:inline-block"></span> Crítico
+                    </div>
+                </div>`;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // ============================
+        // INICIALIZACIÓN DE MAPA
+        // ============================
+        
         async function initMap(){
             if(map){
                 map.invalidateSize();
                 return;
             }
 
-            map = L.map("map").setView([19.04,-98.20],8);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
+            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                { attribution:'© OpenStreetMap' }
+            ).addTo(map);
 
             try {
                 const geoRes = await fetch("./puebla_municipios.json");
-                if(!geoRes.ok) throw new Error("JSON no encontrado");
-                
                 const geoData = await geoRes.json();
-                const ranking = await cargarIARRI();
-                
-                // Normaliza string de búsqueda (quita acentos, todo mayusculas)
-                const normalize = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
-                const rankingMap = {};
-                ranking.forEach(m => rankingMap[normalize(m.municipio)] = m);
 
-                L.geoJSON(geoData, {
-                    style: function(feature){
-                        const nombre = normalize(feature.properties.NOMGEO || feature.properties.NOM_MUN || "");
+                const ranking = await cargarIARRI();
+                const rankingMap = {};
+
+                ranking.forEach(m=>{
+                    rankingMap[normalizarNombre(m.municipio)] = m;
+                });
+
+                capaMunicipios = L.geoJSON(geoData,{
+                    style:function(feature){
+                        const nombre = normalizarNombre(
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE
+                        );
                         const m = rankingMap[nombre];
+
+                        if(!m){
+                            return {
+                                color:"#bbb",
+                                weight:1,
+                                fillOpacity:0.1
+                            };
+                        }
                         return {
-                            color: "#888", weight: 1, fillOpacity: 0.6,
-                            fillColor: m ? colorIARRI(m.iarri) : "#bbb"
+                            color:"#888",
+                            weight:1,
+                            fillColor:colorIARRI(m.iarri),
+                            fillOpacity:0.6
                         };
                     },
-                    onEachFeature: function(feature, layer){
-                        const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN;
-                        const m = rankingMap[normalize(nombreOriginal || "")];
-                        
+                    onEachFeature:function(feature,layer){
+                        const nombreOriginal =
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE;
+
+                        const nombre = normalizarNombre(nombreOriginal);
+                        const m = rankingMap[nombre];
+
                         if(m){
-                            layer.bindPopup(`<b>${nombreOriginal}</b><br>IARRI: ${m.iarri.toFixed(3)}`);
+                            layer.bindPopup(
+                                `<b>${nombreOriginal}</b><br>
+                                IARRI: ${m.iarri.toFixed(3)}<br>
+                                Nivel: ${nivelIARRI(m.iarri)}`
+                            );
+                            layer.bindTooltip(nombreOriginal,{sticky:true});
+                            layer.on("click",()=>{
+                                registrarVisita(nombreOriginal);
+                            });
                         }
-                        layer.on("click", () => registrarVisita(nombreOriginal));
                     }
                 }).addTo(map);
+
+                map.fitBounds(capaMunicipios.getBounds());
+
+                await cargarNegocios();
+                agregarLeyenda(); 
+               
+                console.log("Mapa cargado correctamente");
             } catch (error) {
-                console.warn("No se pudo dibujar los polígonos. Asegúrate de tener puebla_municipios.json", error);
+                console.error("Error inicializando el mapa:", error);
             }
-
-            await cargarNegocios();
-        }
-
-        let miniMap = null;
-        function miniMapInit() {
-            if(document.getElementById('miniMapa')) {
-                if(!miniMap) {
-                    miniMap = L.map('miniMapa',{zoomControl:false, dragging:false, scrollWheelZoom:false}).setView([19.04,-98.20],8);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-                }
-                setTimeout(()=>miniMap.invalidateSize(), 300);
-            }
-        }
-
-        async function cargarRanking(){
-            const data = await cargarIARRI();
-            data.sort((a,b)=>b.iarri-a.iarri);
-            const top10 = data.slice(0,10);
-            
-            let html="";
-            top10.forEach((m,i)=>{
-                let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<b>${i+1}.</b>`;
-                html+=`
-                <div class="flex justify-between border-b border-gray-100 py-3 text-sm items-center hover:bg-gray-50 px-2 rounded">
-                    <span>${medal} ${m.municipio}</span>
-                    <span class="font-bold text-green-700">${m.iarri.toFixed(3)}</span>
-                </div>`;
-            });
-            document.getElementById("ranking").innerHTML = html;
         }
 
         // ============================
-        // INICIO
+        // RANKING
+        // ============================
+        async function cargarRanking(){
+            try {
+                const data = await cargarIARRI(); 
+                if (!data || data.length === 0) throw new Error("Datos vacíos");
+
+                data.sort((a,b)=>b.iarri-a.iarri); 
+                const peor = data[0]; 
+
+                if(peor && !misiones.find(m=>m.id==="municipio_critico")){
+                    misiones.push({
+                        id:"municipio_critico", nombre:"🚨 Arquitecto metabólico", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
+                    });
+                    renderMisiones();
+                }
+
+                const top10 = data.slice(0,10);
+                let html="";
+
+                top10.forEach((m,i)=>{
+                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
+
+                    let color = m.iarri >= 0.15 ? "text-green-600" :
+                    m.iarri >= 0.10 ? "text-yellow-500" :
+                    m.iarri >= 0.05 ? "text-orange-500" :
+                    "text-red-600";
+
+                    html+=`
+                    <div class="flex justify-between border-b py-2 text-sm items-center">
+                        <span class="font-medium">${medal} ${m.municipio}</span>
+                        <span class="font-bold ${color}">${m.iarri.toFixed(3)}</span>
+                    </div>`;
+                });
+
+                document.getElementById("ranking").innerHTML = html;
+
+            } catch(err){
+                document.getElementById("ranking").innerHTML = "<p class='text-red-500'>Error cargando ranking</p>";
+                console.error(err);
+            }
+        }
+
+        // ============================
+        // INICIALIZACIÓN
         // ============================
         document.addEventListener("DOMContentLoaded", () => {
             updateLevel();
@@ -852,17 +1117,69 @@
             cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
-            miniMapInit();
 
-            // Configurar Checkboxes de capas
-            document.querySelectorAll('.filtro-cb').forEach(cb => {
-                cb.addEventListener('change', (e) => {
+            // Configuración del Minimapa
+            const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
+            setTimeout(()=>miniMap.invalidateSize(),200);
+
+            // Filtros del mapa interactivo
+            document.querySelectorAll('.filtro-cb').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
                     if(!map) return;
-                    if(e.target.checked) map.addLayer(capas[e.target.value]);
-                    else map.removeLayer(capas[e.target.value]);
+                    let cat = e.target.value;
+                    
+                    if(e.target.checked) {
+                        map.addLayer(capas[cat]);
+                    } else {
+                        map.removeLayer(capas[cat]);
+                    }
                 });
             });
         });
+
+        // SISTEMA DE PROGRESO
+        let progreso = JSON.parse(localStorage.getItem("progresoUsuario")) || {
+            puntos: 1640,
+            nivel: 7,
+            cursos: [],
+            retos: []
+        };
+
+        function completarReto(id){
+            if(!progreso.retos.includes(id)){
+                progreso.retos.push(id);
+                progreso.puntos += 150;
+                guardarProgreso();
+            }
+        }
+
+        function completarCurso(idCurso){
+            if(!progreso.cursos.includes(idCurso)){
+                progreso.cursos.push(idCurso);
+                progreso.puntos += 200;
+                guardarProgreso();
+            }
+        }
+
+        function ganarPuntos(cantidad){
+            progreso.puntos += cantidad;
+            guardarProgreso();
+            cargarProgreso();
+        }
+
+        function cargarProgreso(){
+            const pts = document.getElementById("puntosUsuario");
+            if(pts){
+                pts.innerText = progreso.puntos + " pts";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarProgreso);
+
+        function guardarProgreso(){
+            localStorage.setItem("progresoUsuario", JSON.stringify(progreso));
+        }
     </script>
 </body>
 </html>
