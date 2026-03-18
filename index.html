@@ -1383,18 +1383,38 @@
 
                 capaMunicipios = L.geoJSON(geoData,{
                     style:function(feature){
-                        const nombre = normalizarNombre(
-                            feature.properties.NOMGEO ||
-                            feature.properties.NOM_MUN ||
-                            feature.properties.NOMBRE
-                        );
-                        const m = rankingMap[nombre];
+                   style:function(feature){
+    const nombreOriginal =
+        feature.properties.NOMGEO ||
+        feature.properties.NOM_MUN ||
+        feature.properties.NOMBRE;
 
-                        if(!m){
-                            return { color:"#bbb", weight:1, fillOpacity:0.1 };
-                        }
-                        return { color:"#888", weight:1, fillColor:colorIARRI(m.iarri), fillOpacity:0.6 };
-                    },
+    const nombre = normalizarNombre(nombreOriginal);
+
+    // 🔥 BÚSQUEDA FLEXIBLE
+    let m = rankingMap[nombre];
+
+    if(!m){
+        // intentar coincidencia parcial
+        for(let key in rankingMap){
+            if(key.includes(nombre) || nombre.includes(key)){
+                m = rankingMap[key];
+                break;
+            }
+        }
+    }
+
+    if(!m){
+        return { color:"#ccc", weight:1, fillOpacity:0.2 };
+    }
+
+    return {
+        color:"#555",
+        weight:1,
+        fillColor: colorIARRI(m.iarri),
+        fillOpacity: 0.7
+    };
+},
                     onEachFeature:function(feature,layer){
                         const nombreOriginal =
                             feature.properties.NOMGEO ||
@@ -1437,8 +1457,9 @@
                         </div>
                      `);
                 });
-
+console.log("Geo:", nombre, "CSV:", rankingMap[nombre]);
                 console.log("Mapa cargado correctamente");
+                
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
             }
