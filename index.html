@@ -4,22 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -29,50 +16,146 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
 
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; max-width: 28rem; background: white;
-            border-top: 1px solid #eee; display: flex; justify-content: space-around;
-            padding: 12px 0 20px 0; left: 50%; transform: translateX(-50%);
-            z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); border-radius: 20px 20px 0 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 28rem;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            border-radius: 20px 20px 0 0;
         }
 
         .nav-item {
-            font-size: 11px; font-weight: 600; color: #9ca3af; cursor: pointer; text-align: center;
-            flex: 1; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
 
-        .nav-item.active { color: #166534; transform: translateY(-2px); }
-        .nav-icon { font-size: 22px; display: block; filter: grayscale(100%) opacity(0.5); transition: all 0.3s ease; }
-        .nav-item.active .nav-icon { filter: grayscale(0%) opacity(1); }
+        .nav-item.active {
+            color: #166534;
+            transform: translateY(-2px);
+        }
 
-        .cluster-circle{ display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; font-weight:bold; color:white; }
-        .marker-cluster { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .nav-icon {
+            font-size: 22px;
+            display: block;
+            filter: grayscale(100%) opacity(0.5);
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        .cluster-circle{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            font-weight:bold;
+            color:white;
+        }
+        .marker-cluster {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
         .cluster-small{ background:#16a34a; }
         .cluster-medium{ background:#f59e0b; }
         .cluster-large{ background:#dc2626; }
-        .custom-cluster{ background: transparent; border: none; }
 
-        .screen { padding-bottom: 200px; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-cluster{
+            background: transparent;
+            border: none;
+        }
+
+        .screen {
+            padding-bottom: 200px;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         
         #panelFiltros {
-            position: absolute; top: 60px; right: 10px; width: 220px; max-height: 70vh; overflow-y: auto;
-            background: white; padding: 15px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            z-index: 1000; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateX(250px); opacity: 0;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 220px;
+            max-height: 70vh;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateX(250px);
+            opacity: 0;
         }
-        #panelFiltros.active { transform: translateX(0); opacity: 1; }
+
+        #panelFiltros.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
 
         .btn-toggle-filtros {
-            position: absolute; top: 15px; right: 15px; z-index: 1001; background: #166534; color: white;
-            padding: 10px 18px; border-radius: 50px; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4); cursor: pointer;
-            font-weight: 800; border: 2px solid white; display: flex; align-items: center; gap: 8px;
-            transition: all 0.3s ease; animation: pulse-green 2s infinite;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+            background: #166534;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4);
+            cursor: pointer;
+            font-weight: 800;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            animation: pulse-green 2s infinite;
         }
-        .btn-toggle-filtros:hover { background: #15803d; transform: scale(1.05); }
-        .btn-toggle-filtros:active { transform: scale(0.95); }
+
+        .btn-toggle-filtros:hover {
+            background: #15803d;
+            transform: scale(1.05);
+        }
+
+        .btn-toggle-filtros:active {
+            transform: scale(0.95);
+        }
 
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.7); }
@@ -80,67 +163,77 @@
             100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); }
         }
         
-        #map{ width:100%; height:55vh; overflow:hidden; touch-action:none; }
+        #map{
+            width:100%;
+            height:55vh;
+            overflow:hidden;
+            touch-action:none;
+        }
 
         .point-float {
-            position: absolute; color: #16a34a; font-weight: bold; animation: floatUp 1s ease-out forwards;
-            pointer-events: none; z-index: 9999; font-size: 1.2rem; text-shadow: 0px 2px 4px rgba(0,0,0,0.2);
+            position: absolute;
+            color: #16a34a;
+            font-weight: bold;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 1.2rem;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.2);
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(1.5); } }
 
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
         .toast-msg {
-            background: rgba(22, 101, 52, 0.95); color: white; padding: 12px 20px; border-radius: 50px; font-weight: bold;
-            font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: slideDownFade 0.4s ease-out forwards;
-            backdrop-filter: blur(5px); display: flex; align-items: center; gap: 8px;
+            background: rgba(22, 101, 52, 0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideDownFade 0.4s ease-out forwards;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        @keyframes slideDownFade { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        .emoji-particle { position: fixed; pointer-events: none; z-index: 9998; animation: fallDrop 2s linear forwards; font-size: 24px; }
-        @keyframes fallDrop { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        @keyframes slideDownFade {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
 
-        .badge-locked { filter: grayscale(100%); opacity: 0.5; }
-        .badge-unlocked { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); animation: popBadge 0.4s ease; }
-        @keyframes popBadge { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
-        
-        .leaflet-routing-container { display: none !important; }
+        .emoji-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            animation: fallDrop 2s linear forwards;
+            font-size: 24px;
+        }
+
+        @keyframes fallDrop {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
     </style>
 </head>
 <body class="text-gray-800 relative">
-
-    <div id="login-modal" class="fixed inset-0 bg-green-900/95 z-[999999] hidden flex-col items-center justify-center transition-opacity duration-500 opacity-0">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-sm mx-4 relative">
-            <button onclick="cerrarLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl">✕</button>
-            <div class="text-5xl mb-4">🌍</div>
-            <h2 class="text-2xl font-black text-green-800 mb-2">IARRI-MX</h2>
-            <p class="text-sm text-gray-500 mb-6">Inicia sesión para guardar tu progreso, reportes y calcular rutas seguras.</p>
-            <button onclick="loginConGoogle()" class="flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl w-full hover:bg-gray-50 transition shadow-sm mb-4">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                Continuar con Google
-            </button>
-            <button onclick="cerrarLoginModal()" class="text-sm text-gray-400 font-medium hover:text-gray-600 transition">Explorar como invitado</button>
-        </div>
-    </div>
-
-    <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
-            <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
-            <p class="text-xs text-gray-500 mb-4">Sube fotos de parques, calles o zonas de riesgo.</p>
-            
-            <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
-            
-            <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner">
-                <img id="img-preview" class="w-full h-full object-cover">
-            </div>
-            
-            <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-3 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20"></textarea>
-            
-            <div class="flex gap-3">
-                <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-                <button onclick="guardarReporteFoto()" id="btn-subir-foto" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-md transition">Subir Reporte</button>
-            </div>
-        </div>
-    </div>
 
     <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
@@ -175,15 +268,9 @@
                     <h1 class="text-2xl font-black text-green-800 tracking-tight">IARRI-MX</h1>
                     <p class="text-xs text-gray-500 font-medium">ARQ Metabólica MX</p>
                 </div>
-                <div class="flex gap-3 items-center">
-                    <button id="btn-login-header" onclick="abrirLoginModal()" class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200 hover:bg-green-100 transition hidden uppercase tracking-wider">Entrar</button>
-                    <div id="user-avatar-header" class="hidden">
-                        <img id="img-avatar-header" src="" class="w-9 h-9 rounded-full border border-gray-200 shadow-sm object-cover">
-                    </div>
-                    <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-inner relative cursor-pointer" onclick="lanzarConfeti()">
-                        AM
-                        <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3 h-3 rounded-full border-2 border-white"></div>
-                    </div>
+                <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-inner relative cursor-pointer" onclick="lanzarConfeti()">
+                    AM
+                    <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3 h-3 rounded-full border-2 border-white"></div>
                 </div>
             </div>
 
@@ -210,7 +297,7 @@
             
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, Explorador <span class="text-xl">👋</span></h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, Juan Carlos <span class="text-xl">👋</span></h2>
                     
                     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1">
                         <div class="absolute -right-4 -bottom-4 text-5xl opacity-10">💡</div>
@@ -235,9 +322,9 @@
                      alt="Ciudad sostenible" 
                      class="w-full h-52 object-cover rounded-2xl shadow-md transition transform hover:scale-[1.02]">
                 
-                <div class="bg-white rounded-xl shadow p-4 mt-4 relative">
-                    <h3 class="font-bold text-lg mb-2 flex items-center gap-2">🗺 Tu Entorno <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">GPS</span></h3>
-                    <div id="miniMapa" style="height:180px;" class="rounded-lg shadow-inner z-0 border border-gray-100"></div>
+                <div class="bg-white rounded-xl shadow p-4 mt-4">
+                    <h3 class="font-bold text-lg mb-2 flex items-center gap-2">🗺 Análisis rápido <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">Preview</span></h3>
+                    <div id="miniMapa" style="height:180px;" class="rounded-lg shadow-inner z-0"></div>
                     <button onclick="irMapa()" class="bg-green-600 text-white px-4 py-3 rounded-xl mt-3 w-full font-bold shadow-md hover:bg-green-700 transition">
                         🗺 Ver mapa completo
                     </button>
@@ -282,17 +369,9 @@
                         <span>🔍</span> FILTRAR
                     </button>
 
-                    <div class="absolute bottom-6 right-3 z-[1000] flex flex-col gap-3">
-                        <button onclick="abrirModalFoto()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-purple-600" title="Reportar Zona con Foto">
-                            📷
-                        </button>
-                        <button onclick="activarRutaSaludable()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-green-600" title="Trazar Ruta Segura">
-                            🚶
-                        </button>
-                        <button onclick="localizarUsuario()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600" title="Mi Ubicación">
-                            📍
-                        </button>
-                    </div>
+                    <button onclick="localizarUsuario()" class="absolute bottom-6 right-3 z-[1000] bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600">
+                        📍
+                    </button>
 
                     <div id="panelFiltros">
                         <div class="flex justify-between items-center mb-3 border-b pb-2">
@@ -313,7 +392,7 @@
                     <div id="map" class="h-full w-full rounded-xl z-0"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-center gap-2">
-                    <span>👆</span> Explora las zonas, reporta con fotos o crea rutas saludables.
+                    <span>👆</span> Explora las zonas e interactúa con el mapa.
                 </p>
             </div>
 
@@ -379,7 +458,8 @@
                         <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded">+80 pts</span>
                     </h3>
                     <p class="text-xs text-gray-500 mb-4">
-                    El Índice de Riesgo Metabólico Ambiental (IRMA) combina factores individuales con el entorno urbano.
+                    El Índice de Riesgo Metabólico Ambiental (IRMA) combina factores individuales 
+                    con el entorno urbano del municipio.
                     </p>
 
                     <div class="space-y-3">
@@ -389,6 +469,9 @@
                             <datalist id="lista-municipios">
                                 <option value="Puebla"></option>
                                 <option value="Tehuacan"></option>
+                                <option value="San Martin Texmelucan"></option>
+                                <option value="Atlixco"></option>
+                                <option value="San Pedro Cholula"></option>
                             </datalist>
                         </div>
 
@@ -410,11 +493,23 @@
                                 <input id="actividad" type="number" min="0" max="7" placeholder="0-7" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition">
                             </div>
                         </div>
+
                         <button onclick="calcularIRMA()" class="bg-gray-800 text-white p-3 rounded-xl w-full font-bold mt-2 shadow-lg hover:bg-black transition transform hover:-translate-y-0.5">
                             📊 Calcular IRMA
                         </button>
                     </div>
+
                     <div id="resultado" class="mt-4 transition-all"></div>
+                </div>
+
+                <div class="text-xs bg-gray-50 p-4 rounded-xl border border-gray-100 text-gray-600 mt-6 shadow-inner">
+                    <b class="text-gray-700 uppercase tracking-wide mb-2 block">Fuentes oficiales</b>
+                    <div class="space-y-2">
+                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🌍</span> <span class="font-semibold text-green-700">OMS</span> — Riesgo metabólico y actividad física.</p>
+                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🇲🇽</span> <span class="font-semibold text-blue-700">INEGI</span> — Censo de Población.</p>
+                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🏥</span> <span class="font-semibold text-purple-700">INSP / ENSANUT</span> — Salud en México.</p>
+                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🏙</span> <span class="font-semibold text-orange-700">DENUE</span> — Infraestructura económica.</p>
+                    </div>
                 </div>
             </div>
 
@@ -422,6 +517,7 @@
                 <h2 class="text-xl font-bold mb-3 flex items-center justify-between">
                     <span>🎯 Misiones Urbanas</span>
                 </h2>
+
                 <div class="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-100 shadow-sm text-sm mb-5 flex items-center justify-between">
                     <div>
                         <div class="font-bold text-orange-800 mb-1">Racha diaria activa</div>
@@ -433,22 +529,16 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-5 relative overflow-hidden">
-                    <h3 class="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
-                        <span>🏅 Galería de Insignias</span>
-                        <span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold uppercase tracking-widest">Rango: <span id="rango-nombre">Novato</span></span>
-                    </h3>
-                    <div id="contenedor-badges" class="grid grid-cols-3 gap-4 text-center"></div>
-                </div>
-
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-bold text-gray-600 text-sm uppercase">Retos Disponibles</h3>
                     <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full"><span id="logros-count">0</span> Logros Mágicos</span>
                 </div>
+
                 <div id="lista-retos" class="space-y-4"></div>
             </div>
 
             <div id="screen-ranking" class="screen hidden p-5">
+                
                 <div class="bg-white p-4 rounded-2xl shadow-md mb-5 border border-gray-100">
                     <h2 class="text-md font-bold text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
                     <p class="text-[10px] text-gray-400 text-center mb-3">Según el índice IARRI analizado</p>
@@ -459,101 +549,65 @@
 
                 <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
                     <h2 class="text-lg font-black mb-4 flex items-center gap-2">🏆 Top 10 Municipios</h2>
+
                     <div id="ranking" class="space-y-2">
                         <div class="text-center text-gray-400 py-4 animate-pulse">Cargando datos satelitales...</div>
+                    </div>
+
+                    <div class="mt-6 pt-5 border-t border-gray-100">
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            🧠 <b class="text-blue-600">IARRI</b> 
+                            (<b>Índice de Riesgo Metabólico</b>) 
+                            mide cómo el <span class="text-green-600 font-semibold">entorno urbano</span> 
+                            puede influir en la salud.
+                            <br><br>
+                            📊 <b>Interpretación:</b>
+                            <br><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span> Valores altos → Entorno saludable  
+                            <br><span class="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1"></span> Valores medios → Riesgo moderado  
+                            <br><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span> Valores bajos → Riesgo metabólico
+                        </p>
                     </div>
                 </div>
             </div>
         </main>
 
         <nav class="nav-bar">
-            <div onclick="switchScreen('home')" class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span> Inicio</div>
-            <div onclick="switchScreen('territorio')" class="nav-item" id="nav-territorio"><span class="nav-icon">🗺️</span> Mapa</div>
-            <div onclick="switchScreen('retos')" class="nav-item" id="nav-retos"><span class="nav-icon">🎯</span> Retos</div>
-            <div onclick="switchScreen('aprendizaje')" class="nav-item" id="nav-aprendizaje"><span class="nav-icon">📚</span> Aprende</div>
-            <div onclick="switchScreen('fundamentacion')" class="nav-item" id="nav-fundamentacion"><span class="nav-icon">🧬</span> Ciencia</div>
-            <div onclick="switchScreen('ranking')" class="nav-item" id="nav-ranking"><span class="nav-icon">🏆</span> Rank</div>
+            <div onclick="switchScreen('home')" class="nav-item active" id="nav-home">
+                <span class="nav-icon">🏠</span> Inicio
+            </div>
+            <div onclick="switchScreen('territorio')" class="nav-item" id="nav-territorio">
+                <span class="nav-icon">🗺️</span> Mapa
+            </div>
+            <div onclick="switchScreen('retos')" class="nav-item" id="nav-retos">
+                <span class="nav-icon">🎯</span> Retos
+            </div>
+            <div onclick="switchScreen('aprendizaje')" class="nav-item" id="nav-aprendizaje">
+                <span class="nav-icon">📚</span> Aprende
+            </div>
+            <div onclick="switchScreen('fundamentacion')" class="nav-item" id="nav-fundamentacion">
+                <span class="nav-icon">🧬</span> Ciencia
+            </div>
+            <div onclick="switchScreen('ranking')" class="nav-item" id="nav-ranking">
+                <span class="nav-icon">🏆</span> Rank
+            </div>
         </nav>
 
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
-        // ==========================================
-        // CONFIGURACIÓN FIREBASE (REEMPLAZA ESTO)
-        // ==========================================
-       const firebaseConfig = {
-  apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
-  authDomain: "iarri-metabolica.firebaseapp.com",
-  projectId: "iarri-metabolica",
-  storageBucket: "iarri-metabolica.firebasestorage.app",
-  messagingSenderId: "863715352747",
-  appId: "1:863715352747:web:6e64eaca117320843717ee",
-  measurementId: "G-M46CV52N5Y"
-};
-        
-        // Inicializar Firebase solo si no ha sido inicializado antes
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-
-        // Lógica Login UI
-        function abrirLoginModal() {
-            const modal = document.getElementById('login-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => modal.style.opacity = '1', 10);
-        }
-
-        function cerrarLoginModal() {
-            const modal = document.getElementById('login-modal');
-            modal.style.opacity = '0';
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 500);
-        }
-
-        function loginConGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then((result) => {
-                cerrarLoginModal();
-                mostrarToast(`¡Hola, ${result.user.displayName.split(' ')[0]}!`, "👋");
-            }).catch((error) => {
-                mostrarToast("Error al iniciar sesión", "❌");
-                console.error(error);
-            });
-        }
-
-        // Observador del estado de autenticación
-        auth.onAuthStateChanged((user) => {
-            const saludoEl = document.querySelector("#screen-home h2");
-            const btnLogin = document.getElementById('btn-login-header');
-            const avatarDiv = document.getElementById('user-avatar-header');
-            const avatarImg = document.getElementById('img-avatar-header');
-
-            if (user) {
-                if(saludoEl) saludoEl.innerHTML = `Bienvenido, ${user.displayName.split(' ')[0]} <span class="text-xl">👋</span>`;
-                if(btnLogin) btnLogin.classList.add('hidden');
-                if(avatarDiv) avatarDiv.classList.remove('hidden');
-                if(avatarImg) avatarImg.src = user.photoURL;
-                cerrarLoginModal(); // Por si estaba abierto
-            } else {
-                if(saludoEl) saludoEl.innerHTML = `Bienvenido, Explorador <span class="text-xl">👋</span>`;
-                if(btnLogin) btnLogin.classList.remove('hidden');
-                if(avatarDiv) avatarDiv.classList.add('hidden');
-            }
-        });
-
-
-        // Lógica de UI básica y Utilidades (Sin cambios)
+        // ============================
+        // SISTEMA DE TOASTS, EFECTOS Y MODALES
+        // ============================
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
             toast.className = "toast-msg";
             toast.innerHTML = `<span>${icono}</span> <span>${mensaje}</span>`;
+            
             container.appendChild(toast);
+
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(-20px)';
@@ -579,16 +633,24 @@
             const modal = document.getElementById('modal-levelup');
             const content = document.getElementById('modal-levelup-content');
             document.getElementById('modal-new-level').innerText = nuevoNivel;
+            
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.style.opacity = '1'; content.style.transform = 'scale(1)'; }, 50);
+            // Timeout para permitir que el display block se renderice antes de la animación de opacidad
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                content.style.transform = 'scale(1)';
+            }, 50);
         }
 
         function cerrarModalNivel() {
             const modal = document.getElementById('modal-levelup');
             const content = document.getElementById('modal-levelup-content');
+            
             modal.style.opacity = '0';
             content.style.transform = 'scale(0.9)';
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         function simularCursoCompleto(pts, nombre) {
@@ -604,18 +666,23 @@
             let rachaData = JSON.parse(localStorage.getItem("arqRacha")) || { fecha: '', dias: 0 };
             
             if (rachaData.fecha !== hoy) {
-                let ayer = new Date(); ayer.setDate(ayer.getDate() - 1);
+                let ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                
                 if (rachaData.fecha === ayer.toDateString()) {
                     rachaData.dias++;
                     mostrarToast(`¡Racha mantenida! 🔥 ${rachaData.dias} días`);
                 } else if (rachaData.fecha !== '') {
-                    rachaData.dias = 1; mostrarToast("Comienzas una nueva racha 🔥");
+                    rachaData.dias = 1;
+                    mostrarToast("Comienzas una nueva racha 🔥");
                 } else {
-                    rachaData.dias = 1; mostrarToast("¡Primer día de racha! 🔥");
+                    rachaData.dias = 1; 
+                    mostrarToast("¡Primer día de racha! 🔥");
                 }
                 rachaData.fecha = hoy;
                 localStorage.setItem("arqRacha", JSON.stringify(rachaData));
             }
+            
             const rachaEl = document.getElementById("racha");
             if(rachaEl) rachaEl.innerText = rachaData.dias;
         }
@@ -625,18 +692,30 @@
                 "Las ciudades con más árboles tienen tasas significativamente más bajas de obesidad.",
                 "Caminar 30 min diarios reduce un 25% el riesgo de desarrollar resistencia a la insulina.",
                 "El ruido del tráfico constante puede elevar los niveles de cortisol, afectando tu metabolismo.",
-                "Las 'ciudades de 15 minutos' promueven una mejor salud cardiovascular poblacional."
+                "Las 'ciudades de 15 minutos' promueven una mejor salud cardiovascular poblacional.",
+                "Una buena iluminación urbana fomenta caminatas nocturnas seguras y reduce el sedentarismo."
             ];
             const tipEl = document.getElementById('tip-diario');
-            if (tipEl) tipEl.innerText = tips[Math.floor(Math.random() * tips.length)];
+            if (tipEl) {
+                tipEl.innerText = tips[Math.floor(Math.random() * tips.length)];
+            }
         }
 
-        let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
+        // ============================
+        // ESTADO GLOBAL
+        // ============================
+       
+        let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || {
+            totalPoints: 0,
+            level: "Básico"
+        };
+        // NUEVO: Variable para rastrear cambios de nivel
         let nivelAnteriorGlobal = userProgress.level;
 
         let municipiosVisitados = new Set();
         let chartInstance = null;
         let map = null;
+        let capaMunicipios = null;
         let datosIARRICache = null; 
         let municipiosValidos = [];
         let capas = {
@@ -648,11 +727,52 @@
             gym: L.markerClusterGroup({chunkedLoading:true})
         };
 
-        function irMapa(){ switchScreen('territorio'); }
+        function irMapa(){
+            switchScreen('territorio');
+        }
 
+        // ============================
+        // UTILIDADES Y CÁLCULOS
+        // ============================
         function normalizarNombre(nombre){
             if(!nombre) return "";
-            return nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase();
+            return nombre
+                .toString()
+                .replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a")
+                .replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e")
+                .replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i")
+                .replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o")
+                .replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u")
+                .replace(/Ã±/g,"n")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g,"")
+                .replace(/[^a-zA-Z ]/g,"")
+                .trim()
+                .toUpperCase();
+        }
+
+        function clasificarRiesgo(iarri){
+            if(iarri < 0.013){
+                return {nivel:"Bajo", color:"#2ecc71"}; 
+            }
+            if(iarri < 0.037){
+                return {nivel:"Medio", color:"#f1c40f"};
+            }
+            if(iarri < 0.073){
+                return {nivel:"Alto", color:"#e67e22"};
+            }
+            return {nivel:"Crítico", color:"#e74c3c"};
+        }
+
+        function estiloMunicipio(feature){
+            const iarri = feature.properties.IARRI;
+            const r = clasificarRiesgo(iarri);
+            return {
+                fillColor: r.color,
+                weight:1,
+                color:"#555",
+                fillOpacity:0.8
+            };
         }
 
         function colorIARRI(v){
@@ -671,36 +791,72 @@
             return "Muy Bajo";
         }
 
+        async function fetchAPI(url){
+            try {
+                const res = await fetch(url);
+                return await res.json();
+            } catch (error) {
+                console.error(`Error al hacer fetch a ${url}:`, error);
+                return [];
+            }
+        }
+
+        // ============================
+        // CARGA DE DATOS (CSV)
+        // ============================
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
+            
             try {
                 const res = await fetch("./IARRI_Puebla_Final.csv");
                 const csvText = await res.text();
+                
                 const parsed = Papa.parse(csvText, { skipEmptyLines: true });
                 const filas = parsed.data.slice(1); 
-                datosIARRICache = filas.map(c => ({ municipio: c[2]?.trim(), iarri: parseFloat(c[8]) })).filter(x => x.municipio && !isNaN(x.iarri));
+                
+                datosIARRICache = filas.map(c => {
+                    return {
+                        municipio: c[2]?.trim(),
+                        iarri: parseFloat(c[8])
+                    };
+                }).filter(x => x.municipio && !isNaN(x.iarri));
+                
                 return datosIARRICache;
-            } catch (error) { return []; }
+            } catch (error) {
+                console.error("Error al cargar IARRI CSV:", error);
+                return [];
+            }
         }
 
         async function cargarMunicipiosCalculadora(){
             const datos = await cargarIARRI();
             const lista = document.getElementById("lista-municipios");
-            if(lista){
-                lista.innerHTML = "";
-                municipiosValidos = [...new Set(datos.map(d => d.municipio))].sort();
-                municipiosValidos.forEach(m=>{
-                    const option = document.createElement("option"); option.value = m; lista.appendChild(option);
-                });
-            }
+            lista.innerHTML = "";
+
+            municipiosValidos = [...new Set(datos.map(d => d.municipio))];
+            municipiosValidos.sort();
+
+            municipiosValidos.forEach(m=>{
+                const option = document.createElement("option");
+                option.value = m;
+                lista.appendChild(option);
+            });
         }
 
-        function toggleFiltros() { document.getElementById('panelFiltros').classList.toggle('active'); }
+        // ============================
+        // NAVEGACIÓN Y UI
+        // ============================
+        function toggleFiltros() {
+            const panel = document.getElementById('panelFiltros');
+            panel.classList.toggle('active');
+        }
 
         function switchScreen(screen) {
             document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+            
             const selectedScreen = document.getElementById("screen-" + screen);
             if(selectedScreen) selectedScreen.classList.remove("hidden");
+
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             const selectedNav = document.getElementById("nav-" + screen);
             if(selectedNav) selectedNav.classList.add("active");
@@ -711,65 +867,114 @@
         }
 
         function updateLevel() {
-            let nextThreshold = 400, percent = 0, num = 1;
-            if (userProgress.totalPoints >= 1000) { userProgress.level = "Maestro Urbano"; percent = ((userProgress.totalPoints - 1000) / 1000) * 100; num = 4; }
-            else if (userProgress.totalPoints >= 800) { userProgress.level = "Avanzado"; percent = ((userProgress.totalPoints - 800) / 200) * 100; num = 3; }
-            else if (userProgress.totalPoints >= 400) { userProgress.level = "Intermedio"; percent = ((userProgress.totalPoints - 400) / 400) * 100; num = 2; }
-            else { userProgress.level = "Básico"; percent = (userProgress.totalPoints / 400) * 100; num = 1; }
+            let nextThreshold = 400;
+            let percent = 0;
+            let num = 1;
+
+            if (userProgress.totalPoints >= 1000) { 
+                userProgress.level = "Maestro Urbano"; 
+                nextThreshold = 2000; 
+                percent = ((userProgress.totalPoints - 1000) / 1000) * 100;
+                num = 4;
+            }
+            else if (userProgress.totalPoints >= 800) { 
+                userProgress.level = "Avanzado"; 
+                nextThreshold = 1000;
+                percent = ((userProgress.totalPoints - 800) / 200) * 100;
+                num = 3;
+            }
+            else if (userProgress.totalPoints >= 400) { 
+                userProgress.level = "Intermedio"; 
+                nextThreshold = 800;
+                percent = ((userProgress.totalPoints - 400) / 400) * 100;
+                num = 2;
+            }
+            else { 
+                userProgress.level = "Básico"; 
+                nextThreshold = 400;
+                percent = (userProgress.totalPoints / 400) * 100;
+                num = 1;
+            }
 
             const bar = document.getElementById("bar-progreso-header");
             if(bar) bar.style.width = `${Math.min(100, percent)}%`;
             
             const levelNumEl = document.getElementById("user-level-num");
             if(levelNumEl) levelNumEl.innerText = num;
+
             const statsNivel = document.getElementById('stats-nivel');
             if(statsNivel) statsNivel.innerText = num;
 
+            // Lógica para detectar si se subió de nivel
             if(userProgress.level !== nivelAnteriorGlobal && userProgress.totalPoints > 0) {
-                mostrarModalNivel(userProgress.level); lanzarConfeti(); nivelAnteriorGlobal = userProgress.level;
+                mostrarModalNivel(userProgress.level);
+                lanzarConfeti();
+                nivelAnteriorGlobal = userProgress.level;
             }
         }
 
         function updateUI() {
             const pts = document.getElementById("total-points");
             const lvl = document.getElementById("user-level");
-            if (pts) { pts.innerText = userProgress.totalPoints; pts.classList.add('scale-110', 'text-green-400'); setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300); }
+
+            if (pts) {
+                pts.innerText = userProgress.totalPoints;
+                pts.classList.add('scale-110', 'text-green-400');
+                setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300);
+            }
             if (lvl) lvl.innerText = userProgress.level;
-            renderizarMedallas();
         }
 
         function addPoints(points, buttonElement) {
             userProgress.totalPoints += points;
             updateLevel();
             localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-            updateUI(); checkLogros();
+            updateUI();
+            checkLogros();
 
             if(!buttonElement) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
+
             if (buttonElement) {
                 const rect = buttonElement.getBoundingClientRect();
                 const floatEl = document.createElement("div");
-                floatEl.className = "point-float"; floatEl.innerText = "+" + points;
-                floatEl.style.left = (rect.left + rect.width / 2) + "px"; floatEl.style.top = rect.top + "px";
+                floatEl.className = "point-float";
+                floatEl.innerText = "+" + points;
+                floatEl.style.left = (rect.left + rect.width / 2) + "px";
+                floatEl.style.top = rect.top + "px";
                 document.body.appendChild(floatEl);
                 setTimeout(() => floatEl.remove(), 1000);
+                
                 mostrarToast(`Misión cumplida: +${points} pts`, '⭐');
             }
         }
 
+        // ============================
+        // MISIONES Y LOGROS
+        // ============================
         let misiones = [
-            { id:"explorar_mapa", nombre:"🗺 Explorador", descripcion:"Explora 3 municipios", puntos:120, progreso:0, objetivo:3, completado:false },
-            { id:"calcular_irma", nombre:"🧬 Detective", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false }
+            { id:"explorar_mapa", nombre:"🗺 Explorador del territorio", descripcion:"Explora 3 municipios en el mapa", puntos:120, progreso:0, objetivo:3, completado:false },
+            { id:"calcular_irma", nombre:"🧬 Detective metabólico", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
+            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos en tu colonia", puntos:100, progreso:0, objetivo:1, completado:false },
+            { id:"parque", nombre:"🌳 Reto parque verde", descripcion:"Visita un parque cercano", puntos:120, progreso:0, objetivo:1, completado:false },
+            { id:"analista", nombre:"📊 Analista urbano", descripcion:"Analiza un municipio con alto riesgo", puntos:180, progreso:0, objetivo:1, completado:false }
         ];
 
-        let logros = [{ id:"primeros_pasos", nombre:"Primer reto", condicion:()=> userProgress.totalPoints >= 100 }];
+        let logros = [
+            { id:"primeros_pasos", nombre:"Primer reto", condicion:()=> userProgress.totalPoints >= 100 },
+            { id:"explorador", nombre:"Explorador urbano", condicion:()=> municipiosVisitados.size >= 5 },
+            { id:"maestro", nombre:"Maestro urbano", condicion:()=> userProgress.totalPoints >= 1000 }
+        ];
 
         function renderMisiones(){
             const cont = document.getElementById("lista-retos");
             if(!cont) return;
-            let completadas = 0, html="";
+
+            let completadas = 0;
+            let html="";
             misiones.forEach(m=>{
                 const progreso = Math.round((m.progreso/m.objetivo)*100);
                 if(m.completado) completadas++;
+
                 html+=`
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm transform transition hover:shadow-md relative overflow-hidden">
                     ${m.completado ? '<div class="absolute inset-0 bg-green-50/50 z-0"></div>' : ''}
@@ -782,271 +987,464 @@
                         <div class="w-full bg-gray-100 h-2.5 rounded-full mb-3 shadow-inner">
                             <div class="${m.completado ? 'bg-green-500' : 'bg-blue-500'} h-2.5 rounded-full transition-all duration-500" style="width:${progreso}%"></div>
                         </div>
-                        <button onclick="completarMision('${m.id}', this)" class="${m.completado ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-black'} text-sm font-bold w-full p-3 rounded-xl transition-colors shadow" ${m.completado ? "disabled" : ""}>
+                        <button
+                            onclick="completarMision('${m.id}', this)"
+                            class="${m.completado ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-black'} text-sm font-bold w-full p-3 rounded-xl transition-colors shadow"
+                            ${m.completado ? "disabled" : ""}
+                        >
                             ${m.completado ? "Reto Superado 🎉" : "Completar Reto"}
                         </button>
                     </div>
                 </div>`;
             });
             cont.innerHTML = html;
+
             const stRetos = document.getElementById('stats-retos');
             if(stRetos) stRetos.innerText = completadas;
         }
 
         function checkLogros(){
-            let desbloqueados = 0; logros.forEach(l => { if(l.condicion()) desbloqueados++; });
-            const lgCount = document.getElementById("logros-count"); if(lgCount) lgCount.innerText = desbloqueados;
+            let desbloqueados = 0;
+            logros.forEach(l => { if(l.condicion()) desbloqueados++; });
+            const lgCount = document.getElementById("logros-count");
+            if(lgCount) lgCount.innerText = desbloqueados;
         }
 
         function completarMision(id, btn){
             const m = misiones.find(x=>x.id===id);
             if(!m || m.completado) return;
-            m.progreso = m.objetivo; m.completado = true;
-            addPoints(m.puntos, btn); renderMisiones();
+
+            m.progreso = m.objetivo;
+            m.completado = true;
+            addPoints(m.puntos, btn);
+            renderMisiones();
         }
 
-        let baseMedallas = [
-            { id: "m1", icon: "🌱", name: "Iniciado", pts: 0 },
-            { id: "m2", icon: "🚶", name: "Caminante", pts: 200 },
-            { id: "m3", icon: "📷", name: "Reportero", pts: 400 }
-        ];
+        function registrarVisita(nombre){
+            municipiosVisitados.add(nombre);
+            
+            const stZonas = document.getElementById('stats-zonas');
+            if(stZonas) stZonas.innerText = municipiosVisitados.size;
 
-        function renderizarMedallas() {
-            const cont = document.getElementById("contenedor-badges");
-            if(!cont) return;
-            let html = "", rangoActual = "Novato";
-            baseMedallas.forEach(m => {
-                let unlocked = userProgress.totalPoints >= m.pts;
-                if(unlocked) rangoActual = m.name;
-                html += `
-                <div class="flex flex-col items-center gap-1 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
-                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-3 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110' : ''}">${m.icon}</div>
-                    <span class="text-[10px] font-bold text-gray-600 mt-1">${m.name}</span>
-                </div>`;
-            });
-            cont.innerHTML = html;
-            const rangoEl = document.getElementById("rango-nombre"); if(rangoEl) rangoEl.innerText = rangoActual;
-        }
+            const m = misiones.find(x=>x.id==="explorar_mapa");
 
-        // ==============================================
-        // INTEGRACIÓN FIREBASE STORAGE PARA FOTOS
-        // ==============================================
-        function abrirModalFoto() {
-            const user = auth.currentUser;
-            if (!user) {
-                mostrarToast("Inicia sesión para subir fotos", "🔒");
-                abrirLoginModal();
-                return;
-            }
-            const modal = document.getElementById('modal-foto');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.style.opacity = '1', 10);
-            document.getElementById('foto-input').value = "";
-            document.getElementById('foto-preview').classList.add("hidden");
-            document.getElementById('img-preview').src = "";
-            document.getElementById('foto-desc').value = "";
-        }
-
-        function cerrarModalFoto() {
-            const modal = document.getElementById('modal-foto');
-            modal.style.opacity = '0';
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        document.getElementById('foto-input').addEventListener('change', function(e) {
-            if(e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    document.getElementById('img-preview').src = ev.target.result;
-                    document.getElementById('foto-preview').classList.remove("hidden");
+            if(m && !m.completado){
+                m.progreso = municipiosVisitados.size;
+                if(m.progreso >= m.objetivo){
+                    m.completado = true;
+                    addPoints(m.puntos);
+                    mostrarToast("¡Misión Cumplida: Explorador del territorio!", '🌍');
                 }
-                reader.readAsDataURL(e.target.files[0]);
+                renderMisiones();
             }
-        });
-
-        function guardarReporteFoto() {
-            const desc = document.getElementById('foto-desc').value || "Reporte sin descripción";
-            const file = document.getElementById('foto-input').files[0];
-            const btn = document.getElementById('btn-subir-foto');
-            
-            if(!file) {
-                mostrarToast("Debes seleccionar una foto primero", "⚠️");
-                return;
-            }
-
-            const user = auth.currentUser;
-            if (!user) {
-                mostrarToast("Sesión expirada", "🔒");
-                abrirLoginModal();
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = "Subiendo...";
-            mostrarToast("Subiendo foto a la nube...", "⏳");
-            
-            // Subida a Firebase Storage
-            const storageRef = firebase.storage().ref();
-            const fotoRef = storageRef.child(`reportes/${Date.now()}_${file.name}`);
-
-            fotoRef.put(file).then((snapshot) => {
-                return snapshot.ref.getDownloadURL();
-            }).then((downloadURL) => {
-                cerrarModalFoto();
-                btn.disabled = false;
-                btn.innerHTML = "Subir Reporte";
-                mostrarToast("¡Reporte guardado! +80 pts", "📷");
-                addPoints(80);
-                
-                if(map) {
-                    map.locate({setView: true, maxZoom: 15});
-                    map.once('locationfound', function(e) {
-                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
-                        
-                        let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                        fotosGuardadas.push({ lat: e.latlng.lat, lng: e.latlng.lng, imgData: downloadURL, desc: desc });
-                        if(fotosGuardadas.length > 5) fotosGuardadas.shift(); 
-                        localStorage.setItem('arqFotos', JSON.stringify(fotosGuardadas));
-
-                        L.marker(e.latlng, {icon: iconFoto}).addTo(map)
-                         .bindPopup(`
-                            <div class="text-center font-sans p-1">
-                                <b class="text-purple-700 text-sm">Reporte Ciudadano</b><br>
-                                <img src="${downloadURL}" class="w-full h-24 object-cover rounded-lg mt-2 mb-2 shadow-sm">
-                                <p class="text-xs text-gray-600 italic">"${desc}"</p>
-                            </div>
-                         `).openPopup();
-                    });
-                }
-            }).catch((error) => {
-                console.error(error);
-                btn.disabled = false;
-                btn.innerHTML = "Subir Reporte";
-                mostrarToast("Error al subir la foto", "❌");
-            });
         }
 
-        // ==============================================
+        // ============================
         // CALCULADORA IRMA
-        // ==============================================
+        // ============================
         function alerta(msg){
-            document.getElementById("resultado").innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm flex gap-2"><span>⚠️</span> <span>${msg}</span></div>`;
+            document.getElementById("resultado").innerHTML =
+            `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm animate-pulse flex gap-2">
+            <span>⚠️</span> <span>${msg}</span>
+            </div>`;
+        }
+
+        function generarRecomendaciones(glucosa, imc, cintura, actividad){
+            let recomendaciones = [];
+            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas. Prioriza alimentos con bajo índice glucémico.");
+            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético: más actividad física y porciones controladas.");
+            if(cintura > 94) recomendaciones.push("📏 La grasa abdominal aumenta el riesgo metabólico. Integra caminatas diarias y ejercicios de fuerza.");
+            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 minutos de actividad física por semana.");
+            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores están dentro de rangos saludables. Mantén tus hábitos actuales.");
+            return recomendaciones;
         }
 
         function calcularIRMA(){
             const municipio = document.getElementById("municipio").value.trim();
-            const glucosa = parseFloat(document.getElementById("glucosa").value);
-            const imc = parseFloat(document.getElementById("imc").value);
-            
-            if(!municipio || isNaN(glucosa) || isNaN(imc)){
-                alerta("Debes completar los campos principales."); return;
-            }
-
-            let irma = 0.45; // Simulado
-            document.getElementById("resultado").innerHTML = `
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 shadow-inner mt-4 text-center">
-                <p class="text-[10px] uppercase font-bold text-gray-400">Puntuación IRMA</p>
-                <p class="text-4xl font-black text-yellow-600">${irma.toFixed(3)}</p>
-            </div>`;
-        }
-
-        // ==============================================
-        // MAPA Y RUTAS SEGURAS VERDES
-        // ==============================================
-        let routingControl = null;
-        function activarRutaSaludable() {
-            if (!map) return;
-            
-            // Verificamos sesión para trazar rutas
-            if (!auth.currentUser) {
-                mostrarToast("Inicia sesión para trazar rutas", "🔒");
-                abrirLoginModal();
+            if(!municipiosValidos.includes(municipio)){
+                alerta("Debes seleccionar un municipio válido de la lista.");
                 return;
             }
 
-            mostrarToast("Buscando rutas seguras y verdes...", "🚶");
-            map.locate({setView: true, maxZoom: 15});
-            
-            map.once('locationfound', function(e) {
-                if (routingControl) { map.removeControl(routingControl); }
+            const glucosa = parseFloat(document.getElementById("glucosa").value);
+            const imc = parseFloat(document.getElementById("imc").value);
+            const cintura = parseFloat(document.getElementById("cintura").value);
+            const actividad = parseFloat(document.getElementById("actividad").value);
+
+            if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
+                alerta("Debes completar todos los campos.");
+                return;
+            }
+
+            if(glucosa < 70 || glucosa > 180){
+                alerta("Glucosa fuera de rango (70-180 mg/dL)");
+                return;
+            }
+
+            if(imc < 18 || imc > 40){
+                alerta("IMC fuera de rango (18-40)");
+                return;
+            }
+
+            if(cintura < 70 || cintura > 130){
+                alerta("Cintura fuera de rango (70-130 cm)");
+                return;
+            }
+
+            if(actividad < 0 || actividad > 7){
+                alerta("Actividad física fuera de rango (0-7 h/semana)");
+                return;
+            }
+
+            const g = (glucosa-70)/(180-70);
+            const b = (imc-18)/(40-18);
+            const c = (cintura-70)/(130-70);
+            const a = 1-(actividad/7);
+
+            let irma = (g*0.35)+(b*0.25)+(c*0.25)+(a*0.15);
+            irma = Math.max(0,Math.min(1,irma));
+
+            let nivel="", colorText="", colorBg="", icono="", explicacion="";
+
+            if(irma>0.75){
+                nivel="Crítico"; colorText="text-red-600"; colorBg="bg-red-500"; icono="🚨";
+                explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
+            } else if(irma>0.55){
+                nivel="Alto"; colorText="text-orange-500"; colorBg="bg-orange-500"; icono="⚠️";
+                explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
+            } else if(irma>0.35){
+                nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-yellow-500"; icono="🟡";
+                explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
+            } else {
+                nivel="Bajo"; colorText="text-green-600"; colorBg="bg-green-500"; icono="🟢";
+                explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
+            }
+
+            const porcentaje = Math.round(irma*100);
+            const lista = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li class="border-b border-green-100 pb-1">${r}</li>`).join("");
+
+            document.getElementById("resultado").innerHTML = `
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 shadow-inner mt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Municipio Evaluado</p>
+                        <p class="font-black text-gray-800 text-lg">${municipio}</p>
+                    </div>
+                    <div class="text-right bg-white px-3 py-1 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Nivel de Riesgo</p>
+                        <p class="font-black ${colorText} text-md">${icono} ${nivel}</p>
+                    </div>
+                </div>
+                <div class="text-center mb-4 bg-white py-3 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-[10px] uppercase font-bold text-gray-400">Puntuación IRMA</p>
+                    <p class="text-4xl font-black ${colorText}">${irma.toFixed(3)}</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 mb-3 overflow-hidden shadow-inner">
+                    <div class="${colorBg} h-4 rounded-full transition-all duration-1000 ease-out" style="width:${porcentaje}%"></div>
+                </div>
+                <p class="text-xs text-gray-600 text-center leading-relaxed mb-4 italic">"${explicacion}"</p>
                 
-                // Simulación de un parque/destino seguro cercano
-                const destLat = e.latlng.lat + ((Math.random() - 0.5) * 0.015);
-                const destLng = e.latlng.lng + ((Math.random() - 0.5) * 0.015);
-
-                routingControl = L.Routing.control({
-                    waypoints: [ L.latLng(e.latlng.lat, e.latlng.lng), L.latLng(destLat, destLng) ],
-                    routeWhileDragging: false, addWaypoints: false, show: false, // Oculta panel de texto nativo
-                    lineOptions: {
-                        styles: [
-                            {color: '#16a34a', opacity: 0.9, weight: 6}, // Ruta verde segura
-                            {color: '#ffffff', opacity: 0.8, weight: 2}  // Borde interior
-                        ]
-                    },
-                    createMarker: function(i, wp, nWps) {
-                        const iconHtml = i === 0 ? '📍' : '🌳';
-                        return L.marker(wp.latLng, {
-                            icon: L.divIcon({html: `<div class="text-3xl filter drop-shadow-md hover:scale-110 transition">${iconHtml}</div>`, className: '', iconSize: [30,30]})
-                        }).bindPopup(i === 0 ? "Tu ubicación actual" : "Zona Segura Destino");
-                    }
-                }).addTo(map);
-
-                mostrarToast("¡Ruta segura trazada!", "✅");
-                addPoints(30); 
-            });
+                <div class="bg-white border border-green-200 p-4 rounded-xl shadow-sm">
+                    <p class="font-black text-green-800 text-sm mb-2 flex items-center gap-1"><span>💡</span> Plan de Acción Personalizado</p>
+                    <ul class="text-[11px] text-green-700 space-y-2 leading-relaxed font-medium">${lista}</ul>
+                </div>
+            </div>`;
             
-            map.once('locationerror', function(e) {
-                mostrarToast("Activa el GPS para trazar tu ruta", "❌");
-            });
+            const m = misiones.find(x=>x.id==="calcular_irma");
+            if(m && !m.completado){
+                m.progreso = 1; m.completado = true;
+                addPoints(m.puntos);
+                mostrarToast("¡Misión Cumplida: Detective Metabólico!", '🧬');
+                renderMisiones();
+            } else {
+                mostrarToast("Cálculo IRMA actualizado", '📊');
+            }
         }
 
+        // ============================
+        // MAPA Y DATOS GEOGRÁFICOS
+        // ============================
+        function clasificarCategoria(c){
+            if(!c) return null;
+            c = c.toString();
+            if(c.startsWith("621")) return "hospital";
+            if(c.startsWith("46411")) return "pharmacy";
+            if(c.startsWith("462")) return "supermarket";
+            if(c.startsWith("71394")) return "gym";
+            if(c.startsWith("72251")) return "cafe";
+            if(c.startsWith("722")) return "restaurant";
+            return null;
+        }
+
+        async function cargarNegocios(){
+            const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
+            const data = await res.json();
+            const batch = 500;   
+            let i = 0;
+
+            function procesarChunk(){
+                const limite = Math.min(i + batch, data.length);
+                for(; i < limite; i++){
+                    const n = data[i];
+                    const lat = parseFloat(n.lat);
+                    const lng = parseFloat(n.lng);
+
+                    if(isNaN(lat) || isNaN(lng)) continue;
+
+                    const categoria = clasificarCategoria(n.codigo_scian);
+
+                    if(!categoria) continue;
+
+                    const marker = L.circleMarker([lat,lng],{
+                        radius:4,
+                        color:"#2563eb"
+                    });
+
+                    marker.bindPopup(`
+                        <div class="font-sans">
+                            <b class="text-blue-700">${n.nombre || "Unidad"}</b><br>
+                            <span class="text-xs text-gray-500">${n.municipio || ""}</span>
+                        </div>
+                    `);
+
+                    capas[categoria].addLayer(marker);
+                }
+
+                if(i < data.length){
+                    requestAnimationFrame(procesarChunk);
+                }
+            }
+            procesarChunk();
+        }
+
+        function agregarLeyenda(){
+            const legend = L.control({position:"bottomright"});
+            legend.onAdd = function(){
+                const div = L.DomUtil.create("div","info legend");
+                div.innerHTML = `
+                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:11px; font-family:sans-serif; margin-bottom:15px; margin-right:5px;">
+                    <b style="color:#1f2937">Riesgo Urbano</b><br>
+                    <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
+                        <div><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Bajo</div>
+                        <div><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Medio</div>
+                        <div><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Alto</div>
+                        <div><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Crítico</div>
+                    </div>
+                </div>`;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // NUEVO: Geolocalización en el Mapa
         function localizarUsuario() {
             if (!map) return;
             map.locate({setView: true, maxZoom: 14});
             mostrarToast("Buscando tu ubicación...", "🛰️");
 
             map.once('locationfound', function(e) {
-                L.circleMarker(e.latlng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>").openPopup();
+                L.circleMarker(e.latlng, {
+                    radius: 8, 
+                    fillColor: '#3b82f6', 
+                    color: '#ffffff', 
+                    weight: 3, 
+                    fillOpacity: 1
+                }).addTo(map).bindPopup("<b>¡Estás aquí!</b><br>Analiza tu entorno.").openPopup();
                 mostrarToast("Ubicación encontrada", "📍");
             });
-            map.once('locationerror', function(e) { mostrarToast("Activa el GPS", "❌"); });
+
+            map.once('locationerror', function(e) {
+                mostrarToast("Activa el GPS para localizarte", "❌");
+            });
         }
 
+        // ============================
+        // INICIALIZACIÓN DE MAPA
+        // ============================
+        
         async function initMap(){
-            if(map){ map.invalidateSize(); return; }
+            if(map){
+                map.invalidateSize();
+                return;
+            }
+
             map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                { attribution:'© OpenStreetMap' }
+            ).addTo(map);
 
             try {
-                // Cargar fotos guardadas localmente (ahora con URLs reales de Firebase Storage)
-                let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
-                fotosGuardadas.forEach(foto => {
-                    L.marker([foto.lat, foto.lng], {icon: iconFoto}).addTo(map)
-                     .bindPopup(`
-                        <div class="text-center font-sans p-1">
-                            <b class="text-purple-700 text-sm">Reporte Ciudadano</b><br>
-                            <img src="${foto.imgData}" class="w-full h-24 object-cover rounded-lg mt-2 mb-2 shadow-sm">
-                            <p class="text-xs text-gray-600 italic">"${foto.desc}"</p>
-                        </div>
-                     `);
+                const geoRes = await fetch("./puebla_municipios.json");
+                const geoData = await geoRes.json();
+
+                const ranking = await cargarIARRI();
+                const rankingMap = {};
+
+                ranking.forEach(m=>{
+                    rankingMap[normalizarNombre(m.municipio)] = m;
                 });
-            } catch (error) { console.error("Error inicializando el mapa:", error); }
+
+                capaMunicipios = L.geoJSON(geoData,{
+                    style:function(feature){
+                        const nombre = normalizarNombre(
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE
+                        );
+                        const m = rankingMap[nombre];
+
+                        if(!m){
+                            return {
+                                color:"#bbb",
+                                weight:1,
+                                fillOpacity:0.1
+                            };
+                        }
+                        return {
+                            color:"#888",
+                            weight:1,
+                            fillColor:colorIARRI(m.iarri),
+                            fillOpacity:0.6
+                        };
+                    },
+                    onEachFeature:function(feature,layer){
+                        const nombreOriginal =
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE;
+
+                        const nombre = normalizarNombre(nombreOriginal);
+                        const m = rankingMap[nombre];
+
+                        if(m){
+                            layer.bindPopup(
+                                `<div class="font-sans text-center">
+                                    <b class="text-gray-800 text-sm">${nombreOriginal}</b><br>
+                                    <span class="text-xs text-gray-500">IARRI: ${m.iarri.toFixed(3)}</span><br>
+                                    <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 inline-block mt-1">${nivelIARRI(m.iarri)}</span>
+                                </div>`
+                            );
+                            layer.bindTooltip(nombreOriginal,{sticky:true});
+                            layer.on("click",()=>{
+                                registrarVisita(nombreOriginal);
+                            });
+                        }
+                    }
+                }).addTo(map);
+
+                map.fitBounds(capaMunicipios.getBounds());
+
+                await cargarNegocios();
+                agregarLeyenda(); 
+               
+                console.log("Mapa cargado correctamente");
+            } catch (error) {
+                console.error("Error inicializando el mapa:", error);
+            }
         }
 
-        // ==============================================
-        // INICIALIZACIÓN PRINCIPAL
-        // ==============================================
+        // ============================
+        // RANKING Y GRÁFICAS
+        // ============================
+        async function cargarRanking(){
+            try {
+                const data = await cargarIARRI(); 
+                if (!data || data.length === 0) throw new Error("Datos vacíos");
+
+                data.sort((a,b)=>b.iarri-a.iarri); 
+                const peor = data[0]; 
+
+                if(peor && !misiones.find(m=>m.id==="municipio_critico")){
+                    misiones.push({
+                        id:"municipio_critico", nombre:"🚨 Arquitecto metabólico", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
+                    });
+                    renderMisiones();
+                }
+
+                generarGraficoRiesgo(data);
+
+                const top10 = data.slice(0,10);
+                let html="";
+
+                top10.forEach((m,i)=>{
+                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-5 inline-block text-center">${i+1}.</span>`;
+
+                    let color = m.iarri >= 0.15 ? "text-green-600" :
+                    m.iarri >= 0.10 ? "text-yellow-500" :
+                    m.iarri >= 0.05 ? "text-orange-500" :
+                    "text-red-600";
+                    
+                    let bgFila = i < 3 ? "bg-orange-50/30" : "";
+
+                    html+=`
+                    <div class="flex justify-between border-b border-gray-100 py-3 px-2 text-sm items-center rounded-lg ${bgFila} hover:bg-gray-50 transition">
+                        <span class="font-medium text-gray-700 flex items-center gap-2">${medal} ${m.municipio}</span>
+                        <span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-2 py-1 rounded-lg">${m.iarri.toFixed(3)}</span>
+                    </div>`;
+                });
+
+                document.getElementById("ranking").innerHTML = html;
+
+            } catch(err){
+                document.getElementById("ranking").innerHTML = "<p class='text-red-500'>Error cargando ranking</p>";
+                console.error(err);
+            }
+        }
+
+        function generarGraficoRiesgo(data) {
+            const ctx = document.getElementById('rankingChart');
+            if(!ctx) return;
+            
+            let counts = {critico:0, alto:0, medio:0, bajo:0};
+            data.forEach(d => {
+                const niv = nivelIARRI(d.iarri);
+                if(niv === 'Crítico') counts.critico++;
+                else if(niv === 'Alto') counts.alto++;
+                else if(niv === 'Medio') counts.medio++;
+                else counts.bajo++;
+            });
+
+            if(chartInstance) {
+                chartInstance.destroy(); 
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Riesgo Bajo', 'Riesgo Medio', 'Riesgo Alto', 'Riesgo Crítico'],
+                    datasets: [{
+                        data: [counts.bajo, counts.medio, counts.alto, counts.critico],
+                        backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 10} } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // ============================
+        // INICIALIZACIÓN
+        // ============================
         document.addEventListener("DOMContentLoaded", () => {
+            
+            // Lógica para quitar el Splash Screen
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 700); }
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 700);
+                }
             }, 1800);
-
-            // Revisamos si no hay usuario para mostrar el modal de Login al entrar
-            setTimeout(() => {
-                if(!auth.currentUser) abrirLoginModal();
-            }, 2000);
 
             cargarTipDiario();
             verificarRacha(); 
@@ -1056,32 +1454,66 @@
             renderMisiones();
             checkLogros();
             
-            // GEOLOCALIZACIÓN EN EL MINIMAPA
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
-
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude; const lng = position.coords.longitude;
-                    miniMap.setView([lat, lng], 14);
-                    L.marker([lat, lng], {
-                        icon: L.divIcon({ html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>', className: '', iconSize: [16, 16] })
-                    }).addTo(miniMap);
-                }, () => {
-                    miniMap.setView([19.04, -98.20], 12);
-                });
-            }
 
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     if(!map) return;
                     let cat = e.target.value;
-                    if(e.target.checked) map.addLayer(capas[cat]); else map.removeLayer(capas[cat]);
+                    
+                    if(e.target.checked) {
+                        map.addLayer(capas[cat]);
+                    } else {
+                        map.removeLayer(capas[cat]);
+                    }
                 });
             });
         });
 
+        // SISTEMA DE PROGRESO ORIGINAL MANTENIDO
+        let progreso = JSON.parse(localStorage.getItem("progresoUsuario")) || {
+            puntos: 1640,
+            nivel: 7,
+            cursos: [],
+            retos: []
+        };
+
+        function completarReto(id){
+            if(!progreso.retos.includes(id)){
+                progreso.retos.push(id);
+                progreso.puntos += 150;
+                guardarProgreso();
+            }
+        }
+
+        function completarCurso(idCurso){
+            if(!progreso.cursos.includes(idCurso)){
+                progreso.cursos.push(idCurso);
+                progreso.puntos += 200;
+                guardarProgreso();
+            }
+        }
+
+        function ganarPuntos(cantidad){
+            progreso.puntos += cantidad;
+            guardarProgreso();
+            cargarProgreso();
+        }
+
+        function cargarProgreso(){
+            const pts = document.getElementById("puntosUsuario");
+            if(pts){
+                pts.innerText = progreso.puntos + " pts";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarProgreso);
+
+        function guardarProgreso(){
+            localStorage.setItem("progresoUsuario", JSON.stringify(progreso));
+        }
     </script>
 </body>
 </html>
