@@ -476,14 +476,14 @@
         // CONFIGURACIÓN FIREBASE
         // ==========================================
        const firebaseConfig = {
-  apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
-  authDomain: "iarri-metabolica.firebaseapp.com",
-  projectId: "iarri-metabolica",
-  storageBucket: "iarri-metabolica.firebasestorage.app",
-  messagingSenderId: "863715352747",
-  appId: "1:863715352747:web:6e64eaca117320843717ee",
-  measurementId: "G-M46CV52N5Y"
-};
+          apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
+          authDomain: "iarri-metabolica.firebaseapp.com",
+          projectId: "iarri-metabolica",
+          storageBucket: "iarri-metabolica.firebasestorage.app",
+          messagingSenderId: "863715352747",
+          appId: "1:863715352747:web:6e64eaca117320843717ee",
+          measurementId: "G-M46CV52N5Y"
+        };
         
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
@@ -660,16 +660,23 @@
             return "Muy Bajo";
         }
 
+        // ==========================================
+        // CÓDIGO CORREGIDO: Evita congelamientos
+        // ==========================================
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
             try {
                 const res = await fetch("./IARRI_Puebla_Final.csv");
+                if (!res.ok) throw new Error("CSV no encontrado localmente.");
                 const csvText = await res.text();
                 const parsed = Papa.parse(csvText, { skipEmptyLines: true });
                 const filas = parsed.data.slice(1); 
                 datosIARRICache = filas.map(c => ({ municipio: c[2]?.trim(), iarri: parseFloat(c[8]) })).filter(x => x.municipio && !isNaN(x.iarri));
                 return datosIARRICache;
-            } catch (error) { return []; }
+            } catch (error) { 
+                console.warn("Aviso: No se pudo cargar el CSV. Continuando con datos vacíos.", error);
+                return []; 
+            }
         }
 
         async function cargarMunicipiosCalculadora(){
@@ -952,7 +959,6 @@
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
                 
-                // Consulta a la API de Overpass para buscar un parque real en un radio de 3 km
                 const query = `
                     [out:json][timeout:10];
                     (
@@ -1023,21 +1029,15 @@
             map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
 
-            // ==========================================
-            // NUEVO: Lógica para pintar el GeoJSON con colores IARRI
-            // ==========================================
             try {
                 const datosCSV = await cargarIARRI();
                 
-                // NOTA: Se requiere el archivo puebla.geojson en la misma carpeta que este HTML.
-                // Reemplaza "puebla.geojson" por el nombre de tu archivo si es diferente.
                 const resGeo = await fetch("./puebla.geojson"); 
                 
                 if(resGeo.ok) {
                     const geojson = await resGeo.json();
                     L.geoJSON(geojson, {
                         style: function(feature) {
-                            // Intenta obtener el nombre del municipio (ajusta 'NOMGEO' según tu archivo)
                             const nombreGeo = feature.properties.NOMGEO || feature.properties.name || "";
                             const nombreNorm = normalizarNombre(nombreGeo);
                             const dato = datosCSV.find(d => normalizarNombre(d.municipio) === nombreNorm);
@@ -1062,7 +1062,7 @@
                         }
                     }).addTo(map);
                 } else {
-                    console.warn("No se encontró puebla.geojson. Para pintar las zonas necesitas este archivo en la misma ruta.");
+                    console.warn("No se encontró puebla.geojson.");
                 }
             } catch(e) {
                 console.error("Error al intentar pintar las zonas IARRI en el mapa:", e);
@@ -1084,11 +1084,22 @@
             } catch (error) { console.error("Error inicializando el mapa:", error); }
         }
 
+        // ==========================================
+        // CÓDIGO CORREGIDO: Failsafe para Splash
+        // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
+            
+            // Failsafe absoluto: Quitamos la pantalla de carga sí o sí.
+            const removerSplash = () => {
                 const splash = document.getElementById('splash-screen');
-                if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 700); }
-            }, 1800);
+                if (splash) { 
+                    splash.style.opacity = '0'; 
+                    setTimeout(() => splash.remove(), 700); 
+                }
+            };
+            
+            // Forzamos el ocultamiento a los 1.5 segundos independientemente de todo lo demás
+            setTimeout(removerSplash, 1500);
 
             setTimeout(() => {
                 if(!auth.currentUser) abrirLoginModal();
