@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -243,6 +244,16 @@
 </head>
 <body class="text-gray-800 relative">
 
+    <div id="login-screen" class="fixed inset-0 bg-green-900 z-[100000] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl">AM</div>
+        <h1 class="text-white text-3xl font-black tracking-widest mb-8">IARRI-MX</h1>
+        <p class="text-green-200 text-sm mb-8 font-medium">Arquitectura Metabólica</p>
+        <button onclick="iniciarSesionGoogle()" class="bg-white text-gray-800 font-bold py-3 px-6 rounded-xl shadow-lg flex items-center gap-3 hover:bg-gray-100 transition transform hover:scale-105">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
+            Iniciar sesión con Google
+        </button>
+    </div>
+
     <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
@@ -263,7 +274,7 @@
         </div>
     </div>
 
-    <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] flex flex-col items-center justify-center transition-opacity duration-700">
+    <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] hidden flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
         <h1 class="text-white text-3xl font-black tracking-widest">IARRI-MX</h1>
         <p class="text-green-200 text-sm mt-3 font-medium">Arquitectura Metabólica</p>
@@ -325,7 +336,7 @@
             
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, Juan Carlos <span class="text-xl">👋</span></h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name">Explorador</span> <span class="text-xl">👋</span></h2>
                     
                     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1">
                         <div class="absolute -right-4 -bottom-4 text-5xl opacity-10">💡</div>
@@ -645,11 +656,57 @@
         </nav>
 
     </div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script>
-      
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <script>
+        // --- INICIALIZACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
+          authDomain: "iarri-metabolica.firebaseapp.com",
+          projectId: "iarri-metabolica",
+          storageBucket: "iarri-metabolica.firebasestorage.app",
+          messagingSenderId: "863715352747",
+          appId: "1:863715352747:web:6e64eaca117320843717ee",
+          measurementId: "G-M46CV52N5Y"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function iniciarSesionGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                mostrarToast("Sesión iniciada correctamente", "✅");
+            }).catch((error) => {
+                console.error("Error en login", error);
+                mostrarToast("Error al iniciar sesión", "❌");
+            });
+        }
+
+        auth.onAuthStateChanged((user) => {
+            const loginScreen = document.getElementById('login-screen');
+            if (user) {
+                // Ocultar pantalla de login
+                loginScreen.style.opacity = '0';
+                setTimeout(() => loginScreen.classList.add('hidden'), 500);
+                
+                // Actualizar nombre
+                const nombreUsuarioEl = document.getElementById('user-name');
+                if(nombreUsuarioEl) {
+                    nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador';
+                }
+            } else {
+                // Mostrar pantalla de login si no hay sesión
+                loginScreen.classList.remove('hidden');
+                loginScreen.style.opacity = '1';
+            }
+        });
+        // --- FIN FIREBASE ---
+
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
@@ -758,19 +815,19 @@
 
         let municipiosVisitados = new Set();
         let chartInstance = null;
-      let map; 
+        let map = null;
         let capaMunicipios = null;
         let datosIARRICache = null; 
         let municipiosValidos = [];
-       // CORRECCIÓN: Declarar al inicio del script
-let capas = {
-    restaurant: L.layerGroup(),
-    cafe: L.layerGroup(),
-    hospital: L.layerGroup(),
-    pharmacy: L.layerGroup(),
-    supermarket: L.layerGroup(),
-    gym: L.layerGroup()
-};
+        let capas = {
+            restaurant: L.markerClusterGroup({chunkedLoading:true}),
+            cafe: L.markerClusterGroup({chunkedLoading:true}),
+            hospital: L.markerClusterGroup({chunkedLoading:true}),
+            pharmacy: L.markerClusterGroup({chunkedLoading:true}),
+            supermarket: L.markerClusterGroup({chunkedLoading:true}),
+            gym: L.markerClusterGroup({chunkedLoading:true})
+        };
+
         function irMapa(){
             switchScreen('territorio');
         }
@@ -1383,38 +1440,35 @@ let capas = {
 
                 capaMunicipios = L.geoJSON(geoData,{
                     style:function(feature){
-                   style:function(feature){
-    const nombreOriginal =
-        feature.properties.NOMGEO ||
-        feature.properties.NOM_MUN ||
-        feature.properties.NOMBRE;
+                        const nombreOriginal =
+                            feature.properties.NOMGEO ||
+                            feature.properties.NOM_MUN ||
+                            feature.properties.NOMBRE;
 
-    const nombre = normalizarNombre(nombreOriginal);
+                        const nombre = normalizarNombre(nombreOriginal);
 
-    // 🔥 BÚSQUEDA FLEXIBLE
-    let m = rankingMap[nombre];
+                        let m = rankingMap[nombre];
 
-    if(!m){
-        // intentar coincidencia parcial
-        for(let key in rankingMap){
-            if(key.includes(nombre) || nombre.includes(key)){
-                m = rankingMap[key];
-                break;
-            }
-        }
-    }
+                        if(!m){
+                            for(let key in rankingMap){
+                                if(key.includes(nombre) || nombre.includes(key)){
+                                    m = rankingMap[key];
+                                    break;
+                                }
+                            }
+                        }
 
-    if(!m){
-        return { color:"#ccc", weight:1, fillOpacity:0.2 };
-    }
+                        if(!m){
+                            return { color:"#ccc", weight:1, fillOpacity:0.2 };
+                        }
 
-    return {
-        color:"#555",
-        weight:1,
-        fillColor: colorIARRI(m.iarri),
-        fillOpacity: 0.7
-    };
-},
+                        return {
+                            color:"#555",
+                            weight:1,
+                            fillColor: colorIARRI(m.iarri),
+                            fillOpacity: 0.7
+                        };
+                    },
                     onEachFeature:function(feature,layer){
                         const nombreOriginal =
                             feature.properties.NOMGEO ||
@@ -1444,7 +1498,6 @@ let capas = {
                 await cargarNegocios();
                 agregarLeyenda(); 
                 
-                // NUEVO: Cargar fotos guardadas del LocalStorage en el mapa
                 let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
                 const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                 fotosGuardadas.forEach(foto => {
@@ -1457,7 +1510,7 @@ let capas = {
                         </div>
                      `);
                 });
-console.log("Geo:", nombre, "CSV:", rankingMap[nombre]);
+
                 console.log("Mapa cargado correctamente");
                 
             } catch (error) {
@@ -1550,11 +1603,12 @@ console.log("Geo:", nombre, "CSV:", rankingMap[nombre]);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            // El Splash original ahora funciona bien con la capa de login
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 700);
+                    setTimeout(() => splash.classList.add('hidden'), 700);
                 }
             }, 1800);
 
