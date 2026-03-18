@@ -4,22 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -479,7 +473,7 @@
 
     <script>
         // ==========================================
-        // CONFIGURACIÓN FIREBASE (REEMPLAZA ESTO)
+        // CONFIGURACIÓN FIREBASE
         // ==========================================
        const firebaseConfig = {
   apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
@@ -491,14 +485,12 @@
   measurementId: "G-M46CV52N5Y"
 };
         
-        // Inicializar Firebase solo si no ha sido inicializado antes
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
         const storage = firebase.storage();
 
-        // Lógica Login UI
         function abrirLoginModal() {
             const modal = document.getElementById('login-modal');
             modal.classList.remove('hidden');
@@ -526,7 +518,6 @@
             });
         }
 
-        // Observador del estado de autenticación
         auth.onAuthStateChanged((user) => {
             const saludoEl = document.querySelector("#screen-home h2");
             const btnLogin = document.getElementById('btn-login-header');
@@ -538,7 +529,7 @@
                 if(btnLogin) btnLogin.classList.add('hidden');
                 if(avatarDiv) avatarDiv.classList.remove('hidden');
                 if(avatarImg) avatarImg.src = user.photoURL;
-                cerrarLoginModal(); // Por si estaba abierto
+                cerrarLoginModal(); 
             } else {
                 if(saludoEl) saludoEl.innerHTML = `Bienvenido, Explorador <span class="text-xl">👋</span>`;
                 if(btnLogin) btnLogin.classList.remove('hidden');
@@ -546,8 +537,6 @@
             }
         });
 
-
-        // Lógica de UI básica y Utilidades (Sin cambios)
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
@@ -828,9 +817,6 @@
             const rangoEl = document.getElementById("rango-nombre"); if(rangoEl) rangoEl.innerText = rangoActual;
         }
 
-        // ==============================================
-        // INTEGRACIÓN FIREBASE STORAGE PARA FOTOS
-        // ==============================================
         function abrirModalFoto() {
             const user = auth.currentUser;
             if (!user) {
@@ -885,7 +871,6 @@
             btn.innerHTML = "Subiendo...";
             mostrarToast("Subiendo foto a la nube...", "⏳");
             
-            // Subida a Firebase Storage
             const storageRef = firebase.storage().ref();
             const fotoRef = storageRef.child(`reportes/${Date.now()}_${file.name}`);
 
@@ -926,9 +911,6 @@
             });
         }
 
-        // ==============================================
-        // CALCULADORA IRMA
-        // ==============================================
         function alerta(msg){
             document.getElementById("resultado").innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm flex gap-2"><span>⚠️</span> <span>${msg}</span></div>`;
         }
@@ -942,7 +924,7 @@
                 alerta("Debes completar los campos principales."); return;
             }
 
-            let irma = 0.45; // Simulado
+            let irma = 0.45;
             document.getElementById("resultado").innerHTML = `
             <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 shadow-inner mt-4 text-center">
                 <p class="text-[10px] uppercase font-bold text-gray-400">Puntuación IRMA</p>
@@ -950,49 +932,73 @@
             </div>`;
         }
 
-        // ==============================================
-        // MAPA Y RUTAS SEGURAS VERDES
-        // ==============================================
         let routingControl = null;
+        
         function activarRutaSaludable() {
             if (!map) return;
             
-            // Verificamos sesión para trazar rutas
             if (!auth.currentUser) {
                 mostrarToast("Inicia sesión para trazar rutas", "🔒");
                 abrirLoginModal();
                 return;
             }
 
-            mostrarToast("Buscando rutas seguras y verdes...", "🚶");
+            mostrarToast("Buscando el parque más cercano...", "🌳");
             map.locate({setView: true, maxZoom: 15});
             
-            map.once('locationfound', function(e) {
+            map.once('locationfound', async function(e) {
                 if (routingControl) { map.removeControl(routingControl); }
                 
-                // Simulación de un parque/destino seguro cercano
-                const destLat = e.latlng.lat + ((Math.random() - 0.5) * 0.015);
-                const destLng = e.latlng.lng + ((Math.random() - 0.5) * 0.015);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                
+                // Consulta a la API de Overpass para buscar un parque real en un radio de 3 km
+                const query = `
+                    [out:json][timeout:10];
+                    (
+                      node["leisure"="park"](around:3000, ${lat}, ${lng});
+                      way["leisure"="park"](around:3000, ${lat}, ${lng});
+                      relation["leisure"="park"](around:3000, ${lat}, ${lng});
+                    );
+                    out center limit 1;
+                `;
+                
+                try {
+                    const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (data.elements && data.elements.length > 0) {
+                        const park = data.elements[0];
+                        const destLat = park.type === 'node' ? park.lat : park.center.lat;
+                        const destLng = park.type === 'node' ? park.lon : park.center.lon;
+                        const parkName = park.tags && park.tags.name ? park.tags.name : "Parque Seguro";
 
-                routingControl = L.Routing.control({
-                    waypoints: [ L.latLng(e.latlng.lat, e.latlng.lng), L.latLng(destLat, destLng) ],
-                    routeWhileDragging: false, addWaypoints: false, show: false, // Oculta panel de texto nativo
-                    lineOptions: {
-                        styles: [
-                            {color: '#16a34a', opacity: 0.9, weight: 6}, // Ruta verde segura
-                            {color: '#ffffff', opacity: 0.8, weight: 2}  // Borde interior
-                        ]
-                    },
-                    createMarker: function(i, wp, nWps) {
-                        const iconHtml = i === 0 ? '📍' : '🌳';
-                        return L.marker(wp.latLng, {
-                            icon: L.divIcon({html: `<div class="text-3xl filter drop-shadow-md hover:scale-110 transition">${iconHtml}</div>`, className: '', iconSize: [30,30]})
-                        }).bindPopup(i === 0 ? "Tu ubicación actual" : "Zona Segura Destino");
+                        routingControl = L.Routing.control({
+                            waypoints: [ L.latLng(lat, lng), L.latLng(destLat, destLng) ],
+                            routeWhileDragging: false, addWaypoints: false, show: false,
+                            lineOptions: {
+                                styles: [
+                                    {color: '#16a34a', opacity: 0.9, weight: 6},
+                                    {color: '#ffffff', opacity: 0.8, weight: 2} 
+                                ]
+                            },
+                            createMarker: function(i, wp, nWps) {
+                                const iconHtml = i === 0 ? '📍' : '🌳';
+                                return L.marker(wp.latLng, {
+                                    icon: L.divIcon({html: `<div class="text-3xl filter drop-shadow-md hover:scale-110 transition">${iconHtml}</div>`, className: '', iconSize: [30,30]})
+                                }).bindPopup(i === 0 ? "Tu ubicación actual" : `Destino: ${parkName}`);
+                            }
+                        }).addTo(map);
+
+                        mostrarToast(`¡Ruta hacia ${parkName} trazada!`, "✅");
+                        addPoints(30); 
+                    } else {
+                        mostrarToast("No se encontraron parques a 3km a la redonda", "⚠️");
                     }
-                }).addTo(map);
-
-                mostrarToast("¡Ruta segura trazada!", "✅");
-                addPoints(30); 
+                } catch (error) {
+                    console.error("Error buscando parques:", error);
+                    mostrarToast("Error conectando con los servidores de mapas", "❌");
+                }
             });
             
             map.once('locationerror', function(e) {
@@ -1017,8 +1023,52 @@
             map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
 
+            // ==========================================
+            // NUEVO: Lógica para pintar el GeoJSON con colores IARRI
+            // ==========================================
             try {
-                // Cargar fotos guardadas localmente (ahora con URLs reales de Firebase Storage)
+                const datosCSV = await cargarIARRI();
+                
+                // NOTA: Se requiere el archivo puebla.geojson en la misma carpeta que este HTML.
+                // Reemplaza "puebla.geojson" por el nombre de tu archivo si es diferente.
+                const resGeo = await fetch("./puebla.geojson"); 
+                
+                if(resGeo.ok) {
+                    const geojson = await resGeo.json();
+                    L.geoJSON(geojson, {
+                        style: function(feature) {
+                            // Intenta obtener el nombre del municipio (ajusta 'NOMGEO' según tu archivo)
+                            const nombreGeo = feature.properties.NOMGEO || feature.properties.name || "";
+                            const nombreNorm = normalizarNombre(nombreGeo);
+                            const dato = datosCSV.find(d => normalizarNombre(d.municipio) === nombreNorm);
+                            
+                            return {
+                                fillColor: dato ? colorIARRI(dato.iarri) : 'transparent',
+                                weight: 1,
+                                opacity: 1,
+                                color: '#16a34a',
+                                fillOpacity: dato ? 0.6 : 0.1
+                            };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            const nombreGeo = feature.properties.NOMGEO || feature.properties.name || "Desconocido";
+                            const dato = datosCSV.find(d => normalizarNombre(d.municipio) === normalizarNombre(nombreGeo));
+                            
+                            if(dato) {
+                                layer.bindPopup(`<div class="text-center font-sans p-2"><b class="text-green-800 text-lg uppercase">${nombreGeo}</b><br><span class="text-xs text-gray-500">Valor IARRI:</span><br><span class="font-black text-xl" style="color:${colorIARRI(dato.iarri)}">${dato.iarri.toFixed(4)}</span><br><span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 mt-2 inline-block">Riesgo ${nivelIARRI(dato.iarri)}</span></div>`);
+                            } else {
+                                layer.bindPopup(`<b>${nombreGeo}</b><br>Sin datos registrados`);
+                            }
+                        }
+                    }).addTo(map);
+                } else {
+                    console.warn("No se encontró puebla.geojson. Para pintar las zonas necesitas este archivo en la misma ruta.");
+                }
+            } catch(e) {
+                console.error("Error al intentar pintar las zonas IARRI en el mapa:", e);
+            }
+
+            try {
                 let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
                 const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                 fotosGuardadas.forEach(foto => {
@@ -1034,16 +1084,12 @@
             } catch (error) { console.error("Error inicializando el mapa:", error); }
         }
 
-        // ==============================================
-        // INICIALIZACIÓN PRINCIPAL
-        // ==============================================
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 700); }
             }, 1800);
 
-            // Revisamos si no hay usuario para mostrar el modal de Login al entrar
             setTimeout(() => {
                 if(!auth.currentUser) abrirLoginModal();
             }, 2000);
@@ -1056,7 +1102,6 @@
             renderMisiones();
             checkLogros();
             
-            // GEOLOCALIZACIÓN EN EL MINIMAPA
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
