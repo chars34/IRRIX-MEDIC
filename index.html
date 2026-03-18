@@ -16,7 +16,6 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Ocultar barra de desplazamiento para un look más "app" */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -107,7 +106,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Panel de filtros */
         #panelFiltros {
             position: absolute;
             top: 60px;
@@ -188,7 +186,6 @@
             100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
         }
 
-        /* Toast Notifications Extras */
         #toast-container {
             position: fixed;
             top: 20px;
@@ -221,7 +218,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* Lluvia de Emojis */
         .emoji-particle {
             position: fixed;
             pointer-events: none;
@@ -238,6 +234,30 @@
     </style>
 </head>
 <body class="text-gray-800 relative">
+
+    <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
+        <h1 class="text-white text-3xl font-black tracking-widest">IARRI-MX</h1>
+        <p class="text-green-200 text-sm mt-3 font-medium">Arquitectura Metabólica</p>
+        <div class="mt-8 flex gap-2">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+        </div>
+    </div>
+
+    <div id="modal-levelup" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 max-w-[300px] w-full mx-4 text-center transform scale-90 transition-transform duration-300 shadow-2xl relative overflow-hidden" id="modal-levelup-content">
+            <div class="absolute inset-0 bg-gradient-to-b from-green-100/60 to-transparent pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="text-7xl mb-4 animate-bounce">🎖️</div>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">¡Sube de Nivel!</h2>
+                <p class="text-sm text-gray-500 mb-6">Ahora eres un experto clase:</p>
+                <div class="bg-green-100 text-green-800 text-xl font-black py-2 px-4 rounded-xl inline-block mb-6 shadow-inner" id="modal-new-level">Avanzado</div>
+                <button onclick="cerrarModalNivel()" class="bg-gray-900 text-white font-bold py-3 w-full rounded-xl hover:bg-black shadow-lg transition transform hover:-translate-y-1">¡Increíble!</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container"></div>
 
@@ -260,7 +280,7 @@
                     <span class="text-sm font-bold text-green-800 ml-1">pts</span>
                     <div class="mt-3">
                         <p class="text-xs text-gray-600 mb-1" id="texto-progreso">Progreso al siguiente nivel</p>
-                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
                             <div id="bar-progreso-header" class="bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
@@ -277,9 +297,18 @@
             
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido <span class="text-xl">👋</span></h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, Juan Carlos <span class="text-xl">👋</span></h2>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1">
+                        <div class="absolute -right-4 -bottom-4 text-5xl opacity-10">💡</div>
+                        <h3 class="font-bold text-yellow-800 mb-1 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
+                        <p id="tip-diario" class="text-xs text-yellow-700 leading-relaxed font-medium">Cargando análisis territorial...</p>
+                    </div>
+
                     <div class="bg-white rounded-xl shadow p-4 mt-4 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">EN VIVO</div>
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 flex items-center gap-1">
+                            <div class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div> EN VIVO
+                        </div>
                         <h3 class="font-bold text-lg mb-2">🔥 Actividad de hoy</h3>
                         <ul class="text-gray-700 text-sm space-y-2">
                             <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Analizar 3 zonas urbanas</li>
@@ -287,7 +316,6 @@
                             <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-500"></div> Ganar 120 pts</li>
                         </ul>
                     </div>
-                    <p class="text-gray-500 text-sm mt-3">Gestiona el territorio, completa retos de sostenibilidad y mejora tu nivel de urbanismo metabólico.</p>
                 </div>
                 
                 <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" 
@@ -327,14 +355,6 @@
                         <p class="text-2xl font-black text-orange-500" id="stats-nivel">1</p>
                     </div>
                 </div>
-
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 shadow-sm flex gap-4 items-start">
-                    <div class="text-3xl animate-pulse">🚀</div>
-                    <div>
-                        <h3 class="font-bold text-blue-800 mb-1">¡Sube de nivel!</h3>
-                        <p class="text-sm text-blue-600/90 leading-relaxed">Completa retos urbanos y microcursos de aprendizaje para ganar puntos y convertirte en un experto avanzado.</p>
-                    </div>
-                </div>
             </div>
 
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
@@ -347,6 +367,10 @@
                     
                     <button onclick="toggleFiltros()" class="btn-toggle-filtros">
                         <span>🔍</span> FILTRAR
+                    </button>
+
+                    <button onclick="localizarUsuario()" class="absolute bottom-6 right-3 z-[1000] bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600">
+                        📍
                     </button>
 
                     <div id="panelFiltros">
@@ -368,7 +392,7 @@
                     <div id="map" class="h-full w-full rounded-xl z-0"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-center gap-2">
-                    <span>👆</span> Explora las zonas de intervención urbana interactuando con el mapa y selecciona un municipio.
+                    <span>👆</span> Explora las zonas e interactúa con el mapa.
                 </p>
             </div>
 
@@ -574,7 +598,7 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         // ============================
-        // NUEVO: SISTEMA DE TOASTS Y EFECTOS
+        // SISTEMA DE TOASTS, EFECTOS Y MODALES
         // ============================
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container");
@@ -594,7 +618,7 @@
 
         function lanzarConfeti() {
             const emojis = ['🌟', '🏆', '🔥', '🌱', '🚀'];
-            for(let i=0; i<15; i++) {
+            for(let i=0; i<20; i++) {
                 let p = document.createElement("div");
                 p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
                 p.className = "emoji-particle";
@@ -605,17 +629,38 @@
             }
         }
 
-        // NUEVO: CURSO SIMULADO
+        function mostrarModalNivel(nuevoNivel) {
+            const modal = document.getElementById('modal-levelup');
+            const content = document.getElementById('modal-levelup-content');
+            document.getElementById('modal-new-level').innerText = nuevoNivel;
+            
+            modal.classList.remove('hidden');
+            // Timeout para permitir que el display block se renderice antes de la animación de opacidad
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                content.style.transform = 'scale(1)';
+            }, 50);
+        }
+
+        function cerrarModalNivel() {
+            const modal = document.getElementById('modal-levelup');
+            const content = document.getElementById('modal-levelup-content');
+            
+            modal.style.opacity = '0';
+            content.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
         function simularCursoCompleto(pts, nombre) {
             mostrarToast(`Curso completado: ${nombre} (+${pts} pts)`, '📚');
             addPoints(pts, null);
             lanzarConfeti();
-            // Actualizar estadisticas en UI home
             let currentCursos = parseInt(document.getElementById('stats-cursos').innerText) || 0;
             document.getElementById('stats-cursos').innerText = currentCursos + 1;
         }
 
-        // NUEVO: SISTEMA DE RACHA DIARIA
         function verificarRacha() {
             const hoy = new Date().toDateString();
             let rachaData = JSON.parse(localStorage.getItem("arqRacha")) || { fecha: '', dias: 0 };
@@ -628,10 +673,10 @@
                     rachaData.dias++;
                     mostrarToast(`¡Racha mantenida! 🔥 ${rachaData.dias} días`);
                 } else if (rachaData.fecha !== '') {
-                    rachaData.dias = 1; // Se perdió la racha, reset a 1
+                    rachaData.dias = 1;
                     mostrarToast("Comienzas una nueva racha 🔥");
                 } else {
-                    rachaData.dias = 1; // Primer día
+                    rachaData.dias = 1; 
                     mostrarToast("¡Primer día de racha! 🔥");
                 }
                 rachaData.fecha = hoy;
@@ -642,14 +687,31 @@
             if(rachaEl) rachaEl.innerText = rachaData.dias;
         }
 
+        function cargarTipDiario() {
+            const tips = [
+                "Las ciudades con más árboles tienen tasas significativamente más bajas de obesidad.",
+                "Caminar 30 min diarios reduce un 25% el riesgo de desarrollar resistencia a la insulina.",
+                "El ruido del tráfico constante puede elevar los niveles de cortisol, afectando tu metabolismo.",
+                "Las 'ciudades de 15 minutos' promueven una mejor salud cardiovascular poblacional.",
+                "Una buena iluminación urbana fomenta caminatas nocturnas seguras y reduce el sedentarismo."
+            ];
+            const tipEl = document.getElementById('tip-diario');
+            if (tipEl) {
+                tipEl.innerText = tips[Math.floor(Math.random() * tips.length)];
+            }
+        }
+
         // ============================
-        // ESTADO GLOBAL ORIGINAL
+        // ESTADO GLOBAL
         // ============================
        
         let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || {
             totalPoints: 0,
             level: "Básico"
         };
+        // NUEVO: Variable para rastrear cambios de nivel
+        let nivelAnteriorGlobal = userProgress.level;
+
         let municipiosVisitados = new Set();
         let chartInstance = null;
         let map = null;
@@ -691,7 +753,7 @@
 
         function clasificarRiesgo(iarri){
             if(iarri < 0.013){
-                return {nivel:"Bajo", color:"#2ecc71"}; // Riesgo bajo (IARRI alto) Wait, lógica original del usuario mantenida
+                return {nivel:"Bajo", color:"#2ecc71"}; 
             }
             if(iarri < 0.037){
                 return {nivel:"Medio", color:"#f1c40f"};
@@ -714,11 +776,11 @@
         }
 
         function colorIARRI(v){
-            if(v < 0.0124) return "#dc2626";   // rojo
-            if(v < 0.0264) return "#f97316";   // naranja
-            if(v < 0.0479) return "#facc15";   // amarillo
-            if(v < 0.0894) return "#86efac";   // verde claro
-            return "#16a34a";                  // verde
+            if(v < 0.0124) return "#dc2626";   
+            if(v < 0.0264) return "#f97316";   
+            if(v < 0.0479) return "#facc15";   
+            if(v < 0.0894) return "#86efac";   
+            return "#16a34a";                  
         }
 
         function nivelIARRI(v){
@@ -799,7 +861,6 @@
             const selectedNav = document.getElementById("nav-" + screen);
             if(selectedNav) selectedNav.classList.add("active");
 
-            // Lógicas por pantalla
             if (screen === "territorio") setTimeout(initMap, 200);
             if (screen === "ranking") cargarRanking();
             if (screen === "fundamentacion") window.scrollTo(0,0);
@@ -835,7 +896,6 @@
                 num = 1;
             }
 
-            // Actualizar la barra dinámica del encabezado
             const bar = document.getElementById("bar-progreso-header");
             if(bar) bar.style.width = `${Math.min(100, percent)}%`;
             
@@ -845,9 +905,11 @@
             const statsNivel = document.getElementById('stats-nivel');
             if(statsNivel) statsNivel.innerText = num;
 
-            // Si llegamos a 100% lanzar confeti
-            if(percent >= 100 && userProgress.totalPoints > 0) {
+            // Lógica para detectar si se subió de nivel
+            if(userProgress.level !== nivelAnteriorGlobal && userProgress.totalPoints > 0) {
+                mostrarModalNivel(userProgress.level);
                 lanzarConfeti();
+                nivelAnteriorGlobal = userProgress.level;
             }
         }
 
@@ -870,7 +932,6 @@
             updateUI();
             checkLogros();
 
-            // Llamar al nuevo toast
             if(!buttonElement) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
 
             if (buttonElement) {
@@ -938,7 +999,6 @@
             });
             cont.innerHTML = html;
 
-            // Stats UI
             const stRetos = document.getElementById('stats-retos');
             if(stRetos) stRetos.innerText = completadas;
         }
@@ -963,7 +1023,6 @@
         function registrarVisita(nombre){
             municipiosVisitados.add(nombre);
             
-            // Actualizar panel Home
             const stZonas = document.getElementById('stats-zonas');
             if(stZonas) stZonas.innerText = municipiosVisitados.size;
 
@@ -1118,7 +1177,6 @@
         }
 
         async function cargarNegocios(){
-            // Retenida estructura original...
             const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
             const data = await res.json();
             const batch = 500;   
@@ -1164,7 +1222,7 @@
             legend.onAdd = function(){
                 const div = L.DomUtil.create("div","info legend");
                 div.innerHTML = `
-                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:11px; font-family:sans-serif;">
+                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:11px; font-family:sans-serif; margin-bottom:15px; margin-right:5px;">
                     <b style="color:#1f2937">Riesgo Urbano</b><br>
                     <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
                         <div><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Bajo</div>
@@ -1176,6 +1234,28 @@
                 return div;
             };
             legend.addTo(map);
+        }
+
+        // NUEVO: Geolocalización en el Mapa
+        function localizarUsuario() {
+            if (!map) return;
+            map.locate({setView: true, maxZoom: 14});
+            mostrarToast("Buscando tu ubicación...", "🛰️");
+
+            map.once('locationfound', function(e) {
+                L.circleMarker(e.latlng, {
+                    radius: 8, 
+                    fillColor: '#3b82f6', 
+                    color: '#ffffff', 
+                    weight: 3, 
+                    fillOpacity: 1
+                }).addTo(map).bindPopup("<b>¡Estás aquí!</b><br>Analiza tu entorno.").openPopup();
+                mostrarToast("Ubicación encontrada", "📍");
+            });
+
+            map.once('locationerror', function(e) {
+                mostrarToast("Activa el GPS para localizarte", "❌");
+            });
         }
 
         // ============================
@@ -1266,7 +1346,7 @@
         }
 
         // ============================
-        // RANKING Y GRÁFICAS (NUEVO)
+        // RANKING Y GRÁFICAS
         // ============================
         async function cargarRanking(){
             try {
@@ -1278,12 +1358,11 @@
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
                     misiones.push({
-                        id:"municipio_critico", nombre:"🚨 Arquitecto metabólico", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
+                        id:"municipio_critico", nombre:"🥇 Arquitecto metabólico", descripcion:`Analiza el municipio bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
                     });
                     renderMisiones();
                 }
 
-                // Generar Gráfica
                 generarGraficoRiesgo(data);
 
                 const top10 = data.slice(0,10);
@@ -1318,7 +1397,6 @@
             const ctx = document.getElementById('rankingChart');
             if(!ctx) return;
             
-            // Contar municipios por nivel
             let counts = {critico:0, alto:0, medio:0, bajo:0};
             data.forEach(d => {
                 const niv = nivelIARRI(d.iarri);
@@ -1329,7 +1407,7 @@
             });
 
             if(chartInstance) {
-                chartInstance.destroy(); // Limpiar antes de volver a dibujar
+                chartInstance.destroy(); 
             }
 
             chartInstance = new Chart(ctx, {
@@ -1358,19 +1436,28 @@
         // INICIALIZACIÓN
         // ============================
         document.addEventListener("DOMContentLoaded", () => {
-            verificarRacha(); // NUEVO
+            
+            // Lógica para quitar el Splash Screen
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 700);
+                }
+            }, 1800);
+
+            cargarTipDiario();
+            verificarRacha(); 
             updateLevel();
             updateUI();
             cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
             
-            // Configuración del Minimapa
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
 
-            // Filtros del mapa interactivo
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     if(!map) return;
