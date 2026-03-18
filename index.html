@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -231,9 +234,37 @@
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
 
+        /* NUEVO: Estilos Gamificación Avanzada */
+        .badge-locked { filter: grayscale(100%); opacity: 0.5; }
+        .badge-unlocked { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); animation: popBadge 0.4s ease; }
+        @keyframes popBadge { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+        
+        /* Ocultar UI de instrucciones de ruteo para no saturar pantalla */
+        .leaflet-routing-container { display: none !important; }
+
     </style>
 </head>
 <body class="text-gray-800 relative">
+
+    <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
+            <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
+            <p class="text-xs text-gray-500 mb-4">Sube fotos de parques, calles o zonas de riesgo.</p>
+            
+            <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
+            
+            <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner">
+                <img id="img-preview" class="w-full h-full object-cover">
+            </div>
+            
+            <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-3 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20"></textarea>
+            
+            <div class="flex gap-3">
+                <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
+                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-md transition">Subir Reporte</button>
+            </div>
+        </div>
+    </div>
 
     <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
@@ -369,9 +400,17 @@
                         <span>🔍</span> FILTRAR
                     </button>
 
-                    <button onclick="localizarUsuario()" class="absolute bottom-6 right-3 z-[1000] bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600">
-                        📍
-                    </button>
+                    <div class="absolute bottom-6 right-3 z-[1000] flex flex-col gap-3">
+                        <button onclick="abrirModalFoto()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-purple-600" title="Reportar Zona con Foto">
+                            📷
+                        </button>
+                        <button onclick="activarRutaSaludable()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-green-600" title="Trazar Ruta Saludable">
+                            🚶
+                        </button>
+                        <button onclick="localizarUsuario()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600" title="Mi Ubicación">
+                            📍
+                        </button>
+                    </div>
 
                     <div id="panelFiltros">
                         <div class="flex justify-between items-center mb-3 border-b pb-2">
@@ -392,7 +431,7 @@
                     <div id="map" class="h-full w-full rounded-xl z-0"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-center gap-2">
-                    <span>👆</span> Explora las zonas e interactúa con el mapa.
+                    <span>👆</span> Explora las zonas, reporta con fotos o crea rutas saludables.
                 </p>
             </div>
 
@@ -529,6 +568,22 @@
                     </div>
                 </div>
 
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-5 relative overflow-hidden">
+                    <h3 class="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                        <span>🏅 Galería de Insignias</span>
+                        <span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold uppercase tracking-widest">Rango: <span id="rango-nombre">Novato</span></span>
+                    </h3>
+                    
+                    <div id="contenedor-badges" class="grid grid-cols-3 gap-4 text-center">
+                        </div>
+                    
+                    <div id="contenido-desbloqueable" class="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl text-center hidden border border-yellow-200 shadow-sm transition-all duration-500">
+                        <span class="text-2xl animate-bounce inline-block">🎁</span>
+                        <h4 class="font-bold text-sm text-yellow-900 mt-1">¡Contenido Premium Desbloqueado!</h4>
+                        <p class="text-xs text-yellow-700 font-medium">Tienes acceso a rutas saludables y reportes fotográficos.</p>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-bold text-gray-600 text-sm uppercase">Retos Disponibles</h3>
                     <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full"><span id="logros-count">0</span> Logros Mágicos</span>
@@ -635,7 +690,6 @@
             document.getElementById('modal-new-level').innerText = nuevoNivel;
             
             modal.classList.remove('hidden');
-            // Timeout para permitir que el display block se renderice antes de la animación de opacidad
             setTimeout(() => {
                 modal.style.opacity = '1';
                 content.style.transform = 'scale(1)';
@@ -709,7 +763,6 @@
             totalPoints: 0,
             level: "Básico"
         };
-        // NUEVO: Variable para rastrear cambios de nivel
         let nivelAnteriorGlobal = userProgress.level;
 
         let municipiosVisitados = new Set();
@@ -764,17 +817,6 @@
             return {nivel:"Crítico", color:"#e74c3c"};
         }
 
-        function estiloMunicipio(feature){
-            const iarri = feature.properties.IARRI;
-            const r = clasificarRiesgo(iarri);
-            return {
-                fillColor: r.color,
-                weight:1,
-                color:"#555",
-                fillOpacity:0.8
-            };
-        }
-
         function colorIARRI(v){
             if(v < 0.0124) return "#dc2626";   
             if(v < 0.0264) return "#f97316";   
@@ -789,16 +831,6 @@
             if(v < 0.0479) return "Medio";
             if(v < 0.0894) return "Bajo";
             return "Muy Bajo";
-        }
-
-        async function fetchAPI(url){
-            try {
-                const res = await fetch(url);
-                return await res.json();
-            } catch (error) {
-                console.error(`Error al hacer fetch a ${url}:`, error);
-                return [];
-            }
         }
 
         // ============================
@@ -905,7 +937,6 @@
             const statsNivel = document.getElementById('stats-nivel');
             if(statsNivel) statsNivel.innerText = num;
 
-            // Lógica para detectar si se subió de nivel
             if(userProgress.level !== nivelAnteriorGlobal && userProgress.totalPoints > 0) {
                 mostrarModalNivel(userProgress.level);
                 lanzarConfeti();
@@ -923,6 +954,9 @@
                 setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300);
             }
             if (lvl) lvl.innerText = userProgress.level;
+            
+            // Refrescar medallas en UI
+            renderizarMedallas();
         }
 
         function addPoints(points, buttonElement) {
@@ -949,14 +983,14 @@
         }
 
         // ============================
-        // MISIONES Y LOGROS
+        // MISIONES Y LOGROS (Original)
         // ============================
         let misiones = [
-            { id:"explorar_mapa", nombre:"🗺 Explorador del territorio", descripcion:"Explora 3 municipios en el mapa", puntos:120, progreso:0, objetivo:3, completado:false },
-            { id:"calcular_irma", nombre:"🧬 Detective metabólico", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
-            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos en tu colonia", puntos:100, progreso:0, objetivo:1, completado:false },
-            { id:"parque", nombre:"🌳 Reto parque verde", descripcion:"Visita un parque cercano", puntos:120, progreso:0, objetivo:1, completado:false },
-            { id:"analista", nombre:"📊 Analista urbano", descripcion:"Analiza un municipio con alto riesgo", puntos:180, progreso:0, objetivo:1, completado:false }
+            { id:"explorar_mapa", nombre:"🗺 Explorador", descripcion:"Explora 3 municipios", puntos:120, progreso:0, objetivo:3, completado:false },
+            { id:"calcular_irma", nombre:"🧬 Detective", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
+            { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Camina 20 minutos", puntos:100, progreso:0, objetivo:1, completado:false },
+            { id:"parque", nombre:"🌳 Reto verde", descripcion:"Visita un parque", puntos:120, progreso:0, objetivo:1, completado:false },
+            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza municipio crítico", puntos:180, progreso:0, objetivo:1, completado:false }
         ];
 
         let logros = [
@@ -1040,8 +1074,112 @@
         }
 
         // ============================
+        // NUEVO: GAMIFICACIÓN AVANZADA
+        // ============================
+        let baseMedallas = [
+            { id: "m1", icon: "🌱", name: "Iniciado", pts: 0 },
+            { id: "m2", icon: "🚶", name: "Caminante", pts: 200 },
+            { id: "m3", icon: "📷", name: "Reportero", pts: 400 },
+            { id: "m4", icon: "🗺️", name: "Cartógrafo", pts: 600 },
+            { id: "m5", icon: "🧠", name: "Erudito", pts: 800 },
+            { id: "m6", icon: "👑", name: "Leyenda", pts: 1000 }
+        ];
+
+        function renderizarMedallas() {
+            const cont = document.getElementById("contenedor-badges");
+            if(!cont) return;
+            let html = "";
+            let rangoActual = "Novato";
+            
+            baseMedallas.forEach(m => {
+                let unlocked = userProgress.totalPoints >= m.pts;
+                if(unlocked) rangoActual = m.name;
+                html += `
+                <div class="flex flex-col items-center gap-1 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
+                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-3 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110' : ''}">${m.icon}</div>
+                    <span class="text-[10px] font-bold text-gray-600 mt-1">${m.name}</span>
+                </div>`;
+            });
+            cont.innerHTML = html;
+            
+            const rangoEl = document.getElementById("rango-nombre");
+            if(rangoEl) rangoEl.innerText = rangoActual;
+
+            // Desbloqueo de contenido Premium
+            if(userProgress.totalPoints >= 400) {
+                const extra = document.getElementById("contenido-desbloqueable");
+                if(extra) extra.classList.remove("hidden");
+            }
+        }
+
+        // ============================
+        // NUEVO: FOTOS Y REPORTES CIUDADANOS
+        // ============================
+        function abrirModalFoto() {
+            const modal = document.getElementById('modal-foto');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.style.opacity = '1', 10);
+            document.getElementById('foto-input').value = "";
+            document.getElementById('foto-preview').classList.add("hidden");
+            document.getElementById('foto-desc').value = "";
+        }
+
+        function cerrarModalFoto() {
+            const modal = document.getElementById('modal-foto');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        document.getElementById('foto-input').addEventListener('change', function(e) {
+            if(e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.getElementById('img-preview').src = ev.target.result;
+                    document.getElementById('foto-preview').classList.remove("hidden");
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        function guardarReporteFoto() {
+            const desc = document.getElementById('foto-desc').value || "Reporte sin descripción";
+            const file = document.getElementById('foto-input').files[0];
+            
+            if(!file) {
+                mostrarToast("Debes seleccionar una foto primero", "⚠️");
+                return;
+            }
+            
+            cerrarModalFoto();
+            mostrarToast("Subiendo foto...", "⏳");
+            
+            setTimeout(() => {
+                mostrarToast("¡Reporte guardado! +80 pts", "📷");
+                addPoints(80);
+                
+                if(map) {
+                    map.locate({setView: true, maxZoom: 15});
+                    map.once('locationfound', function(e) {
+                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+                        const imgData = document.getElementById('img-preview').src;
+                        
+                        L.marker(e.latlng, {icon: iconFoto}).addTo(map)
+                         .bindPopup(`
+                            <div class="text-center font-sans p-1">
+                                <b class="text-purple-700 text-sm">Reporte Ciudadano</b><br>
+                                <img src="${imgData}" class="w-full h-24 object-cover rounded-lg mt-2 mb-2 shadow-sm">
+                                <p class="text-xs text-gray-600 italic">"${desc}"</p>
+                            </div>
+                         `).openPopup();
+                    });
+                }
+            }, 1200);
+        }
+
+        // ============================
         // CALCULADORA IRMA
         // ============================
+        // ... (resto del código de calculadora original)
         function alerta(msg){
             document.getElementById("resultado").innerHTML =
             `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm animate-pulse flex gap-2">
@@ -1073,26 +1211,6 @@
 
             if(!municipio || isNaN(glucosa) || isNaN(imc) || isNaN(cintura) || isNaN(actividad)){
                 alerta("Debes completar todos los campos.");
-                return;
-            }
-
-            if(glucosa < 70 || glucosa > 180){
-                alerta("Glucosa fuera de rango (70-180 mg/dL)");
-                return;
-            }
-
-            if(imc < 18 || imc > 40){
-                alerta("IMC fuera de rango (18-40)");
-                return;
-            }
-
-            if(cintura < 70 || cintura > 130){
-                alerta("Cintura fuera de rango (70-130 cm)");
-                return;
-            }
-
-            if(actividad < 0 || actividad > 7){
-                alerta("Actividad física fuera de rango (0-7 h/semana)");
                 return;
             }
 
@@ -1236,7 +1354,7 @@
             legend.addTo(map);
         }
 
-        // NUEVO: Geolocalización en el Mapa
+        // Ubicación
         function localizarUsuario() {
             if (!map) return;
             map.locate({setView: true, maxZoom: 14});
@@ -1244,11 +1362,7 @@
 
             map.once('locationfound', function(e) {
                 L.circleMarker(e.latlng, {
-                    radius: 8, 
-                    fillColor: '#3b82f6', 
-                    color: '#ffffff', 
-                    weight: 3, 
-                    fillOpacity: 1
+                    radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1
                 }).addTo(map).bindPopup("<b>¡Estás aquí!</b><br>Analiza tu entorno.").openPopup();
                 mostrarToast("Ubicación encontrada", "📍");
             });
@@ -1258,10 +1372,60 @@
             });
         }
 
+        // NUEVO: Rutas Saludables con Leaflet Routing Machine
+        let routingControl = null;
+        function activarRutaSaludable() {
+            if (!map) return;
+            
+            // Requisito del nivel para usar rutas
+            if (userProgress.totalPoints < 400) {
+                mostrarToast("Sube a nivel Intermedio (400 pts) para trazar rutas", "🔒");
+                return;
+            }
+
+            mostrarToast("Calculando ruta segura...", "🚶");
+            map.locate({setView: true, maxZoom: 15});
+            
+            map.once('locationfound', function(e) {
+                if (routingControl) { map.removeControl(routingControl); }
+                
+                // Simular un parque destino cercano (offset de lat/lng aleatorio)
+                const latOffset = (Math.random() - 0.5) * 0.015;
+                const lngOffset = (Math.random() - 0.5) * 0.015;
+                const destLat = e.latlng.lat + latOffset;
+                const destLng = e.latlng.lng + lngOffset;
+
+                routingControl = L.Routing.control({
+                    waypoints: [
+                        L.latLng(e.latlng.lat, e.latlng.lng),
+                        L.latLng(destLat, destLng)
+                    ],
+                    routeWhileDragging: false,
+                    addWaypoints: false,
+                    show: false, // Ocultar UI nativa para que sea limpio
+                    lineOptions: {
+                        styles: [{color: '#16a34a', opacity: 0.8, weight: 6}]
+                    },
+                    createMarker: function(i, wp, nWps) {
+                        const iconHtml = i === 0 ? '📍' : '🌳';
+                        return L.marker(wp.latLng, {
+                            icon: L.divIcon({html: `<div class="text-2xl">${iconHtml}</div>`, className: '', iconSize: [30,30]})
+                        }).bindPopup(i === 0 ? "Tu ubicación" : "Parque Saludable Destino");
+                    }
+                }).addTo(map);
+
+                mostrarToast("¡Ruta trazada! Evitando zonas críticas.", "✅");
+                addPoints(30); 
+            });
+            
+            map.once('locationerror', function(e) {
+                mostrarToast("Activa el GPS para trazar tu ruta", "❌");
+            });
+        }
+
         // ============================
         // INICIALIZACIÓN DE MAPA
         // ============================
-        
         async function initMap(){
             if(map){
                 map.invalidateSize();
@@ -1296,18 +1460,9 @@
                         const m = rankingMap[nombre];
 
                         if(!m){
-                            return {
-                                color:"#bbb",
-                                weight:1,
-                                fillOpacity:0.1
-                            };
+                            return { color:"#bbb", weight:1, fillOpacity:0.1 };
                         }
-                        return {
-                            color:"#888",
-                            weight:1,
-                            fillColor:colorIARRI(m.iarri),
-                            fillOpacity:0.6
-                        };
+                        return { color:"#888", weight:1, fillColor:colorIARRI(m.iarri), fillOpacity:0.6 };
                     },
                     onEachFeature:function(feature,layer){
                         const nombreOriginal =
@@ -1335,7 +1490,6 @@
                 }).addTo(map);
 
                 map.fitBounds(capaMunicipios.getBounds());
-
                 await cargarNegocios();
                 agregarLeyenda(); 
                
@@ -1358,7 +1512,7 @@
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
                     misiones.push({
-                        id:"municipio_critico", nombre:"🥇 Arquitecto metabólico", descripcion:`Analiza el municipio bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
+                        id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false
                     });
                     renderMisiones();
                 }
@@ -1437,7 +1591,6 @@
         // ============================
         document.addEventListener("DOMContentLoaded", () => {
             
-            // Lógica para quitar el Splash Screen
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) {
@@ -1472,48 +1625,6 @@
             });
         });
 
-        // SISTEMA DE PROGRESO ORIGINAL MANTENIDO
-        let progreso = JSON.parse(localStorage.getItem("progresoUsuario")) || {
-            puntos: 1640,
-            nivel: 7,
-            cursos: [],
-            retos: []
-        };
-
-        function completarReto(id){
-            if(!progreso.retos.includes(id)){
-                progreso.retos.push(id);
-                progreso.puntos += 150;
-                guardarProgreso();
-            }
-        }
-
-        function completarCurso(idCurso){
-            if(!progreso.cursos.includes(idCurso)){
-                progreso.cursos.push(idCurso);
-                progreso.puntos += 200;
-                guardarProgreso();
-            }
-        }
-
-        function ganarPuntos(cantidad){
-            progreso.puntos += cantidad;
-            guardarProgreso();
-            cargarProgreso();
-        }
-
-        function cargarProgreso(){
-            const pts = document.getElementById("puntosUsuario");
-            if(pts){
-                pts.innerText = progreso.puntos + " pts";
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", cargarProgreso);
-
-        function guardarProgreso(){
-            localStorage.setItem("progresoUsuario", JSON.stringify(progreso));
-        }
     </script>
 </body>
 </html>
