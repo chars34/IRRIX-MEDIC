@@ -1400,16 +1400,18 @@
         // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA ======
       // Variable global para guardar los parques y no tener que cargar el archivo cada vez
 // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
+// ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
 let areasVerdesData = null;
 let routingControl = null;
+window.markersParquesBuscados = null; // Guardará los pines verdes para poder borrarlos
 
 async function activarRutaSaludable() {
     if (!map) return;
     
-    mostrarToast("Localizando tu posición...", "🛰️");
+    mostrarToast("Buscando parques a 5 km...", "🛰️");
     
     // Forzamos la localización
-    map.locate({setView: true, maxZoom: 15, timeout: 5000});
+    map.locate({setView: true, maxZoom: 14, timeout: 5000});
     
     map.once('locationfound', async function(e) {
         ejecutarLogicaRuta(e.latlng.lat, e.latlng.lng);
@@ -1424,22 +1426,26 @@ async function activarRutaSaludable() {
 
 async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
     try {
-        // 1. Leer el archivo CSV oficial que descargaste
+        // Limpiar pines de búsquedas anteriores
+        if (window.markersParquesBuscados) {
+            map.removeLayer(window.markersParquesBuscados);
+        }
+        window.markersParquesBuscados = L.layerGroup().addTo(map);
+
+        // 1. Leer el archivo CSV oficial
         if (!areasVerdesData) {
             const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
             if (!response.ok) throw new Error("Archivo CSV no encontrado");
             const csvText = await response.text();
             
-            // Usamos PapaParse (que ya tienes en tu <head>) para leer el CSV
             const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
             areasVerdesData = parsed.data.filter(row => row.LATITUD && row.LONGITUD);
         }
 
         const puntoUsuario = turf.point([lngUsuario, latUsuario]);
-        let parqueMasCercano = null;
-        let distanciaMinima = Infinity;
+        let parquesEncontrados = [];
 
-        // 2. Buscar el parque más cercano en tu lista del Ayuntamiento
+        // 2. Buscar TODOS los parques a menos de 5 km
         areasVerdesData.forEach(function (row) {
             const lat = parseFloat(row.LATITUD);
             const lng = parseFloat(row.LONGITUD);
@@ -1449,33 +1455,138 @@ async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
             const puntoParque = turf.point([lng, lat]);
             const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
 
-            if (distancia < distanciaMinima) {
-                distanciaMinima = distancia;
-                parqueMasCercano = {
+            // Filtro: Solo guardar los que estén a 5 km o menos
+            if (distancia <= 5) {
+                let nombreLimpio = (row['NOMBRE '] || row['NOMBRE'] || "Área Verde").replace(/'/g, ""); // Evita errores de comillas
+                parquesEncontrados.push({
                     lat: lat,
                     lng: lng,
-                    // Tomamos el nombre y la colonia desde las columnas de tu CSV
-                    nombre: row['NOMBRE '] || row['NOMBRE'] || "Área Verde",
+                    distancia: distancia,
+                    nombre: nombreLimpio,
                     colonia: row['COLONIA'] || "Puebla"
-                };
+                });
             }
         });
 
-        // 3. Trazar la ruta (Solo si está a menos de 10 km de distancia)
-        if (parqueMasCercano && distanciaMinima < 10) {
-            let tituloDestino = `${parqueMasCercano.nombre} (${parqueMasCercano.colonia})`;
-            trazarRuta(latUsuario, lngUsuario, parqueMasCercano.lat, parqueMasCercano.lng, tituloDestino);
+        // 3. Mostrar los resultados en el mapa
+        if (parquesEncontrados.length > 0) {
+            mostrarToast(`¡Encontramos ${parquesEncontrados.length} parques cerca!`, "🌳");
+            
+            let bounds = [ [latUsuario, lngUsuario] ]; // Guardamos coordenadas para centrar el mapa
+
+            parquesEncontrados.forEach(parque => {
+                bounds.push([parque.lat, parque.lng]);
+
+                // Crear un pin verde para el parque
+                const marker = L.marker([parque.lat, parque.lng], {
+                    icon: L.divIcon({
+                        html: `<div style="font-size:16px; background:#10B981; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); color:white;">🌳</div>`,
+                        className: '', iconSize: [28,28], iconAnchor: [14, 28]
+                    })
+                });
+
+                // Crear el globo de información con el botón para trazar ruta
+                const popupHTML = `
+                    <div class="text-center font-sans p-1 min-w-[150px]">
+                        <b class="text-green-800 text-sm leading-tight block mb-1">${parque.nombre}</b>
+                        <span class="text-[10px] text-gray-500 block leading-tight mb-1">${parque.colonia}</span>
+                        <span class="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block mb-2">A ${parque.distancia.toFixed(2)} km</span><br>
+                        <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${parque.nombre}')" 
+                                class="bg-green-600 text-white w-full py-2 rounded-lg font-bold shadow-md hover:bg-green-700 transition transform hover:-translate-y-0.5">
+                            📍 Ir Aquí
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupHTML);
+                window.markersParquesBuscados.addLayer(marker);
+            });
+
+            // Ajustar la cámara del mapa para que se vean todos los parques y el usuario
+            map.fitBounds(bounds, {padding: [40, 40]});
+
         } else {
-            mostrarToast("Parques oficiales muy lejos. Creando ruta simulada.", "🪄");
-            trazarRuta(latUsuario, lngUsuario, latUsuario + 0.006, lngUsuario + 0.006, "Parque Simulado (Cercano)");
+            mostrarToast("No hay parques a menos de 5 km de ti.", "⚠️");
         }
 
     } catch (err) {
-        console.warn("Error leyendo el CSV (¿Lo abriste con Live Server?).", err);
-        mostrarToast("Modo Offline: Trazando ruta alternativa.", "🔌");
-        trazarRuta(latUsuario, lngUsuario, latUsuario + 0.005, lngUsuario + 0.005, "Parque Simulado");
+        console.warn("Error leyendo el CSV.", err);
+        mostrarToast("Error al cargar los datos de parques.", "❌");
     }
 }
+
+// Función global para que el botón del popup pueda ejecutarla
+window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
+    map.closePopup();
+    
+    // Opcional: Ocultar los otros pines verdes para limpiar el mapa durante la ruta
+    if (window.markersParquesBuscados) {
+        map.removeLayer(window.markersParquesBuscados);
+    }
+
+    mostrarToast("Calculando ruta...", "🚶");
+    trazarRuta(latU, lngU, latD, lngD, nombreDestino);
+};
+
+function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) { map.removeControl(routingControl); }
+    if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
+    if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
+    
+    try {
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
+            language: 'es',
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'walking'
+            }),
+            lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.9}] },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false,
+            createMarker: function(i, wp) {
+                return L.marker(wp.latLng, {
+                    icon: L.divIcon({
+                        html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`,
+                        className: '', iconSize: [30,30], iconAnchor: [15, 30]
+                    })
+                }).bindPopup(i===0 ? "Tu ubicación" : `Destino: <br><b>${nombre}</b>`);
+            }
+        });
+
+        routingControl.on('routingerror', function(e) {
+            console.warn("El servidor OSRM rechazó la petición. Trazando línea recta segura.");
+            dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+        });
+
+        routingControl.addTo(map);
+
+    } catch (error) {
+        console.error("Fallo crítico en el motor de rutas.", error);
+        dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+    }
+}
+
+function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) { map.removeControl(routingControl); }
+    
+    window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
+        color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
+    }).addTo(map);
+    
+    window.markerEmergencia = L.marker([lat2, lon2], {
+        icon: L.divIcon({
+            html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯</div>`,
+            className: '', iconSize: [30,30], iconAnchor: [15, 30]
+        })
+    }).addTo(map).bindPopup(`Destino: <br><b>${nombre}</b>`).openPopup();
+
+    map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
+    mostrarToast("Ruta directa generada", "✅");
+}
+
 
 function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
     if (routingControl) { map.removeControl(routingControl); }
