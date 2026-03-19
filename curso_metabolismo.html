@@ -1,120 +1,139 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Curso Metabolismo Urbano</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso: Metabolismo Urbano</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
+<body class="text-gray-800 pb-10">
 
-<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative overflow-hidden">
+        
+        <header class="bg-purple-600 text-white p-6 rounded-b-3xl shadow-md relative">
+            <button onclick="window.history.back()" class="absolute top-4 left-4 bg-white/20 hover:bg-white/30 p-2 rounded-full transition">
+                🔙
+            </button>
+            <div class="text-center mt-4">
+                <div class="text-5xl mb-2">🌱</div>
+                <h1 class="text-2xl font-black tracking-wide">Metabolismo Urbano</h1>
+                <p class="text-purple-200 text-sm mt-1 font-medium">Recompensa: +50 PTS</p>
+            </div>
+        </header>
 
-<div class="max-w-xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <main class="p-6 space-y-6">
+            <div class="bg-purple-50 p-5 rounded-2xl border border-purple-100 fade-in" style="animation-delay: 0.1s;">
+                <p class="text-purple-900 text-sm leading-relaxed">
+                    El <b>metabolismo urbano</b> estudia cómo las ciudades funcionan como organismos vivos: consumen recursos (entradas) y generan residuos (salidas). Analizar esto es clave para crear ciudades sostenibles.
+                </p>
+            </div>
 
-<h1 class="text-2xl font-bold text-green-700 mb-4">
-🌱 Metabolismo Urbano
-</h1>
+            <div class="grid grid-cols-2 gap-4 fade-in" style="animation-delay: 0.2s;">
+                <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm text-center">
+                    <div class="text-2xl mb-2">📥</div>
+                    <h2 class="font-bold text-gray-800 text-sm mb-2">Entradas</h2>
+                    <ul class="text-xs text-gray-500 space-y-1">
+                        <li>💧 Agua</li>
+                        <li>⚡ Energía</li>
+                        <li>🍎 Alimentos</li>
+                        <li>🧱 Materiales</li>
+                    </ul>
+                </div>
+                <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm text-center">
+                    <div class="text-2xl mb-2">📤</div>
+                    <h2 class="font-bold text-gray-800 text-sm mb-2">Salidas</h2>
+                    <ul class="text-xs text-gray-500 space-y-1">
+                        <li>🗑️ Residuos sólidos</li>
+                        <li>🌫️ Emisiones CO2</li>
+                        <li>💩 Aguas residuales</li>
+                        <li>🌡️ Calor residual</li>
+                    </ul>
+                </div>
+            </div>
 
-<p class="text-gray-700 mb-4">
-El metabolismo urbano estudia cómo las ciudades funcionan como sistemas que
-consumen recursos como energía, agua y alimentos y generan residuos.
-</p>
+            <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl shadow-sm border border-green-200 mt-6 fade-in" style="animation-delay: 0.3s;">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-2xl bg-white p-2 rounded-xl shadow-sm">🧠</span>
+                    <h2 class="text-xl font-bold text-green-900">Mini Quiz</h2>
+                </div>
+                
+                <p class="text-sm font-semibold text-green-800 mb-3">¿Qué analiza el metabolismo urbano?</p>
+                <div class="space-y-3" id="quiz-container">
+                    <button onclick="verificarRespuesta(this, true)" class="w-full text-left bg-white px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium hover:bg-green-50 transition">
+                        A) Flujos de recursos (entradas y salidas) en la ciudad
+                    </button>
+                    <button onclick="verificarRespuesta(this, false)" class="w-full text-left bg-white px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium hover:bg-red-50 transition">
+                        B) Solo la cantidad de edificios que existen
+                    </button>
+                    <button onclick="verificarRespuesta(this, false)" class="w-full text-left bg-white px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium hover:bg-red-50 transition">
+                        C) Solo el sistema de transporte público
+                    </button>
+                </div>
+                
+                <div id="quiz-feedback" class="mt-4 p-3 rounded-xl text-center font-bold text-sm hidden"></div>
+            </div>
 
-<p class="text-gray-700 mb-4">
-Este enfoque permite analizar la sostenibilidad de las ciudades y mejorar
-la gestión de recursos naturales.
-</p>
+            <button id="btn-completar" onclick="completarCurso()" class="w-full bg-gray-400 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-md transition-all duration-300 pointer-events-none mt-8">
+                Completa el Quiz Primero
+            </button>
 
-<h2 class="font-bold mt-4">Entradas de recursos</h2>
+        </main>
+    </div>
 
-<ul class="list-disc ml-6 text-gray-700">
-<li>Agua</li>
-<li>Energía</li>
-<li>Alimentos</li>
-<li>Materiales</li>
-</ul>
+    <script>
+        let quizAprobado = false;
 
-<h2 class="font-bold mt-4">Salidas del sistema urbano</h2>
+        function verificarRespuesta(boton, esCorrecto) {
+            if (quizAprobado) return; // Si ya aprobó, no dejar cambiar
 
-<ul class="list-disc ml-6 text-gray-700">
-<li>Residuos</li>
-<li>Emisiones de CO2</li>
-<li>Aguas residuales</li>
-</ul>
+            const botones = document.querySelectorAll("#quiz-container button");
+            botones.forEach(b => b.classList.remove("border-green-500", "bg-green-100", "border-red-500", "bg-red-100"));
+            
+            const feedback = document.getElementById("quiz-feedback");
+            feedback.classList.remove("hidden");
 
-<hr class="my-4">
+            if (esCorrecto) {
+                boton.classList.add("border-green-500", "bg-green-100", "text-green-800");
+                feedback.className = "mt-4 p-3 rounded-xl text-center font-bold text-sm bg-green-50 text-green-700 border border-green-200";
+                feedback.innerHTML = "¡Correcto! 🎉 Entender estos flujos es esencial.";
+                quizAprobado = true;
 
-<h2 class="font-bold text-lg mb-2">🔎 Aprende más</h2>
+                // Activar botón final
+                const btnFinal = document.getElementById("btn-completar");
+                btnFinal.className = "w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg transform hover:-translate-y-1 transition-all duration-300 mt-8";
+                btnFinal.innerHTML = "Reclamar +50 pts";
+                btnFinal.style.pointerEvents = "auto";
+            } else {
+                boton.classList.add("border-red-500", "bg-red-100", "text-red-800");
+                feedback.className = "mt-4 p-3 rounded-xl text-center font-bold text-sm bg-red-50 text-red-700 border border-red-200";
+                feedback.innerHTML = "❌ Incorrecto. Piénsalo como un organismo vivo.";
+            }
+        }
 
-<div class="space-y-2">
+        function completarCurso() {
+            if(!quizAprobado) return;
+            
+            // Sincronizar con el sistema de puntos original del index.html
+            let arqProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
+            arqProgress.totalPoints += 50;
+            localStorage.setItem("arqProgress", JSON.stringify(arqProgress));
 
-<a href="https://es.wikipedia.org/wiki/Metabolismo_urbano" target="_blank"
-class="block bg-green-100 p-3 rounded-lg">
-📖 Explicación completa del metabolismo urbano
-</a>
-
-<a href="https://metabolismourbano.com/" target="_blank"
-class="block bg-green-100 p-3 rounded-lg">
-🌎 Proyecto de investigación sobre metabolismo urbano
-</a>
-
-</div>
-
-<hr class="my-4">
-
-<h2 class="font-bold text-lg mb-2">🧠 Mini Quiz</h2>
-
-<p class="mb-2">¿Qué analiza el metabolismo urbano?</p>
-
-<button onclick="correcto()" class="bg-green-500 text-white px-4 py-2 rounded m-1">
-Flujos de recursos en la ciudad
-</button>
-
-<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
-Solo edificios
-</button>
-
-<button onclick="incorrecto()" class="bg-red-500 text-white px-4 py-2 rounded m-1">
-Solo transporte
-</button>
-
-<hr class="my-4">
-
-<button onclick="completarCurso()" 
-class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">
-Completar curso +50 pts
-</button>
-
-</div>
-
-<script>
-
-function correcto(){
-alert("Correcto 🎉");
-}
-
-function incorrecto(){
-alert("Respuesta incorrecta");
-}
-
-function completarCurso(){
-
-let puntos = localStorage.getItem("puntos") || 0;
-
-puntos = parseInt(puntos) + 50;
-
-localStorage.setItem("puntos", puntos);
-
-alert("Curso completado +50 pts");
-
-}
-
-</script>
-
+            // Feedback visual y retorno a la app principal
+            const btn = document.getElementById("btn-completar");
+            btn.innerHTML = "¡Puntos ganados! 🌟";
+            btn.classList.add("bg-green-500");
+            btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
+            
+            setTimeout(() => {
+                // Asume que index.html está en la misma carpeta
+                window.location.href = "index.html";
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
