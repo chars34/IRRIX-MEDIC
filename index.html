@@ -1359,54 +1359,76 @@
         }
 
         // FUNCIÓN MEJORADA: Ahora fuerza la ruta hacia el parque real más cercano usando la API Overpass (o simula uno válido en su defecto)
-    let routingControl = null;
+  let routingControl = null;
         async function activarRutaSaludable() {
             if (!map) return;
             
-            // Verificación de puntos (puedes comentarla para probar rápido)
+            // 1. Verificación de puntos (puedes comentarla si quieres probar ya)
             if (userProgress.totalPoints < 400) {
-                mostrarToast("Necesitas 400 pts para usar rutas (Nivel Intermedio)", "🔒");
+                mostrarToast("Necesitas 400 pts (Nivel Intermedio)", "🔒");
                 return;
             }
 
-            mostrarToast("Localizando zona verde cercana...", "🌳");
+            mostrarToast("Buscando zona verde...", "🌳");
             
             map.locate({setView: true, maxZoom: 15});
             
             map.once('locationfound', async function(e) {
                 if (routingControl) { map.removeControl(routingControl); }
                 
-                // Query simplificada para mayor rapidez
-                const query = `[out:json];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center;`;
-                
+                // Intentar buscar parque real, si falla usamos el "Plan B"
                 try {
+                    const query = `[out:json][timeout:10];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center;`;
                     const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+                    
+                    if (!response.ok) throw new Error("Servidor ocupado");
                     const data = await response.json();
                     
+                    let targetLat, targetLon, nombre;
+
                     if(data.elements && data.elements.length > 0) {
                         const p = data.elements[0];
-                        const lat = p.lat || p.center.lat;
-                        const lon = p.lon || p.center.lon;
-                        const nombre = (p.tags && p.tags.name) ? p.tags.name : "Parque Cercano";
-
-                        routingControl = L.Routing.control({
-                            waypoints: [L.latLng(e.latlng.lat, e.latlng.lng), L.latLng(lat, lon)],
-                            routeWhileDragging: false,
-                            addWaypoints: false,
-                            show: false,
-                            lineOptions: { styles: [{color: '#16a34a', opacity: 0.8, weight: 6}] }
-                        }).addTo(map);
-
-                        mostrarToast(`Ruta trazada a: ${nombre}`, "✅");
+                        targetLat = p.lat || p.center.lat;
+                        targetLon = p.lon || p.center.lon;
+                        nombre = (p.tags && p.tags.name) ? p.tags.name : "Parque Cercano";
                     } else {
-                        mostrarToast("No encontré parques a 3km a la redonda", "⚠️");
+                        // Plan B: No hay parques cerca, crear un destino a 800 metros
+                        targetLat = e.latlng.lat + 0.007;
+                        targetLon = e.latlng.lng + 0.007;
+                        nombre = "Zona de Caminata Sugerida";
                     }
+
+                    trazarRuta(e.latlng.lat, e.latlng.lng, targetLat, targetLon, nombre);
+
                 } catch (err) {
-                    mostrarToast("Error de conexión con el mapa", "❌");
+                    console.warn("Error de conexión, usando ruta de emergencia");
+                    // Plan C: Error de conexión total, trazar ruta forzada para que el usuario vea algo
+                    trazarRuta(e.latlng.lat, e.latlng.lng, e.latlng.lat + 0.005, e.latlng.lng + 0.005, "Ruta de Oxigenación");
                 }
             });
+
+            map.once('locationerror', () => mostrarToast("Error: Activa tu GPS", "❌"));
         }
 
+        // Función auxiliar para dibujar la línea
+        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
+                lineOptions: { styles: [{color: '#16a34a', weight: 6, opacity: 0.8}] },
+                addWaypoints: false,
+                draggableWaypoints: false,
+                show: false,
+                createMarker: function(i, wp) {
+                    return L.marker(wp.latLng, {
+                        icon: L.divIcon({
+                            html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #16a34a; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
+                            className: '', iconSize: [35,35], iconAnchor: [17, 35]
+                        })
+                    }).bindPopup(i===0 ? "Tú" : `Destino: ${nombre}`);
+                }
+            }).addTo(map);
+            mostrarToast("¡Ruta Generada!", "✅");
+        }
         async function initMap(){
             if(map){
                 map.invalidateSize();
