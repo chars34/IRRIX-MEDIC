@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-    
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <style>
         body {
             background-color: #f3f4f6;
@@ -1359,100 +1359,51 @@
         }
 
         // FUNCIÓN MEJORADA: Ahora fuerza la ruta hacia el parque real más cercano usando la API Overpass (o simula uno válido en su defecto)
-       let routingControl = null;
-        function activarRutaSaludable() {
+    let routingControl = null;
+        async function activarRutaSaludable() {
             if (!map) return;
             
+            // Verificación de puntos (puedes comentarla para probar rápido)
             if (userProgress.totalPoints < 400) {
-                mostrarToast("Sube a nivel Intermedio (400 pts) para trazar rutas", "🔒");
+                mostrarToast("Necesitas 400 pts para usar rutas (Nivel Intermedio)", "🔒");
                 return;
             }
 
-            mostrarToast("Buscando la zona verde más cercana...", "🌳");
-            map.locate({setView: true, maxZoom: 14});
+            mostrarToast("Localizando zona verde cercana...", "🌳");
+            
+            map.locate({setView: true, maxZoom: 15});
             
             map.once('locationfound', async function(e) {
                 if (routingControl) { map.removeControl(routingControl); }
                 
-                // 1. Ampliamos la búsqueda a 5km e incluimos parques, jardines, pasto, bosques y zonas recreativas
-                const query = `[out:json][timeout:15];
-                (
-                  nwr["leisure"~"park|garden"](around:5000,${e.latlng.lat},${e.latlng.lng});
-                  nwr["landuse"~"recreation_ground|forest|grass"](around:5000,${e.latlng.lat},${e.latlng.lng});
-                );
-                out center;`;
+                // Query simplificada para mayor rapidez
+                const query = `[out:json];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center;`;
                 
-                let destLat, destLng, destName;
-
                 try {
                     const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
                     const data = await response.json();
                     
                     if(data.elements && data.elements.length > 0) {
-                        // 2. Usar Turf.js para calcular matemáticamente cuál de todos es el más cercano a ti
-                        let distanciaMinima = Infinity;
-                        let parqueIdeal = null;
+                        const p = data.elements[0];
+                        const lat = p.lat || p.center.lat;
+                        const lon = p.lon || p.center.lon;
+                        const nombre = (p.tags && p.tags.name) ? p.tags.name : "Parque Cercano";
 
-                        data.elements.forEach(park => {
-                            let pLat = park.lat || (park.center && park.center.lat);
-                            let pLng = park.lon || (park.center && park.center.lon);
-                            
-                            if(pLat && pLng) {
-                                // Medir distancia entre tu ubicación y el parque
-                                let dist = turf.distance([e.latlng.lng, e.latlng.lat], [pLng, pLat]);
-                                if(dist < distanciaMinima) {
-                                    distanciaMinima = dist;
-                                    parqueIdeal = park;
-                                    destLat = pLat;
-                                    destLng = pLng;
-                                }
-                            }
-                        });
+                        routingControl = L.Routing.control({
+                            waypoints: [L.latLng(e.latlng.lat, e.latlng.lng), L.latLng(lat, lon)],
+                            routeWhileDragging: false,
+                            addWaypoints: false,
+                            show: false,
+                            lineOptions: { styles: [{color: '#16a34a', opacity: 0.8, weight: 6}] }
+                        }).addTo(map);
 
-                        destName = (parqueIdeal.tags && parqueIdeal.tags.name) ? parqueIdeal.tags.name : "Zona Verde Urbana";
+                        mostrarToast(`Ruta trazada a: ${nombre}`, "✅");
                     } else {
-                        throw new Error("No hay zonas verdes a 5km");
+                        mostrarToast("No encontré parques a 3km a la redonda", "⚠️");
                     }
                 } catch (err) {
-                    console.warn("Fallo en Overpass API o sin resultados, usando punto seguro alternativo.", err);
-                    // Si el usuario está literalmente en medio de la nada, forzamos un destino a 1km de distancia
-                    destLat = e.latlng.lat + 0.009; // Aprox 1km al norte
-                    destLng = e.latlng.lng + 0.009; // Aprox 1km al este
-                    destName = "Zona Caminable (Destino Seguro)";
+                    mostrarToast("Error de conexión con el mapa", "❌");
                 }
-
-                // 3. Trazar la ruta en el mapa
-                routingControl = L.Routing.control({
-                    waypoints: [
-                        L.latLng(e.latlng.lat, e.latlng.lng),
-                        L.latLng(destLat, destLng)
-                    ],
-                    routeWhileDragging: false,
-                    addWaypoints: false,
-                    show: false, // Esconde el panel de texto con instrucciones giro a giro
-                    lineOptions: {
-                        styles: [{color: '#16a34a', opacity: 0.9, weight: 7, dashArray: '10, 10'}] // Línea verde punteada
-                    },
-                    createMarker: function(i, wp, nWps) {
-                        const iconHtml = i === 0 ? '🚶' : '🌳';
-                        const bgColor = i === 0 ? 'bg-blue-100 border-blue-500' : 'bg-green-100 border-green-500';
-                        return L.marker(wp.latLng, {
-                            icon: L.divIcon({
-                                html: `<div class="w-10 h-10 ${bgColor} border-2 rounded-full flex items-center justify-center text-2xl shadow-lg transform hover:scale-110 transition cursor-pointer">${iconHtml}</div>`, 
-                                className: '', 
-                                iconSize: [40,40],
-                                iconAnchor: [20, 20]
-                            })
-                        }).bindPopup(i === 0 ? "Tu ubicación actual" : `<b>${destName}</b><br>¡Ruta Metabólica Activa!`);
-                    }
-                }).addTo(map);
-
-                mostrarToast(`Ruta a: ${destName}`, "✅");
-                addPoints(30); 
-            });
-            
-            map.once('locationerror', function(e) {
-                mostrarToast("Activa el GPS de tu dispositivo para trazar tu ruta", "❌");
             });
         }
 
