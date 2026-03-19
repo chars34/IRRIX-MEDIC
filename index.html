@@ -446,46 +446,8 @@
             <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Educación Interactiva</h2>
                 <p class="text-sm text-gray-500 mb-4">Mejora tus habilidades en urbanismo táctico y ecología.</p>
-
-                <div class="border border-purple-100 p-5 rounded-2xl bg-gradient-to-b from-white to-purple-50 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-purple-200 text-purple-800 text-[10px] px-2 py-1 rounded-bl-lg font-bold">50 PTS</div>
-                    <div class="flex gap-3 mb-3">
-                        <div class="text-3xl bg-white p-2 rounded-xl shadow-sm h-12 w-12 flex items-center justify-center">🌱</div>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-purple-900 mb-1 leading-tight">Intro al Metabolismo Urbano</h3>
-                            <p class="text-xs text-purple-700/80 line-clamp-2">Aprende los conceptos básicos de entradas y salidas de recursos.</p>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-[10px] text-gray-500 mb-1"><span>Progreso</span> <span>0%</span></div>
-                        <div class="w-full bg-purple-100 rounded-full h-2">
-                            <div class="bg-purple-500 h-2 rounded-full w-0"></div>
-                        </div>
-                    </div>
-                    <button onclick="window.location.href='curso_metabolismo.html'" class="w-full bg-purple-600 text-white px-4 py-3 rounded-xl font-bold shadow-md hover:bg-purple-700 transition">
-                        Completar Microcurso
-                    </button>
-                </div>
-
-                <div class="border border-indigo-100 p-5 rounded-2xl bg-gradient-to-b from-white to-indigo-50 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-200 text-indigo-800 text-[10px] px-2 py-1 rounded-bl-lg font-bold">75 PTS</div>
-                    <div class="flex gap-3 mb-3">
-                        <div class="text-3xl bg-white p-2 rounded-xl shadow-sm h-12 w-12 flex items-center justify-center">🏙️</div>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-indigo-900 mb-1 leading-tight">Diseño de Espacios Públicos</h3>
-                            <p class="text-xs text-indigo-700/80 line-clamp-2">Estrategias prácticas para la recuperación de calles y zonas peatonales.</p>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-[10px] text-gray-500 mb-1"><span>Progreso</span> <span>0%</span></div>
-                        <div class="w-full bg-indigo-100 rounded-full h-2 mb-4">
-                            <div class="bg-indigo-500 h-2 rounded-full w-0"></div>
-                        </div>                         
-                    </div>
-                    <button onclick="window.location.href='curso_espacios.html'" class="w-full bg-indigo-600 text-white px-4 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition">
-                        Comenzar Microcurso
-                    </button>
-                </div>
+                
+                <div id="contenedor-cursos" class="space-y-4"></div>
             </div>
 
             <div id="screen-fundamentacion" class="screen hidden p-5 space-y-5">
@@ -818,6 +780,89 @@
             gym: L.markerClusterGroup({chunkedLoading:true})
         };
 
+        // ====== INICIO: SISTEMA DE CURSOS ======
+        let cursosData = JSON.parse(localStorage.getItem('arqCursosData')) || [
+            { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos de entradas y salidas de recursos.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
+            { id: "c2", titulo: "Espacios Públicos", desc: "Estrategias prácticas para recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false },
+            { id: "c3", titulo: "Movilidad Activa", desc: "Beneficios de caminar y usar bicicleta para reducir el riesgo metabólico.", pts: 60, icono: "🚲", url: "https://es.wikipedia.org/wiki/Movilidad_activa", color: "blue", completado: false, externo: true },
+            { id: "c4", titulo: "Zonas de Calor", desc: "Descubre cómo la falta de áreas verdes afecta la temperatura de la ciudad.", pts: 80, icono: "🌡️", url: "https://es.wikipedia.org/wiki/Isla_de_calor", color: "red", completado: false, externo: true }
+        ];
+
+        function renderizarCursos() {
+            const cont = document.getElementById("contenedor-cursos");
+            if (!cont) return;
+            let html = "";
+            let completados = 0;
+
+            cursosData.forEach(c => {
+                if(c.completado) completados++;
+                
+                // Mapeo seguro de colores para evitar fallos con Tailwind CDN
+                let colores = {
+                    "purple": { bg: "bg-purple-50", border: "border-purple-100", tag: "bg-purple-200 text-purple-800", text: "text-purple-900", bar: "bg-purple-500", barBg: "bg-purple-100", btn: "bg-purple-600 hover:bg-purple-700" },
+                    "indigo": { bg: "bg-indigo-50", border: "border-indigo-100", tag: "bg-indigo-200 text-indigo-800", text: "text-indigo-900", bar: "bg-indigo-500", barBg: "bg-indigo-100", btn: "bg-indigo-600 hover:bg-indigo-700" },
+                    "blue":   { bg: "bg-blue-50", border: "border-blue-100", tag: "bg-blue-200 text-blue-800", text: "text-blue-900", bar: "bg-blue-500", barBg: "bg-blue-100", btn: "bg-blue-600 hover:bg-blue-700" },
+                    "red":    { bg: "bg-red-50", border: "border-red-100", tag: "bg-red-200 text-red-800", text: "text-red-900", bar: "bg-red-500", barBg: "bg-red-100", btn: "bg-red-600 hover:bg-red-700" }
+                }[c.color];
+
+                let progreso = c.completado ? "100%" : "0%";
+                let textoBoton = c.completado ? "Completado ✅" : (c.externo ? "Leer Artículo" : "Comenzar Microcurso");
+                let extraBtnClass = c.completado ? "bg-gray-800 hover:bg-gray-900" : colores.btn;
+
+                html += `
+                <div class="border ${colores.border} p-5 rounded-2xl bg-gradient-to-b from-white to-gray-50 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                    <div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-2 py-1 rounded-bl-lg font-bold">${c.pts} PTS</div>
+                    <div class="flex gap-3 mb-3">
+                        <div class="text-3xl bg-white p-2 rounded-xl shadow-sm h-12 w-12 flex items-center justify-center">${c.icono}</div>
+                        <div class="flex-1">
+                            <h3 class="font-bold ${colores.text} mb-1 leading-tight flex items-center gap-1">${c.titulo}</h3>
+                            <p class="text-xs text-gray-600 line-clamp-2">${c.desc}</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-[10px] text-gray-500 mb-1"><span>Progreso</span> <span>${progreso}</span></div>
+                        <div class="w-full ${colores.barBg} rounded-full h-2">
+                            <div class="${colores.bar} h-2 rounded-full transition-all duration-1000" style="width: ${progreso}"></div>
+                        </div>
+                    </div>
+                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3 rounded-xl font-bold shadow-md transition ${extraBtnClass}">
+                        ${textoBoton}
+                    </button>
+                </div>`;
+            });
+
+            cont.innerHTML = html;
+            
+            const statsCursos = document.getElementById('stats-cursos');
+            if(statsCursos) statsCursos.innerText = completados;
+        }
+
+        function abrirCurso(id) {
+            let curso = cursosData.find(c => c.id === id);
+            if (!curso) return;
+
+            // Llenar barra y dar puntos si no estaba completado
+            if (!curso.completado) {
+                curso.completado = true;
+                localStorage.setItem('arqCursosData', JSON.stringify(cursosData));
+                
+                // Si es un curso interno (tu html), la lógica asume que se completa al entrar.
+                addPoints(curso.pts);
+                mostrarToast(`¡Lección completada: +${curso.pts} pts!`, '🎓');
+                renderizarCursos();
+            }
+
+            // Redirigir suavemente
+            setTimeout(() => {
+                if (curso.externo) {
+                    window.open(curso.url, '_blank');
+                } else {
+                    window.location.href = curso.url;
+                }
+            }, 600);
+        }
+        // ====== FIN: SISTEMA DE CURSOS ======
+
         function irMapa(){
             switchScreen('territorio');
         }
@@ -961,10 +1006,11 @@
             updateUI();
             checkLogros();
 
-            if(!buttonElement) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
+            if(!buttonElement && !event) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
 
-            if (buttonElement) {
-                const rect = buttonElement.getBoundingClientRect();
+            if (buttonElement || event) {
+                const target = buttonElement || event.target;
+                const rect = target.getBoundingClientRect();
                 const floatEl = document.createElement("div");
                 floatEl.className = "point-float";
                 floatEl.innerText = "+" + points;
@@ -972,8 +1018,6 @@
                 floatEl.style.top = rect.top + "px";
                 document.body.appendChild(floatEl);
                 setTimeout(() => floatEl.remove(), 1000);
-                
-                mostrarToast(`Misión cumplida: +${points} pts`, '⭐');
             }
         }
 
@@ -1353,21 +1397,17 @@
             });
         }
 
+        // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA ======
         let routingControl = null;
+        
         async function activarRutaSaludable() {
             if (!map) return;
             
-            // Quitado el requerimiento de 400 pts para que puedas usar la herramienta sin tener que desbloquearla en la app.
-            
             mostrarToast("Buscando zona verde...", "🌳");
-            
             map.locate({setView: true, maxZoom: 15});
             
             map.once('locationfound', async function(e) {
-                if (routingControl) { map.removeControl(routingControl); }
-                
                 try {
-                    // Limit = 1 para que sea más rápida y estable la conexión a Overpass
                     const query = `[out:json][timeout:10];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center limit 1;`;
                     const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
                     
@@ -1395,7 +1435,6 @@
                 }
             });
 
-            // En caso de que el usuario bloquee los permisos de ubicación
             map.once('locationerror', () => {
                 mostrarToast("GPS inactivo. Usando el centro del mapa.", "⚠️");
                 const center = map.getCenter();
@@ -1404,34 +1443,70 @@
         }
 
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-            // 1. Limpiar ruta anterior para que no se congele el mapa
+            // Limpiar cualquier ruta o marcador anterior
+            if (routingControl) { map.removeControl(routingControl); }
+            if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
+            if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
+            
+            try {
+                routingControl = L.Routing.control({
+                    waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
+                    language: 'es',
+                    router: L.Routing.osrmv1({
+                        serviceUrl: 'https://router.project-osrm.org/route/v1',
+                        profile: 'walking'
+                    }),
+                    lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.8}] },
+                    addWaypoints: false,
+                    draggableWaypoints: false,
+                    fitSelectedRoutes: true,
+                    show: false,
+                    createMarker: function(i, wp) {
+                        return L.marker(wp.latLng, {
+                            icon: L.divIcon({
+                                html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
+                                className: '', iconSize: [35,35], iconAnchor: [17, 35]
+                            })
+                        }).bindPopup(i===0 ? "Tú" : `Destino: ${nombre}`);
+                    }
+                });
+
+                // ESTA ES LA CLAVE: Si OSRM nos bloquea (cors/timeout), dibuja manual.
+                routingControl.on('routingerror', function(e) {
+                    console.warn("OSRM bloqueó la petición o falló. Trazando ruta directa automática.");
+                    dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+                });
+
+                routingControl.addTo(map);
+                mostrarToast("¡Ruta Generada!", "✅");
+            } catch (error) {
+                console.error("Error crítico al iniciar router, dibujando ruta manual:", error);
+                dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+            }
+        }
+
+        function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
+            // Eliminar el controlador fallido si existe
             if (routingControl) { map.removeControl(routingControl); }
             
-            // 2. Trazar la nueva ruta de forma segura
-            routingControl = L.Routing.control({
-                waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
-                language: 'es',
-                lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.8}] },
-                addWaypoints: false,
-                draggableWaypoints: false,
-                fitSelectedRoutes: true,
-                show: false,
-                routeWhileDragging: false,
-                createMarker: function(i, wp) {
-                    return L.marker(wp.latLng, {
-                        icon: L.divIcon({
-                            html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
-                            className: '', iconSize: [35,35], iconAnchor: [17, 35]
-                        })
-                    }).bindPopup(i===0 ? "Tú" : `Destino: ${nombre}`);
-                }
-            }).on('routingerror', function(e) {
-                console.error("El servidor de rutas OSRM está saturado en este momento.", e);
-                mostrarToast("Error en el servidor de rutas", "⚠️");
+            // Dibujar una línea directa punteada (modo offline / fallback)
+            window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
+                color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
             }).addTo(map);
             
-            mostrarToast("¡Ruta Generada!", "✅");
+            // Poner el marcador final
+            window.markerEmergencia = L.marker([lat2, lon2], {
+                icon: L.divIcon({
+                    html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🌳</div>`,
+                    className: '', iconSize: [35,35], iconAnchor: [17, 35]
+                })
+            }).addTo(map).bindPopup(`Destino: ${nombre}`).openPopup();
+
+            // Centrar cámara
+            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
+            mostrarToast("Ruta directa generada correctamente", "✅");
         }
+        // ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA ======
         
         async function initMap(){
             if(map){
@@ -1639,6 +1714,9 @@
             cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
+            
+            // Renderizar los nuevos cursos al cargar la página
+            renderizarCursos();
 
             // LÓGICA DEL MINIMAPA
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
