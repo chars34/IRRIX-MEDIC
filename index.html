@@ -1635,7 +1635,15 @@
             cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
-            
+            // 2. AGREGA ESTO AQUÍ
+            map = L.map('map').setView([19.04, -98.20], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Esto ya lo tienes en tu código, déjalo abajo:
+            const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
             // LÓGICA MEJORADA DEL MINIMAPA (Con geolocalización y cálculo de riesgo por municipio)
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8)
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
