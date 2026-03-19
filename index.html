@@ -690,17 +690,14 @@
         auth.onAuthStateChanged((user) => {
             const loginScreen = document.getElementById('login-screen');
             if (user) {
-                // Ocultar pantalla de login
                 loginScreen.style.opacity = '0';
                 setTimeout(() => loginScreen.classList.add('hidden'), 500);
                 
-                // Actualizar nombre
                 const nombreUsuarioEl = document.getElementById('user-name');
                 if(nombreUsuarioEl) {
                     nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador';
                 }
             } else {
-                // Mostrar pantalla de login si no hay sesión
                 loginScreen.classList.remove('hidden');
                 loginScreen.style.opacity = '1';
             }
@@ -805,7 +802,7 @@
         };
         let nivelAnteriorGlobal = userProgress.level;
 
-        let geoDataCache = null; // Caché global para el geoJSON
+        let geoDataCache = null; 
         let municipiosVisitados = new Set();
         let chartInstance = null;
         let map = null;
@@ -1356,15 +1353,12 @@
             });
         }
 
-  let routingControl = null;
+        let routingControl = null;
         async function activarRutaSaludable() {
             if (!map) return;
             
-            if (userProgress.totalPoints < 400) {
-                mostrarToast("Necesitas 400 pts (Nivel Intermedio)", "🔒");
-                return;
-            }
-
+            // Quitado el requerimiento de 400 pts para que puedas usar la herramienta sin tener que desbloquearla en la app.
+            
             mostrarToast("Buscando zona verde...", "🌳");
             
             map.locate({setView: true, maxZoom: 15});
@@ -1373,7 +1367,8 @@
                 if (routingControl) { map.removeControl(routingControl); }
                 
                 try {
-                    const query = `[out:json][timeout:10];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center;`;
+                    // Limit = 1 para que sea más rápida y estable la conexión a Overpass
+                    const query = `[out:json][timeout:10];nwr["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});out center limit 1;`;
                     const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
                     
                     if (!response.ok) throw new Error("Servidor ocupado");
@@ -1383,8 +1378,8 @@
 
                     if(data.elements && data.elements.length > 0) {
                         const p = data.elements[0];
-                        targetLat = p.lat || p.center.lat;
-                        targetLon = p.lon || p.center.lon;
+                        targetLat = p.lat || (p.center && p.center.lat) || e.latlng.lat + 0.005;
+                        targetLon = p.lon || (p.center && p.center.lon) || e.latlng.lng + 0.005;
                         nombre = (p.tags && p.tags.name) ? p.tags.name : "Parque Cercano";
                     } else {
                         targetLat = e.latlng.lat + 0.007;
@@ -1395,20 +1390,27 @@
                     trazarRuta(e.latlng.lat, e.latlng.lng, targetLat, targetLon, nombre);
 
                 } catch (err) {
-                    console.warn("Error de conexión, usando ruta de emergencia");
+                    console.warn("Error de conexión, usando ruta de emergencia", err);
                     trazarRuta(e.latlng.lat, e.latlng.lng, e.latlng.lat + 0.005, e.latlng.lng + 0.005, "Ruta de Oxigenación");
                 }
             });
 
-            map.once('locationerror', () => mostrarToast("Error: Activa tu GPS", "❌"));
+            // En caso de que el usuario bloquee los permisos de ubicación
+            map.once('locationerror', () => {
+                mostrarToast("GPS inactivo. Usando el centro del mapa.", "⚠️");
+                const center = map.getCenter();
+                trazarRuta(center.lat, center.lng, center.lat + 0.005, center.lng + 0.005, "Parque Simulado");
+            });
         }
 
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+            if (routingControl) { map.removeControl(routingControl); }
             routingControl = L.Routing.control({
                 waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
                 lineOptions: { styles: [{color: '#16a34a', weight: 6, opacity: 0.8}] },
                 addWaypoints: false,
                 draggableWaypoints: false,
+                fitSelectedRoutes: true, // Esto ajusta el zoom para que se vea toda la ruta generada
                 show: false,
                 createMarker: function(i, wp) {
                     return L.marker(wp.latLng, {
@@ -1469,14 +1471,14 @@
                         }
 
                         if(!m){
-                            return { color:"#ccc", weight:1, fillOpacity:0.2 };
+                            return { color:"#ccc", weight:1, fillOpacity:0.1 };
                         }
 
                         return {
                             color:"#555",
                             weight:1,
                             fillColor: colorIARRI(m.iarri),
-                            fillOpacity: 0.7
+                            fillOpacity: 0.35 // Opacidad reducida de 0.7 a 0.35 para transparencia
                         };
                     },
                     onEachFeature:function(feature,layer){
@@ -1629,19 +1631,16 @@
             renderMisiones();
             checkLogros();
 
-            // LÓGICA MEJORADA DEL MINIMAPA (Con geolocalización y cálculo de riesgo por municipio)
+            // LÓGICA DEL MINIMAPA
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
 
-            // Buscar geolocalización al arrancar
             miniMap.locate({setView: true, maxZoom: 13});
             miniMap.on('locationfound', async function(e) {
-                // Al localizar, agregamos el marcador
                 let marker = L.marker(e.latlng).addTo(miniMap).bindPopup("Analizando tu zona...").openPopup();
                 
                 try {
-                    // Nos aseguramos que el archivo GEOJSON esté cargado
                     if(!geoDataCache) {
                         const res = await fetch("./puebla_municipios.json");
                         geoDataCache = await res.json();
@@ -1651,7 +1650,6 @@
                     const rankingMap = {};
                     iarriData.forEach(m => rankingMap[normalizarNombre(m.municipio)] = m);
 
-                    // Usamos Turf.js para identificar el municipio basado en las coordenadas
                     const pt = turf.point([e.latlng.lng, e.latlng.lat]);
                     let municipioEncontrado = "Desconocido";
                     let riesgoEncontrado = "No evaluado";
