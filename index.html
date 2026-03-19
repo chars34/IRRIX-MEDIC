@@ -27,21 +27,24 @@
             border-radius: 10px;
         }
 
+        /* EFECTO PRO: Navegación inferior con Glassmorphism (Efecto cristal) */
         .nav-bar {
             position: fixed;
             bottom: 0;
             width: 100%;
             max-width: 28rem;
-            background: white;
-            border-top: 1px solid #eee;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             justify-content: space-around;
             padding: 12px 0 20px 0;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.06);
+            border-radius: 25px 25px 0 0;
         }
 
         .nav-item {
@@ -51,7 +54,7 @@
             cursor: pointer;
             text-align: center;
             flex: 1;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -60,7 +63,7 @@
 
         .nav-item.active {
             color: #166534;
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.05);
         }
 
         .nav-icon {
@@ -72,6 +75,7 @@
 
         .nav-item.active .nav-icon {
             filter: grayscale(0%) opacity(1);
+            text-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
         }
 
         .cluster-circle{
@@ -101,11 +105,11 @@
 
         .screen {
             padding-bottom: 200px;
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -116,14 +120,16 @@
             width: 220px;
             max-height: 70vh;
             overflow-y: auto;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             z-index: 1000;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translateX(250px);
             opacity: 0;
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
         #panelFiltros.active {
@@ -136,11 +142,11 @@
             top: 15px;
             right: 15px;
             z-index: 1001;
-            background: #166534;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
             color: white;
             padding: 10px 18px;
             border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.4);
             cursor: pointer;
             font-weight: 800;
             border: 2px solid white;
@@ -152,8 +158,8 @@
         }
 
         .btn-toggle-filtros:hover {
-            background: #15803d;
-            transform: scale(1.05);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 101, 52, 0.5);
         }
 
         .btn-toggle-filtros:active {
@@ -161,9 +167,9 @@
         }
 
         @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(22, 163, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
         }
         
         #map{
@@ -180,13 +186,13 @@
             animation: floatUp 1s ease-out forwards;
             pointer-events: none;
             z-index: 9999;
-            font-size: 1.2rem;
-            text-shadow: 0px 2px 4px rgba(0,0,0,0.2);
+            font-size: 1.4rem;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
         }
 
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.6); }
         }
 
         #toast-container {
@@ -204,29 +210,29 @@
         .toast-msg {
             background: rgba(22, 101, 52, 0.95);
             color: white;
-            padding: 12px 20px;
+            padding: 14px 24px;
             border-radius: 50px;
             font-weight: bold;
             font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            animation: slideDownFade 0.4s ease-out forwards;
-            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            animation: slideDownFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         @keyframes slideDownFade {
-            0% { opacity: 0; transform: translateY(-20px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% { opacity: 0; transform: translateY(-30px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .emoji-particle {
             position: fixed;
             pointer-events: none;
             z-index: 9998;
-            animation: fallDrop 2s linear forwards;
-            font-size: 24px;
+            animation: fallDrop 2.5s linear forwards;
+            font-size: 26px;
         }
 
         @keyframes fallDrop {
@@ -234,9 +240,9 @@
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
 
-        .badge-locked { filter: grayscale(100%); opacity: 0.5; }
-        .badge-unlocked { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); animation: popBadge 0.4s ease; }
-        @keyframes popBadge { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+        .badge-locked { filter: grayscale(100%); opacity: 0.4; }
+        .badge-unlocked { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15)); animation: popBadge 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popBadge { 0% { transform: scale(0.5) rotate(-10deg); } 100% { transform: scale(1) rotate(0deg); } }
         
         .leaflet-routing-container { display: none !important; }
 
@@ -244,91 +250,91 @@
 </head>
 <body class="text-gray-800 relative">
 
-    <div id="login-screen" class="fixed inset-0 bg-green-900 z-[100000] flex flex-col items-center justify-center transition-opacity duration-500">
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-green-900 to-emerald-800 z-[100000] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl">AM</div>
-        <h1 class="text-white text-3xl font-black tracking-widest mb-8">IARRI-MX</h1>
-        <p class="text-green-200 text-sm mb-8 font-medium">Arquitectura Metabólica</p>
-        <button onclick="iniciarSesionGoogle()" class="bg-white text-gray-800 font-bold py-3 px-6 rounded-xl shadow-lg flex items-center gap-3 hover:bg-gray-100 transition transform hover:scale-105">
+        <h1 class="text-white text-3xl font-black tracking-widest mb-8 text-shadow-lg">IARRI-MX</h1>
+        <p class="text-green-200 text-sm mb-8 font-medium tracking-wide">Arquitectura Metabólica</p>
+        <button onclick="iniciarSesionGoogle()" class="bg-white text-gray-800 font-bold py-3 px-6 rounded-2xl shadow-xl flex items-center gap-3 hover:bg-gray-50 transition transform hover:scale-105 active:scale-95">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
             Iniciar sesión con Google
         </button>
     </div>
 
-    <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
+    <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
             <p class="text-xs text-gray-500 mb-4">Sube fotos de parques, calles o zonas de riesgo.</p>
             
-            <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
+            <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
             
             <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner">
                 <img id="img-preview" class="w-full h-full object-cover">
             </div>
             
-            <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-3 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20"></textarea>
+            <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
             
             <div class="flex gap-3">
                 <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-md transition">Subir Reporte</button>
+                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
             </div>
         </div>
     </div>
 
-    <div id="splash-screen" class="fixed inset-0 bg-green-800 z-[99999] hidden flex flex-col items-center justify-center transition-opacity duration-700">
+    <div id="splash-screen" class="fixed inset-0 bg-gradient-to-br from-green-800 to-emerald-900 z-[99999] hidden flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
-        <h1 class="text-white text-3xl font-black tracking-widest">IARRI-MX</h1>
+        <h1 class="text-white text-3xl font-black tracking-widest text-shadow-md">IARRI-MX</h1>
         <p class="text-green-200 text-sm mt-3 font-medium">Arquitectura Metabólica</p>
         <div class="mt-8 flex gap-2">
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0s;"></div>
+            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0.1s;"></div>
+            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0.2s;"></div>
         </div>
     </div>
 
-    <div id="modal-levelup" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-8 max-w-[300px] w-full mx-4 text-center transform scale-90 transition-transform duration-300 shadow-2xl relative overflow-hidden" id="modal-levelup-content">
+    <div id="modal-levelup" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-8 max-w-[300px] w-full mx-4 text-center transform scale-90 transition-transform duration-300 shadow-2xl relative overflow-hidden" id="modal-levelup-content">
             <div class="absolute inset-0 bg-gradient-to-b from-green-100/60 to-transparent pointer-events-none"></div>
             <div class="relative z-10">
-                <div class="text-7xl mb-4 animate-bounce">🎖️</div>
+                <div class="text-7xl mb-4 animate-bounce drop-shadow-lg">🎖️</div>
                 <h2 class="text-2xl font-black text-gray-800 mb-1">¡Sube de Nivel!</h2>
                 <p class="text-sm text-gray-500 mb-6">Ahora eres un experto clase:</p>
-                <div class="bg-green-100 text-green-800 text-xl font-black py-2 px-4 rounded-xl inline-block mb-6 shadow-inner" id="modal-new-level">Avanzado</div>
-                <button onclick="cerrarModalNivel()" class="bg-gray-900 text-white font-bold py-3 w-full rounded-xl hover:bg-black shadow-lg transition transform hover:-translate-y-1">¡Increíble!</button>
+                <div class="bg-gradient-to-r from-green-100 to-emerald-50 text-green-800 text-xl font-black py-2.5 px-6 rounded-xl inline-block mb-6 shadow-sm border border-green-200" id="modal-new-level">Avanzado</div>
+                <button onclick="cerrarModalNivel()" class="bg-gray-900 text-white font-bold py-3.5 w-full rounded-xl hover:bg-black shadow-xl transition transform hover:-translate-y-1">¡Increíble!</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
-    <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-2xl flex flex-col overflow-hidden">
-        <header class="p-5 border-b bg-white/90 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto bg-gray-50 min-h-screen relative shadow-[0_0_40px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden">
+        <header class="p-5 border-b border-gray-200/50 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-black text-green-800 tracking-tight">IARRI-MX</h1>
-                    <p class="text-xs text-gray-500 font-medium">ARQ Metabólica MX</p>
+                    <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-800 to-emerald-600 tracking-tight">IARRI-MX</h1>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">ARQ Metabólica MX</p>
                 </div>
-                <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-inner relative cursor-pointer" onclick="lanzarConfeti()">
+                <div class="h-11 w-11 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-sm border border-green-200 relative cursor-pointer transform transition hover:scale-105" onclick="lanzarConfeti()">
                     AM
-                    <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3 h-3 rounded-full border-2 border-white"></div>
+                    <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"></div>
                 </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden">
+            <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
                 <div class="relative z-10 w-2/3">
-                    <span id="total-points" class="text-3xl font-black text-green-600 transition-all duration-300">0</span>
+                    <span id="total-points" class="text-3xl font-black text-green-600 transition-all duration-300 drop-shadow-sm">0</span>
                     <span class="text-sm font-bold text-green-800 ml-1">pts</span>
                     <div class="mt-3">
-                        <p class="text-xs text-gray-600 mb-1" id="texto-progreso">Progreso al siguiente nivel</p>
-                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-                            <div id="bar-progreso-header" class="bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                        <p class="text-xs text-gray-600 mb-1.5 font-medium" id="texto-progreso">Progreso al siguiente nivel</p>
+                        <div class="w-full bg-gray-200/80 rounded-full h-3 overflow-hidden shadow-inner">
+                            <div id="bar-progreso-header" class="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
                 <div class="text-right relative z-10 flex flex-col items-end">
-                    <p id="user-level" class="text-xs text-green-800 font-black uppercase tracking-wider bg-green-200/80 px-3 py-1.5 rounded-lg shadow-sm mb-1"></p>
-                    <span class="text-[10px] text-green-600 font-bold bg-white px-2 py-0.5 rounded-full shadow-sm">Nivel <span id="user-level-num">1</span></span>
+                    <p id="user-level" class="text-[11px] text-green-900 font-black uppercase tracking-wider bg-green-200/80 px-3 py-1.5 rounded-lg shadow-sm mb-1.5"></p>
+                    <span class="text-[10px] text-green-700 font-bold bg-white px-2.5 py-1 rounded-full shadow-sm border border-green-100">Nivel <span id="user-level-num">1</span></span>
                 </div>
-                <div class="absolute -right-4 -bottom-4 opacity-10 text-6xl">🏆</div>
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl transform -rotate-12">🏆</div>
             </div>
         </header>
 
@@ -336,62 +342,62 @@
             
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name">Explorador</span> <span class="text-xl">👋</span></h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
                     
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1">
-                        <div class="absolute -right-4 -bottom-4 text-5xl opacity-10">💡</div>
-                        <h3 class="font-bold text-yellow-800 mb-1 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
+                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1 hover:shadow-md">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12">💡</div>
+                        <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
                         <p id="tip-diario" class="text-xs text-yellow-700 leading-relaxed font-medium">Cargando análisis territorial...</p>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 mt-4 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 flex items-center gap-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-4 relative overflow-hidden hover:shadow-md transition">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10 flex items-center gap-1.5 shadow-sm">
                             <div class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div> EN VIVO
                         </div>
-                        <h3 class="font-bold text-lg mb-2">🔥 Actividad de hoy</h3>
-                        <ul class="text-gray-700 text-sm space-y-2">
-                            <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Analizar 3 zonas urbanas</li>
-                            <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div> Completar 1 microcurso</li>
-                            <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-500"></div> Ganar 120 pts</li>
+                        <h3 class="font-bold text-lg mb-3">🔥 Actividad de hoy</h3>
+                        <ul class="text-gray-600 text-sm space-y-2.5 font-medium">
+                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-blue-500 shadow-sm"></div> Analizar 3 zonas urbanas</li>
+                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-purple-500 shadow-sm"></div> Completar 1 microcurso</li>
+                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-yellow-500 shadow-sm"></div> Ganar 120 pts</li>
                         </ul>
                     </div>
                 </div>
                 
                 <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" 
                      alt="Ciudad sostenible" 
-                     class="w-full h-52 object-cover rounded-2xl shadow-md transition transform hover:scale-[1.02]">
+                     class="w-full h-52 object-cover rounded-[2rem] shadow-lg transition transform hover:scale-[1.02]">
                 
-                <div class="bg-white rounded-xl shadow p-4 mt-4">
-                    <h3 class="font-bold text-lg mb-2 flex items-center gap-2">🗺 Análisis rápido <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">Preview</span></h3>
-                    <div id="miniMapa" style="height:180px;" class="rounded-lg shadow-inner z-0"></div>
-                    <button onclick="irMapa()" class="bg-green-600 text-white px-4 py-3 rounded-xl mt-3 w-full font-bold shadow-md hover:bg-green-700 transition">
-                        🗺 Ver mapa completo
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mt-4 hover:shadow-md transition">
+                    <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🗺 Análisis rápido <span class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 uppercase tracking-widest font-bold">Preview</span></h3>
+                    <div id="miniMapa" style="height:180px;" class="rounded-xl shadow-inner z-0 border border-gray-200"></div>
+                    <button onclick="irMapa()" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3.5 rounded-xl mt-4 w-full font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
+                        🗺 Abrir Mapa Completo
                     </button>
                 </div>
 
-                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mt-4 shadow-sm relative">
-                    <div class="absolute -top-3 -right-2 text-2xl animate-bounce">🎯</div>
-                    <h3 class="font-bold text-green-700">🌱 Reto urbano del día</h3>
-                    <p class="text-sm text-gray-700 mt-1">Encuentra una zona con baja área verde en el mapa y propone una mejora.</p>
-                   <button onclick="switchScreen('retos')" class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold shadow">Ir al reto</button>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden">
+                    <div class="absolute -top-3 -right-2 text-3xl animate-bounce drop-shadow-md">🎯</div>
+                    <h3 class="font-bold text-green-800 text-lg">🌱 Reto urbano del día</h3>
+                    <p class="text-sm text-green-700/80 mt-1.5 font-medium">Encuentra una zona con baja área verde en el mapa y propone una mejora.</p>
+                   <button onclick="switchScreen('retos')" class="mt-4 bg-white text-green-700 px-5 py-2.5 rounded-xl border border-green-200 hover:bg-green-50 font-bold shadow-sm transition">Ir al reto</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mt-4">
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-3 text-center transform transition hover:-translate-y-1">
-                        <p class="text-gray-500 text-xs uppercase font-bold tracking-wider">Analizadas</p>
-                        <p class="text-2xl font-black text-green-600" id="stats-zonas">0</p>
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                        <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Analizadas</p>
+                        <p class="text-3xl font-black text-green-600 drop-shadow-sm" id="stats-zonas">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-3 text-center transform transition hover:-translate-y-1">
-                        <p class="text-gray-500 text-xs uppercase font-bold tracking-wider">Retos</p>
-                        <p class="text-2xl font-black text-blue-600" id="stats-retos">0</p>
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                        <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Retos</p>
+                        <p class="text-3xl font-black text-blue-600 drop-shadow-sm" id="stats-retos">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-3 text-center transform transition hover:-translate-y-1">
-                        <p class="text-gray-500 text-xs uppercase font-bold tracking-wider">Cursos</p>
-                        <p class="text-2xl font-black text-purple-600" id="stats-cursos">0</p>
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                        <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Cursos</p>
+                        <p class="text-3xl font-black text-purple-600 drop-shadow-sm" id="stats-cursos">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-3 text-center transform transition hover:-translate-y-1">
-                        <p class="text-gray-500 text-xs uppercase font-bold tracking-wider">Nivel</p>
-                        <p class="text-2xl font-black text-orange-500" id="stats-nivel">1</p>
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                        <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Nivel</p>
+                        <p class="text-3xl font-black text-orange-500 drop-shadow-sm" id="stats-nivel">1</p>
                     </div>
                 </div>
             </div>
@@ -399,82 +405,87 @@
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Análisis Territorial</h2>
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">Puebla</span>
+                    <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Puebla</span>
                 </div>
                 
-                <div class="flex-1 min-h-[400px] p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner relative overflow-hidden">
+                <div class="flex-1 min-h-[400px] p-1.5 bg-white rounded-[1.5rem] border border-gray-200 shadow-sm relative overflow-hidden">
                     
                     <button onclick="toggleFiltros()" class="btn-toggle-filtros">
                         <span>🔍</span> FILTRAR
                     </button>
 
                     <div class="absolute bottom-6 right-3 z-[1000] flex flex-col gap-3">
-                        <button onclick="abrirModalFoto()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-purple-600" title="Reportar Zona con Foto">
+                        <button onclick="abrirModalFoto()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-purple-600 transform hover:scale-105" title="Reportar Zona con Foto">
                             📷
                         </button>
-                        <button onclick="activarRutaSaludable()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-green-600" title="Trazar Ruta Saludable">
+                        <button onclick="activarRutaSaludable()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-green-600 transform hover:scale-105" title="Trazar Ruta Saludable">
                             🚶
                         </button>
-                        <button onclick="localizarUsuario()" class="bg-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600" title="Mi Ubicación">
+                        <button onclick="localizarUsuario()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600 transform hover:scale-105" title="Mi Ubicación">
                             📍
                         </button>
                     </div>
 
                     <div id="panelFiltros">
-                        <div class="flex justify-between items-center mb-3 border-b pb-2">
-                            <h2 class="text-green-800 font-bold">Capas de Datos</h2>
-                            <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-6 h-6 flex items-center justify-center transition-colors">✕</button>
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+                            <h2 class="text-green-800 font-black">Capas de Datos</h2>
+                            <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-7 h-7 flex items-center justify-center transition-colors font-bold">✕</button>
                         </div>
                         
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="restaurant" class="filtro-cb w-4 h-4 accent-green-600"> 🍽 Restaurantes</label>
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="cafe" class="filtro-cb w-4 h-4 accent-green-600"> ☕ Cafés</label>
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="hospital" class="filtro-cb w-4 h-4 accent-green-600"> 🏥 Hospitales</label>
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="pharmacy" class="filtro-cb w-4 h-4 accent-green-600"> 💊 Farmacias</label>
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="supermarket" class="filtro-cb w-4 h-4 accent-green-600"> 🛒 Supermercados</label>
-                            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="gym" class="filtro-cb w-4 h-4 accent-green-600"> 🏋️ Gimnasios</label>
+                        <div class="space-y-2 text-sm font-medium text-gray-700">
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition border border-transparent hover:border-blue-100">
+                                <input type="checkbox" value="ciclovias" class="filtro-cb w-4 h-4 accent-blue-600"> 🚴 Ciclovías Urbanas
+                            </label>
+                            
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="restaurant" class="filtro-cb w-4 h-4 accent-green-600"> 🍽 Restaurantes</label>
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="cafe" class="filtro-cb w-4 h-4 accent-green-600"> ☕ Cafés</label>
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="hospital" class="filtro-cb w-4 h-4 accent-green-600"> 🏥 Hospitales</label>
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="pharmacy" class="filtro-cb w-4 h-4 accent-green-600"> 💊 Farmacias</label>
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="supermarket" class="filtro-cb w-4 h-4 accent-green-600"> 🛒 Supermercados</label>
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="gym" class="filtro-cb w-4 h-4 accent-green-600"> 🏋️ Gimnasios</label>
                         </div>
                     </div>
 
-                    <div id="map" class="h-full w-full rounded-xl z-0"></div>
+                    <div id="map" class="h-full w-full rounded-[1.2rem] z-0"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-4 text-center bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm flex items-center justify-center gap-2">
-                    <span>👆</span> Explora las zonas, reporta con fotos o crea rutas saludables.
+                <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
+                    <span class="text-lg">👆</span> Explora, reporta o crea rutas.
                 </p>
             </div>
 
             <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
-                <h2 class="text-xl font-bold text-gray-800 mb-2">Educación Interactiva</h2>
-                <p class="text-sm text-gray-500 mb-4">Mejora tus habilidades en urbanismo táctico y ecología.</p>
+                <h2 class="text-2xl font-black text-gray-800 mb-1">Educación Interactiva</h2>
+                <p class="text-sm text-gray-500 mb-5 font-medium">Mejora tus habilidades en urbanismo táctico y ecología.</p>
                 
                 <div id="contenedor-cursos" class="space-y-4"></div>
             </div>
 
             <div id="screen-fundamentacion" class="screen hidden p-5 space-y-5">
-                <h2 class="text-xl font-bold text-gray-800">Fundamentación Científica</h2>
+                <h2 class="text-2xl font-black text-gray-800">Ciencia & Salud</h2>
 
-                <div class="bg-gradient-to-r from-green-50 to-emerald-100 p-5 rounded-2xl border border-green-200 text-sm shadow-sm">
-                    <h3 class="font-bold text-green-900 mb-2 flex items-center gap-2"><span class="text-xl bg-white p-1 rounded-md shadow-sm">🧬</span> Resistencia a la Insulina</h3>
-                    <p class="text-green-800/90 leading-relaxed text-justify">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-[1.5rem] border border-green-200 text-sm shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-20 text-7xl">🧬</div>
+                    <h3 class="font-bold text-green-900 mb-3 flex items-center gap-2 relative z-10"><span class="text-xl bg-white p-1.5 rounded-lg shadow-sm">🧬</span> Resistencia a la Insulina</h3>
+                    <p class="text-green-800/90 leading-relaxed text-justify relative z-10 font-medium">
                         La resistencia a la insulina está asociada a sedentarismo, mala alimentación,
                         estrés ambiental y falta de espacios públicos saludables en los entornos urbanos.
                     </p>
                 </div>
                 
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
+                <div class="bg-white p-6 rounded-[1.5rem] shadow-md border border-gray-100">
                     <h3 class="font-black text-lg text-gray-800 mb-1 flex justify-between items-center">
                         Calculadora IRMA
-                        <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded">+80 pts</span>
+                        <span class="text-[10px] bg-green-100 text-green-800 px-2.5 py-1.5 rounded-lg shadow-sm">+80 pts</span>
                     </h3>
-                    <p class="text-xs text-gray-500 mb-4">
+                    <p class="text-xs text-gray-500 mb-5 font-medium leading-relaxed">
                     El Índice de Riesgo Metabólico Ambiental (IRMA) combina factores individuales 
                     con el entorno urbano del municipio.
                     </p>
 
-                    <div class="space-y-3">
+                    <div class="space-y-4">
                         <div>
-                            <label class="text-xs text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
-                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition" autocomplete="off">
+                            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
+                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
                             <datalist id="lista-municipios">
                                 <option value="Puebla"></option>
                                 <option value="Tehuacan"></option>
@@ -484,79 +495,79 @@
                             </datalist>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Glucosa mg/dL</label>
-                                <input id="glucosa" type="number" min="70" max="180" placeholder="70-180" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition">
+                                <input id="glucosa" type="number" min="70" max="180" placeholder="70-180" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
                             </div>
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">IMC</label>
-                                <input id="imc" type="number" min="18" max="40" placeholder="18-40" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition">
+                                <input id="imc" type="number" min="18" max="40" placeholder="18-40" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
                             </div>
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Cintura (cm)</label>
-                                <input id="cintura" type="number" min="70" max="130" placeholder="70-130" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition">
+                                <input id="cintura" type="number" min="70" max="130" placeholder="70-130" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
                             </div>
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Act. Física (hrs/sem)</label>
-                                <input id="actividad" type="number" min="0" max="7" placeholder="0-7" class="border border-gray-300 p-3 w-full rounded-xl mt-1 focus:ring-2 focus:ring-green-500 outline-none transition">
+                                <input id="actividad" type="number" min="0" max="7" placeholder="0-7" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
                             </div>
                         </div>
 
-                        <button onclick="calcularIRMA()" class="bg-gray-800 text-white p-3 rounded-xl w-full font-bold mt-2 shadow-lg hover:bg-black transition transform hover:-translate-y-0.5">
-                            📊 Calcular IRMA
+                        <button onclick="calcularIRMA()" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-xl w-full font-bold mt-3 shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:from-black hover:to-gray-800 transition transform hover:-translate-y-1">
+                            📊 Calcular Mi Índice
                         </button>
                     </div>
 
-                    <div id="resultado" class="mt-4 transition-all"></div>
+                    <div id="resultado" class="mt-5 transition-all"></div>
                 </div>
 
-                <div class="text-xs bg-gray-50 p-4 rounded-xl border border-gray-100 text-gray-600 mt-6 shadow-inner">
-                    <b class="text-gray-700 uppercase tracking-wide mb-2 block">Fuentes oficiales</b>
-                    <div class="space-y-2">
-                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🌍</span> <span class="font-semibold text-green-700">OMS</span> — Riesgo metabólico y actividad física.</p>
-                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🇲🇽</span> <span class="font-semibold text-blue-700">INEGI</span> — Censo de Población.</p>
-                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🏥</span> <span class="font-semibold text-purple-700">INSP / ENSANUT</span> — Salud en México.</p>
-                        <p class="flex items-center gap-2"><span class="bg-white p-1 rounded shadow-sm">🏙</span> <span class="font-semibold text-orange-700">DENUE</span> — Infraestructura económica.</p>
+                <div class="text-xs bg-white p-5 rounded-[1.5rem] border border-gray-100 text-gray-600 mt-6 shadow-sm">
+                    <b class="text-gray-800 uppercase tracking-widest mb-3 block text-[10px] font-black">Fuentes oficiales</b>
+                    <div class="space-y-3 font-medium">
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🌍</span> <span class="font-bold text-green-700">OMS</span> — Riesgo metabólico y actividad física.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🇲🇽</span> <span class="font-bold text-blue-700">INEGI</span> — Censo de Población.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🏥</span> <span class="font-bold text-purple-700">INSP / ENSANUT</span> — Salud en México.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🏙</span> <span class="font-bold text-orange-700">DENUE</span> — Infraestructura económica.</p>
                     </div>
                 </div>
             </div>
 
             <div id="screen-retos" class="screen hidden p-5">
-                <h2 class="text-xl font-bold mb-3 flex items-center justify-between">
+                <h2 class="text-2xl font-black mb-4 text-gray-800">
                     <span>🎯 Misiones Urbanas</span>
                 </h2>
 
-                <div class="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-100 shadow-sm text-sm mb-5 flex items-center justify-between">
+                <div class="bg-gradient-to-r from-orange-50 to-red-50 p-5 rounded-[1.5rem] border border-orange-100 shadow-sm text-sm mb-6 flex items-center justify-between">
                     <div>
-                        <div class="font-bold text-orange-800 mb-1">Racha diaria activa</div>
-                        <div class="text-xs text-orange-600/80">Vuelve mañana para más puntos</div>
+                        <div class="font-black text-orange-900 mb-1 text-base">Racha Diaria Activa</div>
+                        <div class="text-xs text-orange-700/80 font-medium">Vuelve mañana para más puntos</div>
                     </div>
-                    <div class="text-center bg-white py-2 px-4 rounded-xl shadow-sm border border-orange-100">
-                        <div class="text-2xl mb-1">🔥</div>
-                        <div class="font-black text-orange-600"><span id="racha">0</span> DÍAS</div>
+                    <div class="text-center bg-white py-2.5 px-5 rounded-2xl shadow-sm border border-orange-100 transform hover:scale-105 transition">
+                        <div class="text-2xl mb-1 drop-shadow-sm">🔥</div>
+                        <div class="font-black text-orange-600 tracking-wide"><span id="racha">0</span> DÍAS</div>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-5 relative overflow-hidden">
-                    <h3 class="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100 mb-6 relative overflow-hidden">
+                    <h3 class="font-black text-gray-800 text-sm mb-5 flex items-center justify-between">
                         <span>🏅 Galería de Insignias</span>
-                        <span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold uppercase tracking-widest">Rango: <span id="rango-nombre">Novato</span></span>
+                        <span class="text-[10px] bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full font-black uppercase tracking-widest border border-purple-200">Rango: <span id="rango-nombre">Novato</span></span>
                     </h3>
                     
-                    <div id="contenedor-badges" class="grid grid-cols-3 gap-4 text-center">
+                    <div id="contenedor-badges" class="grid grid-cols-3 gap-5 text-center">
                     </div>
                     
-                    <div id="contenido-desbloqueable" class="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl text-center hidden border border-yellow-200 shadow-sm transition-all duration-500">
-                        <span class="text-2xl animate-bounce inline-block">🎁</span>
-                        <h4 class="font-bold text-sm text-yellow-900 mt-1">¡Contenido Premium Desbloqueado!</h4>
-                        <p class="text-xs text-yellow-700 font-medium">Tienes acceso a rutas saludables y reportes fotográficos.</p>
+                    <div id="contenido-desbloqueable" class="mt-5 p-4 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl text-center hidden border border-yellow-200 shadow-sm transition-all duration-500">
+                        <span class="text-3xl animate-bounce inline-block drop-shadow-md mb-1">🎁</span>
+                        <h4 class="font-black text-sm text-yellow-900 mt-1">¡Premium Desbloqueado!</h4>
+                        <p class="text-xs text-yellow-800 font-medium mt-1">Tienes acceso a rutas saludables y reportes fotográficos.</p>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-gray-600 text-sm uppercase">Retos Disponibles</h3>
-                    <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full"><span id="logros-count">0</span> Logros Mágicos</span>
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <h3 class="font-black text-gray-400 text-[11px] uppercase tracking-widest">Retos Disponibles</h3>
+                    <span class="text-[10px] font-black text-green-700 bg-green-100 border border-green-200 px-2.5 py-1 rounded-full shadow-sm"><span id="logros-count">0</span> Logros Mágicos</span>
                 </div>
 
                 <div id="lista-retos" class="space-y-4"></div>
@@ -564,32 +575,32 @@
 
             <div id="screen-ranking" class="screen hidden p-5">
                 
-                <div class="bg-white p-4 rounded-2xl shadow-md mb-5 border border-gray-100">
-                    <h2 class="text-md font-bold text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
-                    <p class="text-[10px] text-gray-400 text-center mb-3">Según el índice IARRI analizado</p>
+                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm mb-5 border border-gray-100">
+                    <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
+                    <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
                     <div class="relative w-full flex justify-center h-48">
                         <canvas id="rankingChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
-                    <h2 class="text-lg font-black mb-4 flex items-center gap-2">🏆 Top 10 Municipios</h2>
+                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
 
                     <div id="ranking" class="space-y-2">
-                        <div class="text-center text-gray-400 py-4 animate-pulse">Cargando datos satelitales...</div>
+                        <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
                     </div>
 
                     <div class="mt-6 pt-5 border-t border-gray-100">
-                        <p class="text-gray-700 text-sm leading-relaxed">
-                            🧠 <b class="text-blue-600">IARRI</b> 
-                            (<b>Índice de Riesgo Metabólico</b>) 
-                            mide cómo el <span class="text-green-600 font-semibold">entorno urbano</span> 
-                            puede influir en la salud.
+                        <p class="text-gray-600 text-sm leading-relaxed font-medium">
+                            🧠 <b class="text-blue-700 font-black">IARRI</b> 
+                            (<b class="text-gray-800">Índice de Riesgo Metabólico</b>) 
+                            mide cómo el <span class="text-green-700 font-bold">entorno urbano</span> 
+                            puede influir en la salud poblacional.
                             <br><br>
-                            📊 <b>Interpretación:</b>
-                            <br><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span> Valores altos → Entorno saludable  
-                            <br><span class="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1"></span> Valores medios → Riesgo moderado  
-                            <br><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span> Valores bajos → Riesgo metabólico
+                            <span class="font-black text-gray-800 uppercase tracking-wide text-[11px]">Interpretación:</span>
+                            <br><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1.5 shadow-sm mt-2"></span> Valores altos → Entorno saludable  
+                            <br><span class="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1.5 shadow-sm mt-1"></span> Valores medios → Riesgo moderado  
+                            <br><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1.5 shadow-sm mt-1"></span> Valores bajos → Riesgo metabólico
                         </p>
                     </div>
                 </div>
@@ -670,14 +681,14 @@
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
             toast.className = "toast-msg";
-            toast.innerHTML = `<span>${icono}</span> <span>${mensaje}</span>`;
+            toast.innerHTML = `<span class="text-lg">${icono}</span> <span>${mensaje}</span>`;
             
             container.appendChild(toast);
 
             setTimeout(() => {
                 toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-20px)';
-                toast.style.transition = 'all 0.4s ease';
+                toast.style.transform = 'translateY(-30px) scale(0.9)';
+                toast.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 setTimeout(() => toast.remove(), 400);
             }, 3000);
         }
@@ -712,7 +723,7 @@
             const content = document.getElementById('modal-levelup-content');
             
             modal.style.opacity = '0';
-            content.style.transform = 'scale(0.9)';
+            content.style.transform = 'scale(0.9) rotate(-2deg)';
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
@@ -771,7 +782,10 @@
         let capaMunicipios = null;
         let datosIARRICache = null; 
         let municipiosValidos = [];
+        
+        // --- SE AGREGÓ CAPA PARA CICLOVÍAS ---
         let capas = {
+            ciclovias: L.layerGroup(),
             restaurant: L.markerClusterGroup({chunkedLoading:true}),
             cafe: L.markerClusterGroup({chunkedLoading:true}),
             hospital: L.markerClusterGroup({chunkedLoading:true}),
@@ -780,7 +794,6 @@
             gym: L.markerClusterGroup({chunkedLoading:true})
         };
 
-        // ====== INICIO: SISTEMA DE CURSOS ======
         let cursosData = JSON.parse(localStorage.getItem('arqCursosData')) || [
             { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos de entradas y salidas de recursos.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
             { id: "c2", titulo: "Espacios Públicos", desc: "Estrategias prácticas para recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false },
@@ -797,35 +810,34 @@
             cursosData.forEach(c => {
                 if(c.completado) completados++;
                 
-                // Mapeo seguro de colores para evitar fallos con Tailwind CDN
                 let colores = {
-                    "purple": { bg: "bg-purple-50", border: "border-purple-100", tag: "bg-purple-200 text-purple-800", text: "text-purple-900", bar: "bg-purple-500", barBg: "bg-purple-100", btn: "bg-purple-600 hover:bg-purple-700" },
-                    "indigo": { bg: "bg-indigo-50", border: "border-indigo-100", tag: "bg-indigo-200 text-indigo-800", text: "text-indigo-900", bar: "bg-indigo-500", barBg: "bg-indigo-100", btn: "bg-indigo-600 hover:bg-indigo-700" },
-                    "blue":   { bg: "bg-blue-50", border: "border-blue-100", tag: "bg-blue-200 text-blue-800", text: "text-blue-900", bar: "bg-blue-500", barBg: "bg-blue-100", btn: "bg-blue-600 hover:bg-blue-700" },
-                    "red":    { bg: "bg-red-50", border: "border-red-100", tag: "bg-red-200 text-red-800", text: "text-red-900", bar: "bg-red-500", barBg: "bg-red-100", btn: "bg-red-600 hover:bg-red-700" }
+                    "purple": { bg: "bg-purple-50", border: "border-purple-100", tag: "bg-purple-100 text-purple-800", text: "text-purple-900", bar: "bg-purple-500", barBg: "bg-purple-100", btn: "bg-purple-600 hover:bg-purple-700 shadow-purple-500/30" },
+                    "indigo": { bg: "bg-indigo-50", border: "border-indigo-100", tag: "bg-indigo-100 text-indigo-800", text: "text-indigo-900", bar: "bg-indigo-500", barBg: "bg-indigo-100", btn: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30" },
+                    "blue":   { bg: "bg-blue-50", border: "border-blue-100", tag: "bg-blue-100 text-blue-800", text: "text-blue-900", bar: "bg-blue-500", barBg: "bg-blue-100", btn: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30" },
+                    "red":    { bg: "bg-red-50", border: "border-red-100", tag: "bg-red-100 text-red-800", text: "text-red-900", bar: "bg-red-500", barBg: "bg-red-100", btn: "bg-red-600 hover:bg-red-700 shadow-red-500/30" }
                 }[c.color];
 
                 let progreso = c.completado ? "100%" : "0%";
                 let textoBoton = c.completado ? "Completado ✅" : (c.externo ? "Leer Artículo" : "Comenzar Microcurso");
-                let extraBtnClass = c.completado ? "bg-gray-800 hover:bg-gray-900" : colores.btn;
+                let extraBtnClass = c.completado ? "bg-gray-800 hover:bg-gray-900 shadow-gray-500/30" : colores.btn;
 
                 html += `
-                <div class="border ${colores.border} p-5 rounded-2xl bg-gradient-to-b from-white to-gray-50 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
-                    <div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-2 py-1 rounded-bl-lg font-bold">${c.pts} PTS</div>
-                    <div class="flex gap-3 mb-3">
-                        <div class="text-3xl bg-white p-2 rounded-xl shadow-sm h-12 w-12 flex items-center justify-center">${c.icono}</div>
+                <div class="border ${colores.border} p-6 rounded-[1.5rem] bg-white shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-1 transform">
+                    <div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-3 py-1.5 rounded-bl-xl font-black uppercase tracking-wide">${c.pts} PTS</div>
+                    <div class="flex gap-4 mb-4">
+                        <div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl shadow-sm h-14 w-14 flex items-center justify-center transform transition hover:scale-110">${c.icono}</div>
                         <div class="flex-1">
-                            <h3 class="font-bold ${colores.text} mb-1 leading-tight flex items-center gap-1">${c.titulo}</h3>
-                            <p class="text-xs text-gray-600 line-clamp-2">${c.desc}</p>
+                            <h3 class="font-black ${colores.text} mb-1 leading-tight flex items-center gap-1">${c.titulo}</h3>
+                            <p class="text-xs text-gray-500 font-medium line-clamp-2">${c.desc}</p>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-[10px] text-gray-500 mb-1"><span>Progreso</span> <span>${progreso}</span></div>
-                        <div class="w-full ${colores.barBg} rounded-full h-2">
+                    <div class="mb-5">
+                        <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5"><span>Progreso</span> <span>${progreso}</span></div>
+                        <div class="w-full ${colores.barBg} rounded-full h-2 shadow-inner">
                             <div class="${colores.bar} h-2 rounded-full transition-all duration-1000" style="width: ${progreso}"></div>
                         </div>
                     </div>
-                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3 rounded-xl font-bold shadow-md transition ${extraBtnClass}">
+                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3.5 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-0.5 ${extraBtnClass}">
                         ${textoBoton}
                     </button>
                 </div>`;
@@ -841,18 +853,15 @@
             let curso = cursosData.find(c => c.id === id);
             if (!curso) return;
 
-            // Llenar barra y dar puntos si no estaba completado
             if (!curso.completado) {
                 curso.completado = true;
                 localStorage.setItem('arqCursosData', JSON.stringify(cursosData));
                 
-                // Si es un curso interno (tu html), la lógica asume que se completa al entrar.
                 addPoints(curso.pts);
                 mostrarToast(`¡Lección completada: +${curso.pts} pts!`, '🎓');
                 renderizarCursos();
             }
 
-            // Redirigir suavemente
             setTimeout(() => {
                 if (curso.externo) {
                     window.open(curso.url, '_blank');
@@ -861,7 +870,6 @@
                 }
             }, 600);
         }
-        // ====== FIN: SISTEMA DE CURSOS ======
 
         function irMapa(){
             switchScreen('territorio');
@@ -992,8 +1000,8 @@
 
             if (pts) {
                 pts.innerText = userProgress.totalPoints;
-                pts.classList.add('scale-110', 'text-green-400');
-                setTimeout(() => pts.classList.remove('scale-110', 'text-green-400'), 300);
+                pts.classList.add('scale-110', 'text-green-500');
+                setTimeout(() => pts.classList.remove('scale-110', 'text-green-500'), 300);
             }
             if (lvl) lvl.innerText = userProgress.level;
             renderizarMedallas();
@@ -1046,20 +1054,20 @@
                 if(m.completado) completadas++;
 
                 html+=`
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm transform transition hover:shadow-md relative overflow-hidden">
+                <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm transform transition hover:shadow-md relative overflow-hidden">
                     ${m.completado ? '<div class="absolute inset-0 bg-green-50/50 z-0"></div>' : ''}
                     <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-bold text-gray-800 flex items-center gap-2">${m.completado ? '✅' : '📌'} ${m.nombre}</span>
-                            <span class="text-green-600 font-black bg-green-50 px-2 py-1 rounded-lg">+${m.puntos}</span>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-black text-gray-800 flex items-center gap-2 text-base">${m.completado ? '✅' : '📌'} ${m.nombre}</span>
+                            <span class="text-green-700 font-black bg-green-100 px-3 py-1 rounded-lg text-xs">+${m.puntos}</span>
                         </div>
-                        <p class="text-xs text-gray-500 mb-3">${m.descripcion}</p>
-                        <div class="w-full bg-gray-100 h-2.5 rounded-full mb-3 shadow-inner">
-                            <div class="${m.completado ? 'bg-green-500' : 'bg-blue-500'} h-2.5 rounded-full transition-all duration-500" style="width:${progreso}%"></div>
+                        <p class="text-xs text-gray-500 mb-4 font-medium">${m.descripcion}</p>
+                        <div class="w-full bg-gray-100 h-2.5 rounded-full mb-4 shadow-inner">
+                            <div class="${m.completado ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-blue-500'} h-2.5 rounded-full transition-all duration-500 shadow-sm" style="width:${progreso}%"></div>
                         </div>
                         <button
                             onclick="completarMision('${m.id}', this)"
-                            class="${m.completado ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-black'} text-sm font-bold w-full p-3 rounded-xl transition-colors shadow"
+                            class="${m.completado ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-900 text-white hover:bg-black shadow-[0_5px_15px_rgba(0,0,0,0.2)] hover:-translate-y-0.5'} text-sm font-bold w-full p-3.5 rounded-xl transition transform"
                             ${m.completado ? "disabled" : ""}
                         >
                             ${m.completado ? "Reto Superado 🎉" : "Completar Reto"}
@@ -1126,9 +1134,9 @@
                 let unlocked = userProgress.totalPoints >= m.pts;
                 if(unlocked) rangoActual = m.name;
                 html += `
-                <div class="flex flex-col items-center gap-1 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
-                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-3 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110' : ''}">${m.icon}</div>
-                    <span class="text-[10px] font-bold text-gray-600 mt-1">${m.name}</span>
+                <div class="flex flex-col items-center gap-1.5 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
+                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-4 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110 hover:-rotate-3' : ''}">${m.icon}</div>
+                    <span class="text-[10px] font-black text-gray-500 mt-1 uppercase tracking-wider">${m.name}</span>
                 </div>`;
             });
             cont.innerHTML = html;
@@ -1188,7 +1196,7 @@
                 if(map) {
                     map.locate({setView: true, maxZoom: 15});
                     map.once('locationfound', function(e) {
-                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                         const imgData = document.getElementById('img-preview').src;
                         
                         let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
@@ -1198,10 +1206,10 @@
 
                         L.marker(e.latlng, {icon: iconFoto}).addTo(map)
                          .bindPopup(`
-                            <div class="text-center font-sans p-1">
-                                <b class="text-purple-700 text-sm">Reporte Ciudadano</b><br>
-                                <img src="${imgData}" class="w-full h-24 object-cover rounded-lg mt-2 mb-2 shadow-sm">
-                                <p class="text-xs text-gray-600 italic">"${desc}"</p>
+                            <div class="text-center font-sans p-2">
+                                <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
+                                <img src="${imgData}" class="w-full h-28 object-cover rounded-xl mt-2 mb-2 shadow-sm border border-gray-100">
+                                <p class="text-xs text-gray-600 italic font-medium">"${desc}"</p>
                             </div>
                          `).openPopup();
                     });
@@ -1254,46 +1262,46 @@
             let nivel="", colorText="", colorBg="", icono="", explicacion="";
 
             if(irma>0.75){
-                nivel="Crítico"; colorText="text-red-600"; colorBg="bg-red-500"; icono="🚨";
+                nivel="Crítico"; colorText="text-red-600"; colorBg="bg-gradient-to-r from-red-500 to-red-600"; icono="🚨";
                 explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
             } else if(irma>0.55){
-                nivel="Alto"; colorText="text-orange-500"; colorBg="bg-orange-500"; icono="⚠️";
+                nivel="Alto"; colorText="text-orange-500"; colorBg="bg-gradient-to-r from-orange-400 to-orange-500"; icono="⚠️";
                 explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
             } else if(irma>0.35){
-                nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-yellow-500"; icono="🟡";
+                nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-gradient-to-r from-yellow-400 to-yellow-500"; icono="🟡";
                 explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
             } else {
-                nivel="Bajo"; colorText="text-green-600"; colorBg="bg-green-500"; icono="🟢";
+                nivel="Bajo"; colorText="text-green-600"; colorBg="bg-gradient-to-r from-green-400 to-green-500"; icono="🟢";
                 explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
             }
 
             const porcentaje = Math.round(irma*100);
-            const lista = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li class="border-b border-green-100 pb-1">${r}</li>`).join("");
+            const lista = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li class="border-b border-gray-100 pb-2">${r}</li>`).join("");
 
             document.getElementById("resultado").innerHTML = `
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 shadow-inner mt-4">
-                <div class="flex justify-between items-center mb-4">
+            <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm mt-4">
+                <div class="flex justify-between items-center mb-5">
                     <div>
-                        <p class="text-[10px] uppercase font-bold text-gray-400">Municipio Evaluado</p>
+                        <p class="text-[10px] uppercase font-black tracking-widest text-gray-400">Municipio</p>
                         <p class="font-black text-gray-800 text-lg">${municipio}</p>
                     </div>
-                    <div class="text-right bg-white px-3 py-1 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-[10px] uppercase font-bold text-gray-400">Nivel de Riesgo</p>
+                    <div class="text-right bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+                        <p class="text-[10px] uppercase font-black tracking-widest text-gray-400">Nivel</p>
                         <p class="font-black ${colorText} text-md">${icono} ${nivel}</p>
                     </div>
                 </div>
-                <div class="text-center mb-4 bg-white py-3 rounded-xl border border-gray-100 shadow-sm">
-                    <p class="text-[10px] uppercase font-bold text-gray-400">Puntuación IRMA</p>
-                    <p class="text-4xl font-black ${colorText}">${irma.toFixed(3)}</p>
+                <div class="text-center mb-5 bg-gray-50 py-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <p class="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1">Puntuación IRMA</p>
+                    <p class="text-5xl font-black ${colorText} drop-shadow-sm">${irma.toFixed(3)}</p>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-4 mb-3 overflow-hidden shadow-inner">
-                    <div class="${colorBg} h-4 rounded-full transition-all duration-1000 ease-out" style="width:${porcentaje}%"></div>
+                <div class="w-full bg-gray-100 rounded-full h-4 mb-4 overflow-hidden shadow-inner">
+                    <div class="${colorBg} h-4 rounded-full transition-all duration-1000 ease-out shadow-sm" style="width:${porcentaje}%"></div>
                 </div>
-                <p class="text-xs text-gray-600 text-center leading-relaxed mb-4 italic">"${explicacion}"</p>
+                <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 font-medium italic">"${explicacion}"</p>
                 
-                <div class="bg-white border border-green-200 p-4 rounded-xl shadow-sm">
-                    <p class="font-black text-green-800 text-sm mb-2 flex items-center gap-1"><span>💡</span> Plan de Acción Personalizado</p>
-                    <ul class="text-[11px] text-green-700 space-y-2 leading-relaxed font-medium">${lista}</ul>
+                <div class="bg-green-50/50 border border-green-100 p-5 rounded-2xl">
+                    <p class="font-black text-green-900 text-sm mb-3 flex items-center gap-1.5"><span class="text-lg">💡</span> Plan de Acción</p>
+                    <ul class="text-xs text-green-800 space-y-2.5 leading-relaxed font-medium">${lista}</ul>
                 </div>
             </div>`;
             
@@ -1341,13 +1349,15 @@
 
                     const marker = L.circleMarker([lat,lng],{
                         radius:4,
-                        color:"#2563eb"
+                        color:"#2563eb",
+                        weight: 1,
+                        fillOpacity: 0.8
                     });
 
                     marker.bindPopup(`
-                        <div class="font-sans">
-                            <b class="text-blue-700">${n.nombre || "Unidad"}</b><br>
-                            <span class="text-xs text-gray-500">${n.municipio || ""}</span>
+                        <div class="font-sans text-center">
+                            <b class="text-blue-800 text-sm block mb-1">${n.nombre || "Unidad"}</b>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold bg-blue-50 px-2 py-0.5 rounded">${n.municipio || ""}</span>
                         </div>
                     `);
 
@@ -1361,18 +1371,60 @@
             procesarChunk();
         }
 
+        // --- NUEVA FUNCIÓN PARA CARGAR CICLOVÍAS ---
+        async function cargarCiclovias() {
+            try {
+                // Leemos el nuevo archivo subido
+                const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
+                if (!res.ok) throw new Error("No se encontró el archivo de ciclovías");
+                const data = await res.json();
+                
+                const capaLineas = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            color: "#0ea5e9", // Azul cielo neón / pro
+                            weight: 5,
+                            opacity: 0.85,
+                            dashArray: '8, 8', // Efecto punteado de carril
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties) {
+                            let nombre = feature.properties.name || "Ciclovía";
+                            let tipo = feature.properties.Tipo || "Carril Exclusivo";
+                            layer.bindPopup(`
+                                <div class="font-sans text-center p-1">
+                                    <div class="text-2xl mb-1">🚴</div>
+                                    <b class="text-blue-800 text-sm block mb-1 font-black">${nombre}</b>
+                                    <span class="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold border border-blue-100">${tipo}</span>
+                                </div>
+                            `);
+                        }
+                    }
+                });
+                
+                // Lo añadimos a la capa global
+                capas.ciclovias.addLayer(capaLineas);
+                console.log("🚴 Red Ciclista cargada exitosamente.");
+            } catch(e) {
+                console.error("Error cargando ciclovías", e);
+            }
+        }
+
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
             legend.onAdd = function(){
                 const div = L.DomUtil.create("div","info legend");
                 div.innerHTML = `
-                <div style="background:white; padding:10px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); font-size:11px; font-family:sans-serif; margin-bottom:15px; margin-right:5px;">
-                    <b style="color:#1f2937">Riesgo Urbano</b><br>
-                    <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
-                        <div><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Bajo</div>
-                        <div><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Medio</div>
-                        <div><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Alto</div>
-                        <div><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:2px;"></span> Crítico</div>
+                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:20px; margin-right:10px; border:1px solid rgba(0,0,0,0.05);">
+                    <b style="color:#1f2937; display:block; margin-bottom:6px; font-weight:900; letter-spacing:0.5px;">Riesgo Urbano</b>
+                    <div style="display:flex; flex-direction:column; gap:5px; font-weight:600; color:#4b5563;">
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(46,204,113,0.4);"></span> Bajo</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(241,196,15,0.4);"></span> Medio</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(230,126,34,0.4);"></span> Alto</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(231,76,60,0.4);"></span> Crítico</div>
                     </div>
                 </div>`;
                 return div;
@@ -1397,258 +1449,123 @@
             });
         }
 
-        // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA ======
-      // Variable global para guardar los parques y no tener que cargar el archivo cada vez
-// ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
-// ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
-let areasVerdesData = null;
-let routingControl = null;
-window.markersParquesBuscados = null; // Guardará los pines verdes para poder borrarlos
+        // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA =======
+        let areasVerdesData = null;
+        let routingControl = null;
+        window.markersParquesBuscados = null;
 
-async function activarRutaSaludable() {
-    if (!map) return;
-    
-    mostrarToast("Buscando parques a 1 km...", "🛰️");
-    
-    // Forzamos la localización
-    map.locate({setView: true, maxZoom: 14, timeout: 1000});
-    
-    map.once('locationfound', async function(e) {
-        ejecutarLogicaRuta(e.latlng.lat, e.latlng.lng);
-    });
-
-    map.once('locationerror', () => {
-        mostrarToast("Sin GPS. Usando centro del mapa.", "⚠️");
-        const center = map.getCenter();
-        ejecutarLogicaRuta(center.lat, center.lng);
-    });
-}
-
-async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
-    try {
-        // Limpiar pines de búsquedas anteriores
-        if (window.markersParquesBuscados) {
-            map.removeLayer(window.markersParquesBuscados);
-        }
-        window.markersParquesBuscados = L.layerGroup().addTo(map);
-
-        // 1. Leer el archivo CSV oficial
-        if (!areasVerdesData) {
-            const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
-            if (!response.ok) throw new Error("Archivo CSV no encontrado");
-            const csvText = await response.text();
+        async function activarRutaSaludable() {
+            if (!map) return;
             
-            const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-            areasVerdesData = parsed.data.filter(row => row.LATITUD && row.LONGITUD);
-        }
-
-        const puntoUsuario = turf.point([lngUsuario, latUsuario]);
-        let parquesEncontrados = [];
-
-        // 2. Buscar TODOS los parques a menos de 5 km
-        areasVerdesData.forEach(function (row) {
-            const lat = parseFloat(row.LATITUD);
-            const lng = parseFloat(row.LONGITUD);
+            mostrarToast("Buscando parques a 5 km...", "🛰️");
+            map.locate({setView: true, maxZoom: 14, timeout: 5000});
             
-            if(isNaN(lat) || isNaN(lng)) return;
-
-            const puntoParque = turf.point([lng, lat]);
-            const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-
-            // Filtro: Solo guardar los que estén a 5 km o menos
-            if (distancia <= 5) {
-                let nombreLimpio = (row['NOMBRE '] || row['NOMBRE'] || "Área Verde").replace(/'/g, ""); // Evita errores de comillas
-                parquesEncontrados.push({
-                    lat: lat,
-                    lng: lng,
-                    distancia: distancia,
-                    nombre: nombreLimpio,
-                    colonia: row['COLONIA'] || "Puebla"
-                });
-            }
-        });
-
-        // 3. Mostrar los resultados en el mapa
-        if (parquesEncontrados.length > 0) {
-            mostrarToast(`¡Encontramos ${parquesEncontrados.length} parques cerca!`, "🌳");
-            
-            let bounds = [ [latUsuario, lngUsuario] ]; // Guardamos coordenadas para centrar el mapa
-
-            parquesEncontrados.forEach(parque => {
-                bounds.push([parque.lat, parque.lng]);
-
-                // Crear un pin verde para el parque
-                const marker = L.marker([parque.lat, parque.lng], {
-                    icon: L.divIcon({
-                        html: `<div style="font-size:16px; background:#10B981; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); color:white;">🌳</div>`,
-                        className: '', iconSize: [28,28], iconAnchor: [14, 28]
-                    })
-                });
-
-                // Crear el globo de información con el botón para trazar ruta
-                const popupHTML = `
-                    <div class="text-center font-sans p-1 min-w-[150px]">
-                        <b class="text-green-800 text-sm leading-tight block mb-1">${parque.nombre}</b>
-                        <span class="text-[10px] text-gray-500 block leading-tight mb-1">${parque.colonia}</span>
-                        <span class="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block mb-2">A ${parque.distancia.toFixed(2)} km</span><br>
-                        <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${parque.nombre}')" 
-                                class="bg-green-600 text-white w-full py-2 rounded-lg font-bold shadow-md hover:bg-green-700 transition transform hover:-translate-y-0.5">
-                            📍 Ir Aquí
-                        </button>
-                    </div>
-                `;
-
-                marker.bindPopup(popupHTML);
-                window.markersParquesBuscados.addLayer(marker);
+            map.once('locationfound', async function(e) {
+                ejecutarLogicaRuta(e.latlng.lat, e.latlng.lng);
             });
 
-            // Ajustar la cámara del mapa para que se vean todos los parques y el usuario
-            map.fitBounds(bounds, {padding: [40, 40]});
-
-        } else {
-            mostrarToast("No hay parques a menos de 5 km de ti.", "⚠️");
+            map.once('locationerror', () => {
+                mostrarToast("Sin GPS. Usando centro del mapa.", "⚠️");
+                const center = map.getCenter();
+                ejecutarLogicaRuta(center.lat, center.lng);
+            });
         }
 
-    } catch (err) {
-        console.warn("Error leyendo el CSV.", err);
-        mostrarToast("Error al cargar los datos de parques.", "❌");
-    }
-}
+        async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
+            try {
+                if (window.markersParquesBuscados) {
+                    map.removeLayer(window.markersParquesBuscados);
+                }
+                window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-// Función global para que el botón del popup pueda ejecutarla
-window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
-    map.closePopup();
-    
-    // Opcional: Ocultar los otros pines verdes para limpiar el mapa durante la ruta
-    if (window.markersParquesBuscados) {
-        map.removeLayer(window.markersParquesBuscados);
-    }
+                if (!areasVerdesData) {
+                    const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
+                    if (!response.ok) throw new Error("Archivo CSV no encontrado");
+                    const csvText = await response.text();
+                    
+                    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+                    areasVerdesData = parsed.data.filter(row => row.LATITUD && row.LONGITUD);
+                }
 
-    mostrarToast("Calculando ruta...", "🚶");
-    trazarRuta(latU, lngU, latD, lngD, nombreDestino);
-};
+                const puntoUsuario = turf.point([lngUsuario, latUsuario]);
+                let parquesEncontrados = [];
 
-function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) { map.removeControl(routingControl); }
-    if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
-    if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
-    
-    try {
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
-            language: 'es',
-            router: L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1',
-                profile: 'walking'
-            }),
-            lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.9}] },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false,
-            createMarker: function(i, wp) {
-                return L.marker(wp.latLng, {
-                    icon: L.divIcon({
-                        html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`,
-                        className: '', iconSize: [30,30], iconAnchor: [15, 30]
-                    })
-                }).bindPopup(i===0 ? "Tu ubicación" : `Destino: <br><b>${nombre}</b>`);
+                areasVerdesData.forEach(function (row) {
+                    const lat = parseFloat(row.LATITUD);
+                    const lng = parseFloat(row.LONGITUD);
+                    
+                    if(isNaN(lat) || isNaN(lng)) return;
+
+                    const puntoParque = turf.point([lng, lat]);
+                    const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
+
+                    if (distancia <= 5) {
+                        let nombreLimpio = (row['NOMBRE '] || row['NOMBRE'] || "Área Verde").replace(/'/g, "");
+                        parquesEncontrados.push({
+                            lat: lat,
+                            lng: lng,
+                            distancia: distancia,
+                            nombre: nombreLimpio,
+                            colonia: row['COLONIA'] || "Puebla"
+                        });
+                    }
+                });
+
+                if (parquesEncontrados.length > 0) {
+                    mostrarToast(`¡Encontramos ${parquesEncontrados.length} parques cerca!`, "🌳");
+                    
+                    let bounds = [ [latUsuario, lngUsuario] ]; 
+
+                    parquesEncontrados.forEach(parque => {
+                        bounds.push([parque.lat, parque.lng]);
+
+                        const marker = L.marker([parque.lat, parque.lng], {
+                            icon: L.divIcon({
+                                html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`,
+                                className: '', iconSize: [30,30], iconAnchor: [15, 30]
+                            })
+                        });
+
+                        const popupHTML = `
+                            <div class="text-center font-sans p-1.5 min-w-[160px]">
+                                <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
+                                <span class="text-[10px] text-gray-500 block leading-tight mb-2 font-medium">${parque.colonia}</span>
+                                <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm">A ${parque.distancia.toFixed(2)} km</span><br>
+                                <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${parque.nombre}')" 
+                                        class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
+                                    📍 Ir Aquí
+                                </button>
+                            </div>
+                        `;
+
+                        marker.bindPopup(popupHTML);
+                        window.markersParquesBuscados.addLayer(marker);
+                    });
+
+                    map.fitBounds(bounds, {padding: [50, 50]});
+
+                } else {
+                    mostrarToast("No hay parques a menos de 5 km.", "⚠️");
+                }
+
+            } catch (err) {
+                console.warn("Error leyendo el CSV.", err);
+                mostrarToast("Error al cargar datos de parques.", "❌");
             }
-        });
+        }
 
-        routingControl.on('routingerror', function(e) {
-            console.warn("El servidor OSRM rechazó la petición. Trazando línea recta segura.");
-            dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
-        });
-
-        routingControl.addTo(map);
-
-    } catch (error) {
-        console.error("Fallo crítico en el motor de rutas.", error);
-        dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
-    }
-}
-
-function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) { map.removeControl(routingControl); }
-    
-    window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
-        color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
-    }).addTo(map);
-    
-    window.markerEmergencia = L.marker([lat2, lon2], {
-        icon: L.divIcon({
-            html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯</div>`,
-            className: '', iconSize: [30,30], iconAnchor: [15, 30]
-        })
-    }).addTo(map).bindPopup(`Destino: <br><b>${nombre}</b>`).openPopup();
-
-    map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
-    mostrarToast("Ruta directa generada", "✅");
-}
-
-
-function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) { map.removeControl(routingControl); }
-    if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
-    if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
-    
-    try {
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
-            language: 'es',
-            router: L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1',
-                profile: 'walking'
-            }),
-            lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.9}] },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false,
-            createMarker: function(i, wp) {
-                return L.marker(wp.latLng, {
-                    icon: L.divIcon({
-                        html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${i===0?'🚶':'🌳'}</div>`,
-                        className: '', iconSize: [30,30], iconAnchor: [15, 30]
-                    })
-                }).bindPopup(i===0 ? "Tu ubicación" : `Destino: <br><b>${nombre}</b>`);
+        window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
+            map.closePopup();
+            
+            if (window.markersParquesBuscados) {
+                map.removeLayer(window.markersParquesBuscados);
             }
-        });
 
-        routingControl.on('routingerror', function(e) {
-            console.warn("El servidor OSRM rechazó la petición. Trazando línea recta segura.");
-            dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
-        });
+            mostrarToast("Trazando tu ruta...", "🚶");
+            trazarRuta(latU, lngU, latD, lngD, nombreDestino);
+        };
 
-        routingControl.addTo(map);
-
-    } catch (error) {
-        console.error("Fallo crítico en el motor de rutas.", error);
-        dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
-    }
-}
-
-function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) { map.removeControl(routingControl); }
-    
-    window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
-        color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
-    }).addTo(map);
-    
-    window.markerEmergencia = L.marker([lat2, lon2], {
-        icon: L.divIcon({
-            html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🌳</div>`,
-            className: '', iconSize: [30,30], iconAnchor: [15, 30]
-        })
-    }).addTo(map).bindPopup(`Destino: <br><b>${nombre}</b>`).openPopup();
-
-    map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
-    mostrarToast("Ruta directa generada", "✅");
-}
-// ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-            // Limpiar cualquier ruta o marcador anterior
             if (routingControl) { map.removeControl(routingControl); }
             if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
             if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
@@ -1661,7 +1578,7 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                         serviceUrl: 'https://router.project-osrm.org/route/v1',
                         profile: 'walking'
                     }),
-                    lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.8}] },
+                    lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9}] },
                     addWaypoints: false,
                     draggableWaypoints: false,
                     fitSelectedRoutes: true,
@@ -1669,49 +1586,44 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                     createMarker: function(i, wp) {
                         return L.marker(wp.latLng, {
                             icon: L.divIcon({
-                                html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
-                                className: '', iconSize: [35,35], iconAnchor: [17, 35]
+                                html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`,
+                                className: '', iconSize: [34,34], iconAnchor: [17, 34]
                             })
-                        }).bindPopup(i===0 ? "Tú" : `Destino: ${nombre}`);
+                        }).bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino</span><br><b class="text-green-800">${nombre}</b></div>`);
                     }
                 });
 
-                // ESTA ES LA CLAVE: Si OSRM nos bloquea (cors/timeout), dibuja manual.
                 routingControl.on('routingerror', function(e) {
-                    console.warn("OSRM bloqueó la petición o falló. Trazando ruta directa automática.");
+                    console.warn("OSRM rechazó petición. Línea recta segura.");
                     dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
                 });
 
                 routingControl.addTo(map);
-                mostrarToast("¡Ruta Generada!", "✅");
+
             } catch (error) {
-                console.error("Error crítico al iniciar router, dibujando ruta manual:", error);
+                console.error("Fallo crítico en rutas.", error);
                 dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
             }
         }
 
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
-            // Eliminar el controlador fallido si existe
             if (routingControl) { map.removeControl(routingControl); }
             
-            // Dibujar una línea directa punteada (modo offline / fallback)
             window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
-                color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
+                color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10'
             }).addTo(map);
             
-            // Poner el marcador final
             window.markerEmergencia = L.marker([lat2, lon2], {
                 icon: L.divIcon({
-                    html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🌳</div>`,
-                    className: '', iconSize: [35,35], iconAnchor: [17, 35]
+                    html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🎯</div>`,
+                    className: '', iconSize: [34,34], iconAnchor: [17, 34]
                 })
-            }).addTo(map).bindPopup(`Destino: ${nombre}`).openPopup();
+            }).addTo(map).bindPopup(`<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino</span><br><b class="text-green-800">${nombre}</b></div>`).openPopup();
 
-            // Centrar cámara
             map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
-            mostrarToast("Ruta directa generada correctamente", "✅");
+            mostrarToast("Ruta directa generada", "✅");
         }
-        // ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA ======
+        // ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA =======
         
         async function initMap(){
             if(map){
@@ -1741,53 +1653,43 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
 
                 capaMunicipios = L.geoJSON(geoDataCache,{
                     style:function(feature){
-                        const nombreOriginal =
-                            feature.properties.NOMGEO ||
-                            feature.properties.NOM_MUN ||
-                            feature.properties.NOMBRE;
-
+                        const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
                         const nombre = normalizarNombre(nombreOriginal);
-
                         let m = rankingMap[nombre];
 
                         if(!m){
                             for(let key in rankingMap){
                                 if(key.includes(nombre) || nombre.includes(key)){
-                                    m = rankingMap[key];
-                                    break;
+                                    m = rankingMap[key]; break;
                                 }
                             }
                         }
 
                         if(!m){
-                            return { color:"#ccc", weight:1, fillOpacity:0.1 };
+                            return { color:"#cbd5e1", weight:1, fillOpacity:0.1 };
                         }
 
                         return {
-                            color:"#555",
+                            color:"#64748b",
                             weight:1,
                             fillColor: colorIARRI(m.iarri),
-                            fillOpacity: 0.35 // Opacidad reducida de 0.7 a 0.35 para transparencia
+                            fillOpacity: 0.3 // Transparencia pro
                         };
                     },
                     onEachFeature:function(feature,layer){
-                        const nombreOriginal =
-                            feature.properties.NOMGEO ||
-                            feature.properties.NOM_MUN ||
-                            feature.properties.NOMBRE;
-
+                        const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
                         const nombre = normalizarNombre(nombreOriginal);
                         const m = rankingMap[nombre];
 
                         if(m){
                             layer.bindPopup(
-                                `<div class="font-sans text-center">
-                                    <b class="text-gray-800 text-sm">${nombreOriginal}</b><br>
-                                    <span class="text-xs text-gray-500">IARRI: ${m.iarri.toFixed(3)}</span><br>
-                                    <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 inline-block mt-1">${nivelIARRI(m.iarri)}</span>
+                                `<div class="font-sans text-center p-1">
+                                    <b class="text-gray-800 text-sm font-black">${nombreOriginal}</b><br>
+                                    <span class="text-xs text-gray-500 font-medium">IARRI: ${m.iarri.toFixed(3)}</span><br>
+                                    <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-100 inline-block mt-2 border border-gray-200">${nivelIARRI(m.iarri)}</span>
                                 </div>`
                             );
-                            layer.bindTooltip(nombreOriginal,{sticky:true});
+                            layer.bindTooltip(nombreOriginal,{sticky:true, className: 'font-bold text-xs'});
                             layer.on("click",()=>{
                                 registrarVisita(nombreOriginal);
                             });
@@ -1796,18 +1698,22 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                 }).addTo(map);
 
                 map.fitBounds(capaMunicipios.getBounds());
+                
+                // CARGAR TODAS LAS CAPAS EXTERNAS
                 await cargarNegocios();
+                await cargarCiclovias(); // <--- Aquí se manda llamar el archivo geojson de ciclovias
+                
                 agregarLeyenda(); 
                 
                 let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-md filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                 fotosGuardadas.forEach(foto => {
                     L.marker([foto.lat, foto.lng], {icon: iconFoto}).addTo(map)
                      .bindPopup(`
-                        <div class="text-center font-sans p-1">
-                            <b class="text-purple-700 text-sm">Reporte Ciudadano</b><br>
-                            <img src="${foto.imgData}" class="w-full h-24 object-cover rounded-lg mt-2 mb-2 shadow-sm">
-                            <p class="text-xs text-gray-600 italic">"${foto.desc}"</p>
+                        <div class="text-center font-sans p-2">
+                            <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
+                            <img src="${foto.imgData}" class="w-full h-28 object-cover rounded-xl mt-2 mb-2 shadow-sm border border-gray-100">
+                            <p class="text-xs text-gray-600 italic font-medium">"${foto.desc}"</p>
                         </div>
                      `);
                 });
@@ -1840,26 +1746,26 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                 let html="";
 
                 top10.forEach((m,i)=>{
-                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-5 inline-block text-center">${i+1}.</span>`;
+                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-6 inline-block text-center text-xs">${i+1}.</span>`;
 
                     let color = m.iarri >= 0.15 ? "text-green-600" :
                     m.iarri >= 0.10 ? "text-yellow-500" :
                     m.iarri >= 0.05 ? "text-orange-500" :
                     "text-red-600";
                     
-                    let bgFila = i < 3 ? "bg-orange-50/30" : "";
+                    let bgFila = i < 3 ? "bg-orange-50/40 border-orange-100" : "border-gray-100";
 
                     html+=`
-                    <div class="flex justify-between border-b border-gray-100 py-3 px-2 text-sm items-center rounded-lg ${bgFila} hover:bg-gray-50 transition">
-                        <span class="font-medium text-gray-700 flex items-center gap-2">${medal} ${m.municipio}</span>
-                        <span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-2 py-1 rounded-lg">${m.iarri.toFixed(3)}</span>
+                    <div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl hover:bg-gray-50 transition mb-1">
+                        <span class="font-black text-gray-700 flex items-center gap-3">${medal} ${m.municipio}</span>
+                        <span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-lg">${m.iarri.toFixed(3)}</span>
                     </div>`;
                 });
 
                 document.getElementById("ranking").innerHTML = html;
 
             } catch(err){
-                document.getElementById("ranking").innerHTML = "<p class='text-red-500'>Error cargando ranking</p>";
+                document.getElementById("ranking").innerHTML = "<p class='text-red-500 font-bold'>Error cargando ranking</p>";
                 console.error(err);
             }
         }
@@ -1888,15 +1794,16 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                     datasets: [{
                         data: [counts.bajo, counts.medio, counts.alto, counts.critico],
                         backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'],
-                        borderWidth: 2,
-                        hoverOffset: 4
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 10} } }
+                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11, family: 'system-ui', weight: 'bold'} } }
                     },
                     cutout: '70%'
                 }
@@ -1919,11 +1826,8 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             cargarMunicipiosCalculadora();
             renderMisiones();
             checkLogros();
-            
-            // Renderizar los nuevos cursos al cargar la página
             renderizarCursos();
 
-            // LÓGICA DEL MINIMAPA
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
@@ -1973,10 +1877,10 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                     
                     marker.bindPopup(`
                         <div class="text-center font-sans p-1">
-                            <div class="text-xl mb-1">📍</div>
-                            <b class="text-gray-800 text-sm">Tu ubicación actual</b><br>
-                            <span class="text-xs text-gray-500">${municipioEncontrado}</span><br>
-                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 inline-block mt-1" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span>
+                            <div class="text-2xl mb-1 drop-shadow-sm">📍</div>
+                            <b class="text-gray-800 text-sm font-black">Tu ubicación actual</b><br>
+                            <span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br>
+                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span>
                         </div>
                     `).openPopup();
                     
@@ -1986,6 +1890,7 @@ function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
                 }
             });
 
+            // Lógica para encender/apagar capas desde el panel
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     if(!map) return;
