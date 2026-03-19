@@ -1399,74 +1399,143 @@
 
         // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA ======
       // Variable global para guardar los parques y no tener que cargar el archivo cada vez
+// ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
 let areasVerdesData = null;
+let routingControl = null;
 
 async function activarRutaSaludable() {
     if (!map) return;
     
-    mostrarToast("Buscando el área verde más cercana...", "🌳");
-    map.locate({setView: true, maxZoom: 15});
+    mostrarToast("Localizando tu posición...", "🛰️");
+    
+    // Forzamos la localización
+    map.locate({setView: true, maxZoom: 15, timeout: 5000});
     
     map.once('locationfound', async function(e) {
-        try {
-            // 1. Cargar tu archivo JSON local solo la primera vez que se use
-            if (!areasVerdesData) {
-                const response = await fetch('./cobertura-de-reas-verdes..json');
-                if (!response.ok) throw new Error("No se encontró el archivo JSON local");
-                areasVerdesData = await response.json();
-            }
-
-            // 2. Usar Turf.js para matemáticas espaciales
-            const puntoUsuario = turf.point([e.latlng.lng, e.latlng.lat]);
-            let parqueMasCercano = null;
-            let distanciaMinima = Infinity;
-
-            // 3. Escanear todos los polígonos de tu archivo para encontrar el más cercano
-            turf.featureEach(areasVerdesData, function (currentFeature) {
-                // Calculamos el centro exacto de cada área verde
-                const centroide = turf.centroid(currentFeature);
-                const distancia = turf.distance(puntoUsuario, centroide, {units: 'kilometers'});
-
-                // Si este parque está más cerca que el anterior, lo guardamos
-                if (distancia < distanciaMinima) {
-                    distanciaMinima = distancia;
-                    parqueMasCercano = {
-                        lat: centroide.geometry.coordinates[1],
-                        lng: centroide.geometry.coordinates[0],
-                        // Tomamos el nombre de la colonia de tus datos (o uno genérico si no tiene)
-                        nombre: currentFeature.properties.colonia || "Parque Local"
-                    };
-                }
-            });
-
-            // 4. Si encontró un parque, trazamos la ruta hacia él
-            if (parqueMasCercano) {
-                trazarRuta(
-                    e.latlng.lat, 
-                    e.latlng.lng, 
-                    parqueMasCercano.lat, 
-                    parqueMasCercano.lng, 
-                    `Zona Verde en ${parqueMasCercano.nombre}`
-                );
-            } else {
-                throw new Error("No se encontraron parques cercanos en tus datos");
-            }
-
-        } catch (err) {
-            console.warn("Error al procesar el archivo local, usando ruta de emergencia", err);
-            // Fallback de seguridad por si el archivo está mal escrito o no carga
-            trazarRuta(e.latlng.lat, e.latlng.lng, e.latlng.lat + 0.005, e.latlng.lng + 0.005, "Ruta de Oxigenación");
-        }
+        ejecutarLogicaRuta(e.latlng.lat, e.latlng.lng);
     });
 
-    // Qué hacer si el usuario no da permisos de GPS
     map.once('locationerror', () => {
-        mostrarToast("GPS inactivo. Usando el centro del mapa.", "⚠️");
+        mostrarToast("Sin GPS. Usando centro del mapa.", "⚠️");
         const center = map.getCenter();
-        trazarRuta(center.lat, center.lng, center.lat + 0.005, center.lng + 0.005, "Parque Simulado");
+        ejecutarLogicaRuta(center.lat, center.lng);
     });
 }
 
+async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
+    try {
+        // 1. Leer el archivo CSV oficial que descargaste
+        if (!areasVerdesData) {
+            const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
+            if (!response.ok) throw new Error("Archivo CSV no encontrado");
+            const csvText = await response.text();
+            
+            // Usamos PapaParse (que ya tienes en tu <head>) para leer el CSV
+            const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+            areasVerdesData = parsed.data.filter(row => row.LATITUD && row.LONGITUD);
+        }
+
+        const puntoUsuario = turf.point([lngUsuario, latUsuario]);
+        let parqueMasCercano = null;
+        let distanciaMinima = Infinity;
+
+        // 2. Buscar el parque más cercano en tu lista del Ayuntamiento
+        areasVerdesData.forEach(function (row) {
+            const lat = parseFloat(row.LATITUD);
+            const lng = parseFloat(row.LONGITUD);
+            
+            if(isNaN(lat) || isNaN(lng)) return;
+
+            const puntoParque = turf.point([lng, lat]);
+            const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
+
+            if (distancia < distanciaMinima) {
+                distanciaMinima = distancia;
+                parqueMasCercano = {
+                    lat: lat,
+                    lng: lng,
+                    // Tomamos el nombre y la colonia desde las columnas de tu CSV
+                    nombre: row['NOMBRE '] || row['NOMBRE'] || "Área Verde",
+                    colonia: row['COLONIA'] || "Puebla"
+                };
+            }
+        });
+
+        // 3. Trazar la ruta (Solo si está a menos de 10 km de distancia)
+        if (parqueMasCercano && distanciaMinima < 10) {
+            let tituloDestino = `${parqueMasCercano.nombre} (${parqueMasCercano.colonia})`;
+            trazarRuta(latUsuario, lngUsuario, parqueMasCercano.lat, parqueMasCercano.lng, tituloDestino);
+        } else {
+            mostrarToast("Parques oficiales muy lejos. Creando ruta simulada.", "🪄");
+            trazarRuta(latUsuario, lngUsuario, latUsuario + 0.006, lngUsuario + 0.006, "Parque Simulado (Cercano)");
+        }
+
+    } catch (err) {
+        console.warn("Error leyendo el CSV (¿Lo abriste con Live Server?).", err);
+        mostrarToast("Modo Offline: Trazando ruta alternativa.", "🔌");
+        trazarRuta(latUsuario, lngUsuario, latUsuario + 0.005, lngUsuario + 0.005, "Parque Simulado");
+    }
+}
+
+function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) { map.removeControl(routingControl); }
+    if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); }
+    if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); }
+    
+    try {
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
+            language: 'es',
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'walking'
+            }),
+            lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.9}] },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false,
+            createMarker: function(i, wp) {
+                return L.marker(wp.latLng, {
+                    icon: L.divIcon({
+                        html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${i===0?'🚶':'🌳'}</div>`,
+                        className: '', iconSize: [30,30], iconAnchor: [15, 30]
+                    })
+                }).bindPopup(i===0 ? "Tu ubicación" : `Destino: <br><b>${nombre}</b>`);
+            }
+        });
+
+        routingControl.on('routingerror', function(e) {
+            console.warn("El servidor OSRM rechazó la petición. Trazando línea recta segura.");
+            dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+        });
+
+        routingControl.addTo(map);
+
+    } catch (error) {
+        console.error("Fallo crítico en el motor de rutas.", error);
+        dibujarRutaManual(lat1, lon1, lat2, lon2, nombre);
+    }
+}
+
+function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) { map.removeControl(routingControl); }
+    
+    window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], {
+        color: '#10B981', weight: 6, opacity: 0.8, dashArray: '10, 10'
+    }).addTo(map);
+    
+    window.markerEmergencia = L.marker([lat2, lon2], {
+        icon: L.divIcon({
+            html: `<div style="font-size:20px; background:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🌳</div>`,
+            className: '', iconSize: [30,30], iconAnchor: [15, 30]
+        })
+    }).addTo(map).bindPopup(`Destino: <br><b>${nombre}</b>`).openPopup();
+
+    map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
+    mostrarToast("Ruta directa generada", "✅");
+}
+// ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA CON CSV OFICIAL ======
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             // Limpiar cualquier ruta o marcador anterior
             if (routingControl) { map.removeControl(routingControl); }
