@@ -2,8 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OPTIMIZACIÓN APK: Bloquea zoom, ajusta al "notch" de los celulares modernos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <title>ARQ Metabólica MX</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -13,33 +18,51 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+    
     <style>
+        /* OPTIMIZACIÓN APK: Comportamiento nativo */
+        :root {
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent; /* Quita el destello azul al tocar */
+            box-sizing: border-box;
+        }
+
         body {
             background-color: #f3f4f6;
             font-family: system-ui, -apple-system, sans-serif;
+            overscroll-behavior-y: none; /* Bloquea el "jalar para recargar" */
+            -webkit-user-select: none; /* Bloquea selección de texto para parecer app */
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
+        /* Habilitar selección de texto solo donde es necesario */
+        input, textarea, p.select-text {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* OPTIMIZACIÓN APK: Scrollbars invisibles pero funcionales */
         ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 10px;
+            display: none; 
         }
 
-        /* EFECTO PRO: Navegación inferior con Glassmorphism (Efecto cristal) */
         .nav-bar {
             position: fixed;
             bottom: 0;
             width: 100%;
             max-width: 28rem;
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             justify-content: space-around;
-            padding: 12px 0 20px 0;
+            /* Ajuste para pantallas sin botones físicos */
+            padding: 12px 0 calc(20px + var(--safe-bottom)) 0; 
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -98,18 +121,15 @@
         .cluster-medium{ background:#f59e0b; }
         .cluster-large{ background:#dc2626; }
 
-        .custom-cluster{
-            background: transparent;
-            border: none;
-        }
-
         .screen {
-            padding-bottom: 200px;
-            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Espacio extra al fondo para que la nav-bar no tape el contenido final */
+            padding-bottom: calc(110px + var(--safe-bottom));
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -153,23 +173,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
-            animation: pulse-green 2s infinite;
-        }
-
-        .btn-toggle-filtros:hover {
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 8px 25px rgba(22, 101, 52, 0.5);
+            transition: all 0.2s ease;
         }
 
         .btn-toggle-filtros:active {
-            transform: scale(0.95);
-        }
-
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6); }
-            70% { box-shadow: 0 0 0 12px rgba(22, 163, 74, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+            transform: scale(0.92);
         }
         
         #map{
@@ -197,7 +205,7 @@
 
         #toast-container {
             position: fixed;
-            top: 20px;
+            top: env(safe-area-inset-top, 20px);
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
@@ -205,13 +213,16 @@
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
+            width: 90%;
+            max-width: 320px;
+            margin-top: 15px;
         }
 
         .toast-msg {
             background: rgba(22, 101, 52, 0.95);
             color: white;
-            padding: 14px 24px;
-            border-radius: 50px;
+            padding: 14px 20px;
+            border-radius: 16px;
             font-weight: bold;
             font-size: 14px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.25);
@@ -254,7 +265,7 @@
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl">AM</div>
         <h1 class="text-white text-3xl font-black tracking-widest mb-8 text-shadow-lg">IARRI-MX</h1>
         <p class="text-green-200 text-sm mb-8 font-medium tracking-wide">Arquitectura Metabólica</p>
-        <button onclick="iniciarSesionGoogle()" class="bg-white text-gray-800 font-bold py-3 px-6 rounded-2xl shadow-xl flex items-center gap-3 hover:bg-gray-50 transition transform hover:scale-105 active:scale-95">
+        <button onclick="iniciarSesionGoogle()" class="bg-white text-gray-800 font-bold py-3.5 px-6 rounded-2xl shadow-xl flex items-center gap-3 active:scale-95 transition-transform duration-200">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
             Iniciar sesión con Google
         </button>
@@ -271,11 +282,11 @@
                 <img id="img-preview" class="w-full h-full object-cover">
             </div>
             
-            <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
+            <textarea id="foto-desc" placeholder="Describe el área..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
             
             <div class="flex gap-3">
-                <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
+                <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold active:scale-95 transition-transform">Cancelar</button>
+                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Subir</button>
             </div>
         </div>
     </div>
@@ -299,185 +310,197 @@
                 <h2 class="text-2xl font-black text-gray-800 mb-1">¡Sube de Nivel!</h2>
                 <p class="text-sm text-gray-500 mb-6">Ahora eres un experto clase:</p>
                 <div class="bg-gradient-to-r from-green-100 to-emerald-50 text-green-800 text-xl font-black py-2.5 px-6 rounded-xl inline-block mb-6 shadow-sm border border-green-200" id="modal-new-level">Avanzado</div>
-                <button onclick="cerrarModalNivel()" class="bg-gray-900 text-white font-bold py-3.5 w-full rounded-xl hover:bg-black shadow-xl transition transform hover:-translate-y-1">¡Increíble!</button>
+                <button onclick="cerrarModalNivel()" class="bg-gray-900 text-white font-bold py-3.5 w-full rounded-xl shadow-xl active:scale-95 transition-transform">¡Increíble!</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
-    <div class="max-w-md mx-auto bg-gray-50 min-h-screen relative shadow-[0_0_40px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden">
-        <header class="p-5 border-b border-gray-200/50 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+    <!-- Contenedor principal de la app -->
+    <div class="max-w-md mx-auto bg-gray-50 min-h-screen relative flex flex-col overflow-hidden">
+        
+        <header class="p-5 border-b border-gray-200/50 bg-white/90 backdrop-blur-xl sticky top-0 z-50 pt-[calc(1.25rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-800 to-emerald-600 tracking-tight">IARRI-MX</h1>
-                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">ARQ Metabólica MX</p>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">ARQ Metabólica MX</p>
                 </div>
-                <div class="h-11 w-11 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-sm border border-green-200 relative cursor-pointer transform transition hover:scale-105" onclick="lanzarConfeti()">
+                <div class="h-11 w-11 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-sm border border-green-200 relative cursor-pointer active:scale-90 transition-transform" onclick="lanzarConfeti()">
                     AM
                     <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"></div>
                 </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
+            <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden">
                 <div class="relative z-10 w-2/3">
                     <span id="total-points" class="text-3xl font-black text-green-600 transition-all duration-300 drop-shadow-sm">0</span>
                     <span class="text-sm font-bold text-green-800 ml-1">pts</span>
                     <div class="mt-3">
-                        <p class="text-xs text-gray-600 mb-1.5 font-medium" id="texto-progreso">Progreso al siguiente nivel</p>
+                        <p class="text-[10px] text-gray-600 mb-1.5 font-bold uppercase tracking-wider" id="texto-progreso">Progreso a Nivel</p>
                         <div class="w-full bg-gray-200/80 rounded-full h-3 overflow-hidden shadow-inner">
                             <div id="bar-progreso-header" class="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
                 <div class="text-right relative z-10 flex flex-col items-end">
-                    <p id="user-level" class="text-[11px] text-green-900 font-black uppercase tracking-wider bg-green-200/80 px-3 py-1.5 rounded-lg shadow-sm mb-1.5"></p>
+                    <p id="user-level" class="text-[10px] text-green-900 font-black uppercase tracking-wider bg-green-200/80 px-3 py-1.5 rounded-lg shadow-sm mb-1.5"></p>
                     <span class="text-[10px] text-green-700 font-bold bg-white px-2.5 py-1 rounded-full shadow-sm border border-green-100">Nivel <span id="user-level-num">1</span></span>
                 </div>
-                <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl transform -rotate-12">🏆</div>
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl transform -rotate-12 pointer-events-none">🏆</div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto pb-32">
+        <main class="flex-1 overflow-y-auto relative">
             
-            <div id="screen-home" class="screen p-5 space-y-6">
+            <div id="screen-home" class="screen p-5 space-y-5">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
                     
-                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1 hover:shadow-md">
-                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12">💡</div>
+                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden active:scale-[0.98] transition-transform">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12 pointer-events-none">💡</div>
                         <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
                         <p id="tip-diario" class="text-xs text-yellow-700 leading-relaxed font-medium">Cargando análisis territorial...</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-4 relative overflow-hidden hover:shadow-md transition">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-4 relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10 flex items-center gap-1.5 shadow-sm">
                             <div class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div> EN VIVO
                         </div>
-                        <h3 class="font-bold text-lg mb-3">🔥 Actividad de hoy</h3>
-                        <ul class="text-gray-600 text-sm space-y-2.5 font-medium">
-                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-blue-500 shadow-sm"></div> Analizar 3 zonas urbanas</li>
-                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-purple-500 shadow-sm"></div> Completar 1 microcurso</li>
-                            <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-yellow-500 shadow-sm"></div> Ganar 120 pts</li>
+                        <h3 class="font-bold text-lg mb-3 text-gray-800">🔥 Actividad de hoy</h3>
+                        <ul class="text-gray-600 text-sm space-y-3 font-medium">
+                            <li class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div> Analizar 3 zonas urbanas</li>
+                            <li class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></div> Completar 1 microcurso</li>
+                            <li class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-sm"></div> Ganar 120 pts</li>
                         </ul>
                     </div>
                 </div>
                 
                 <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" 
                      alt="Ciudad sostenible" 
-                     class="w-full h-52 object-cover rounded-[2rem] shadow-lg transition transform hover:scale-[1.02]">
+                     class="w-full h-48 object-cover rounded-[2rem] shadow-sm">
                 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mt-4 hover:shadow-md transition">
-                    <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🗺 Análisis rápido <span class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 uppercase tracking-widest font-bold">Preview</span></h3>
-                    <div id="miniMapa" style="height:180px;" class="rounded-xl shadow-inner z-0 border border-gray-200"></div>
-                    <button onclick="irMapa()" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3.5 rounded-xl mt-4 w-full font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 relative">
+                    <h3 class="font-bold text-lg mb-3 flex items-center gap-2 text-gray-800">🗺 Análisis rápido <span class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 uppercase tracking-widest font-bold">Preview</span></h3>
+                    <div id="miniMapa" style="height:160px;" class="rounded-xl shadow-inner z-0 border border-gray-200"></div>
+                    <button onclick="irMapa()" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3.5 rounded-xl mt-4 w-full font-bold shadow-md active:scale-95 transition-transform">
                         🗺 Abrir Mapa Completo
                     </button>
                 </div>
 
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
                     <div class="absolute -top-3 -right-2 text-3xl animate-bounce drop-shadow-md">🎯</div>
                     <h3 class="font-bold text-green-800 text-lg">🌱 Reto urbano del día</h3>
                     <p class="text-sm text-green-700/80 mt-1.5 font-medium">Encuentra una zona con baja área verde en el mapa y propone una mejora.</p>
-                   <button onclick="switchScreen('retos')" class="mt-4 bg-white text-green-700 px-5 py-2.5 rounded-xl border border-green-200 hover:bg-green-50 font-bold shadow-sm transition">Ir al reto</button>
+                   <button onclick="switchScreen('retos')" class="mt-4 bg-white text-green-700 px-5 py-2.5 rounded-xl border border-green-200 font-bold shadow-sm active:scale-95 transition-transform w-full sm:w-auto">Ir al reto</button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                <div class="grid grid-cols-2 gap-3 pb-4">
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center">
                         <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Analizadas</p>
                         <p class="text-3xl font-black text-green-600 drop-shadow-sm" id="stats-zonas">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center">
                         <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Retos</p>
                         <p class="text-3xl font-black text-blue-600 drop-shadow-sm" id="stats-retos">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center">
                         <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Cursos</p>
                         <p class="text-3xl font-black text-purple-600 drop-shadow-sm" id="stats-cursos">0</p>
                     </div>
-                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center transform transition hover:-translate-y-1 hover:shadow-md">
+                    <div class="bg-white shadow-sm border border-gray-100 rounded-2xl p-4 text-center">
                         <p class="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-1">Nivel</p>
                         <p class="text-3xl font-black text-orange-500 drop-shadow-sm" id="stats-nivel">1</p>
                     </div>
                 </div>
             </div>
 
-            <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Análisis Territorial</h2>
-                    <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Puebla</span>
+            <div id="screen-territorio" class="screen hidden p-0 flex flex-col h-full bg-white relative">
+                <!-- Capa Mapa a pantalla completa en la vista de territorio -->
+                <div class="absolute inset-0 z-0 bg-gray-100">
+                    <div id="map" class="h-full w-full"></div>
                 </div>
-                
-                <div class="flex-1 min-h-[400px] p-1.5 bg-white rounded-[1.5rem] border border-gray-200 shadow-sm relative overflow-hidden">
-                    
-                    <button onclick="toggleFiltros()" class="btn-toggle-filtros">
-                        <span>🔍</span> FILTRAR
+
+                <!-- Cabecera flotante en el mapa -->
+                <div class="relative z-[1000] p-5 pointer-events-none flex justify-between items-start">
+                    <div class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white pointer-events-auto">
+                        <h2 class="text-sm font-black text-gray-800">Mapa Urbano</h2>
+                        <span class="text-green-600 text-[10px] font-bold uppercase tracking-widest">Puebla</span>
+                    </div>
+                    <button onclick="toggleFiltros()" class="btn-toggle-filtros pointer-events-auto shadow-lg active:scale-90" style="position:relative; top:0; right:0;">
+                        <span>🔍</span> Filtros
                     </button>
-
-                    <div class="absolute bottom-6 right-3 z-[1000] flex flex-col gap-3">
-                        <button onclick="abrirModalFoto()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-purple-600 transform hover:scale-105" title="Reportar Zona con Foto">
-                            📷
-                        </button>
-                        <button onclick="activarRutaSaludable()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-green-600 transform hover:scale-105" title="Trazar Ruta Saludable">
-                            🚶
-                        </button>
-                        <button onclick="localizarUsuario()" class="bg-white/90 backdrop-blur w-12 h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] text-xl hover:bg-gray-50 transition border border-gray-200 text-blue-600 transform hover:scale-105" title="Mi Ubicación">
-                            📍
-                        </button>
-                    </div>
-
-                    <div id="panelFiltros">
-                        <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
-                            <h2 class="text-green-800 font-black">Capas de Datos</h2>
-                            <button onclick="toggleFiltros()" class="bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 rounded-full w-7 h-7 flex items-center justify-center transition-colors font-bold">✕</button>
-                        </div>
-                        
-                        <div class="space-y-2 text-sm font-medium text-gray-700">
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition border border-transparent hover:border-blue-100">
-                                <input type="checkbox" value="ciclovias" class="filtro-cb w-4 h-4 accent-blue-600"> 🚴 Ciclovías Urbanas
-                            </label>
-                            
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="restaurant" class="filtro-cb w-4 h-4 accent-green-600"> 🍽 Restaurantes</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="cafe" class="filtro-cb w-4 h-4 accent-green-600"> ☕ Cafés</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="hospital" class="filtro-cb w-4 h-4 accent-green-600"> 🏥 Hospitales</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="pharmacy" class="filtro-cb w-4 h-4 accent-green-600"> 💊 Farmacias</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="supermarket" class="filtro-cb w-4 h-4 accent-green-600"> 🛒 Supermercados</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="gym" class="filtro-cb w-4 h-4 accent-green-600"> 🏋️ Gimnasios</label>
-                        </div>
-                    </div>
-
-                    <div id="map" class="h-full w-full rounded-[1.2rem] z-0"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
-                    <span class="text-lg">👆</span> Explora, reporta o crea rutas.
-                </p>
+
+                <div class="absolute bottom-6 right-4 z-[1000] flex flex-col gap-4">
+                    <button onclick="abrirModalFoto()" class="bg-white/95 backdrop-blur w-14 h-14 flex items-center justify-center rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.15)] text-2xl active:scale-90 transition-transform border border-gray-100 text-purple-600" title="Reportar">
+                        📷
+                    </button>
+                    <button onclick="activarRutaSaludable()" class="bg-white/95 backdrop-blur w-14 h-14 flex items-center justify-center rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.15)] text-2xl active:scale-90 transition-transform border border-gray-100 text-green-600" title="Rutas">
+                        🚶
+                    </button>
+                    <button onclick="localizarUsuario()" class="bg-white/95 backdrop-blur w-14 h-14 flex items-center justify-center rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.15)] text-2xl active:scale-90 transition-transform border border-gray-100 text-blue-600" title="Ubicación">
+                        📍
+                    </button>
+                </div>
+
+                <div id="panelFiltros">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+                        <h2 class="text-green-800 font-black">Capas de Datos</h2>
+                        <button onclick="toggleFiltros()" class="bg-gray-100 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center active:scale-90 transition-transform font-bold">✕</button>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm font-medium text-gray-700 pb-2">
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 active:bg-blue-100 cursor-pointer transition border border-transparent">
+                            <input type="checkbox" value="ciclovias" class="filtro-cb w-5 h-5 accent-blue-600"> 🚴 Ciclovías
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="restaurant" class="filtro-cb w-5 h-5 accent-green-600"> 🍽 Restaurantes
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="cafe" class="filtro-cb w-5 h-5 accent-green-600"> ☕ Cafés
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="hospital" class="filtro-cb w-5 h-5 accent-green-600"> 🏥 Hospitales
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="pharmacy" class="filtro-cb w-5 h-5 accent-green-600"> 💊 Farmacias
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="supermarket" class="filtro-cb w-5 h-5 accent-green-600"> 🛒 Supermercados
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition">
+                            <input type="checkbox" value="gym" class="filtro-cb w-5 h-5 accent-green-600"> 🏋️ Gimnasios
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
+            <div id="screen-aprendizaje" class="screen hidden p-5 space-y-5">
                 <h2 class="text-2xl font-black text-gray-800 mb-1">Educación Interactiva</h2>
                 <p class="text-sm text-gray-500 mb-5 font-medium">Mejora tus habilidades en urbanismo táctico y ecología.</p>
                 
-                <div id="contenedor-cursos" class="space-y-4"></div>
+                <div id="contenedor-cursos" class="space-y-5"></div>
             </div>
 
-            <div id="screen-fundamentacion" class="screen hidden p-5 space-y-5">
+            <div id="screen-fundamentacion" class="screen hidden p-5 space-y-6">
                 <h2 class="text-2xl font-black text-gray-800">Ciencia & Salud</h2>
 
-                <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-[1.5rem] border border-green-200 text-sm shadow-sm relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 opacity-20 text-7xl">🧬</div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-[1.5rem] border border-green-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-20 text-7xl pointer-events-none">🧬</div>
                     <h3 class="font-bold text-green-900 mb-3 flex items-center gap-2 relative z-10"><span class="text-xl bg-white p-1.5 rounded-lg shadow-sm">🧬</span> Resistencia a la Insulina</h3>
-                    <p class="text-green-800/90 leading-relaxed text-justify relative z-10 font-medium">
+                    <p class="text-sm text-green-800/90 leading-relaxed text-justify relative z-10 font-medium select-text">
                         La resistencia a la insulina está asociada a sedentarismo, mala alimentación,
                         estrés ambiental y falta de espacios públicos saludables en los entornos urbanos.
                     </p>
                 </div>
                 
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-md border border-gray-100">
+                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
                     <h3 class="font-black text-lg text-gray-800 mb-1 flex justify-between items-center">
                         Calculadora IRMA
                         <span class="text-[10px] bg-green-100 text-green-800 px-2.5 py-1.5 rounded-lg shadow-sm">+80 pts</span>
                     </h3>
-                    <p class="text-xs text-gray-500 mb-5 font-medium leading-relaxed">
+                    <p class="text-xs text-gray-500 mb-5 font-medium leading-relaxed select-text">
                     El Índice de Riesgo Metabólico Ambiental (IRMA) combina factores individuales 
                     con el entorno urbano del municipio.
                     </p>
@@ -485,7 +508,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
-                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
+                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-4 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner text-base" autocomplete="off">
                             <datalist id="lista-municipios">
                                 <option value="Puebla"></option>
                                 <option value="Tehuacan"></option>
@@ -498,23 +521,23 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Glucosa mg/dL</label>
-                                <input id="glucosa" type="number" min="70" max="180" placeholder="70-180" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
+                                <input id="glucosa" type="number" inputmode="numeric" min="70" max="180" placeholder="70-180" class="border border-gray-200 bg-gray-50 p-4 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner text-base">
                             </div>
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">IMC</label>
-                                <input id="imc" type="number" min="18" max="40" placeholder="18-40" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
+                                <input id="imc" type="number" inputmode="decimal" min="18" max="40" placeholder="18-40" class="border border-gray-200 bg-gray-50 p-4 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner text-base">
                             </div>
                             <div>
                                 <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Cintura (cm)</label>
-                                <input id="cintura" type="number" min="70" max="130" placeholder="70-130" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
+                                <input id="cintura" type="number" inputmode="numeric" min="70" max="130" placeholder="70-130" class="border border-gray-200 bg-gray-50 p-4 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner text-base">
                             </div>
                             <div>
-                                <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Act. Física (hrs/sem)</label>
-                                <input id="actividad" type="number" min="0" max="7" placeholder="0-7" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner">
+                                <label class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Act. Fís. (hrs/sem)</label>
+                                <input id="actividad" type="number" inputmode="numeric" min="0" max="7" placeholder="0-7" class="border border-gray-200 bg-gray-50 p-4 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner text-base">
                             </div>
                         </div>
 
-                        <button onclick="calcularIRMA()" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-xl w-full font-bold mt-3 shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:from-black hover:to-gray-800 transition transform hover:-translate-y-1">
+                        <button onclick="calcularIRMA()" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4.5 rounded-xl w-full font-bold mt-4 shadow-[0_8px_20px_rgba(0,0,0,0.15)] active:scale-95 transition-transform text-base">
                             📊 Calcular Mi Índice
                         </button>
                     </div>
@@ -523,49 +546,49 @@
                 </div>
 
                 <div class="text-xs bg-white p-5 rounded-[1.5rem] border border-gray-100 text-gray-600 mt-6 shadow-sm">
-                    <b class="text-gray-800 uppercase tracking-widest mb-3 block text-[10px] font-black">Fuentes oficiales</b>
-                    <div class="space-y-3 font-medium">
-                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🌍</span> <span class="font-bold text-green-700">OMS</span> — Riesgo metabólico y actividad física.</p>
-                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🇲🇽</span> <span class="font-bold text-blue-700">INEGI</span> — Censo de Población.</p>
-                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🏥</span> <span class="font-bold text-purple-700">INSP / ENSANUT</span> — Salud en México.</p>
-                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-1.5 rounded border border-gray-100 shadow-sm">🏙</span> <span class="font-bold text-orange-700">DENUE</span> — Infraestructura económica.</p>
+                    <b class="text-gray-800 uppercase tracking-widest mb-4 block text-[10px] font-black">Fuentes oficiales</b>
+                    <div class="space-y-3.5 font-medium">
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-2 rounded-lg border border-gray-100 shadow-sm text-base">🌍</span> <span class="font-bold text-green-700">OMS</span> — Riesgo metabólico y actividad física.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-2 rounded-lg border border-gray-100 shadow-sm text-base">🇲🇽</span> <span class="font-bold text-blue-700">INEGI</span> — Censo de Población.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-2 rounded-lg border border-gray-100 shadow-sm text-base">🏥</span> <span class="font-bold text-purple-700">INSP / ENSANUT</span> — Salud en México.</p>
+                        <p class="flex items-center gap-3"><span class="bg-gray-50 p-2 rounded-lg border border-gray-100 shadow-sm text-base">🏙</span> <span class="font-bold text-orange-700">DENUE</span> — Infraestructura económica.</p>
                     </div>
                 </div>
             </div>
 
-            <div id="screen-retos" class="screen hidden p-5">
-                <h2 class="text-2xl font-black mb-4 text-gray-800">
+            <div id="screen-retos" class="screen hidden p-5 space-y-6">
+                <h2 class="text-2xl font-black text-gray-800">
                     <span>🎯 Misiones Urbanas</span>
                 </h2>
 
-                <div class="bg-gradient-to-r from-orange-50 to-red-50 p-5 rounded-[1.5rem] border border-orange-100 shadow-sm text-sm mb-6 flex items-center justify-between">
+                <div class="bg-gradient-to-r from-orange-50 to-red-50 p-5 rounded-[1.5rem] border border-orange-100 shadow-sm flex items-center justify-between">
                     <div>
                         <div class="font-black text-orange-900 mb-1 text-base">Racha Diaria Activa</div>
                         <div class="text-xs text-orange-700/80 font-medium">Vuelve mañana para más puntos</div>
                     </div>
-                    <div class="text-center bg-white py-2.5 px-5 rounded-2xl shadow-sm border border-orange-100 transform hover:scale-105 transition">
-                        <div class="text-2xl mb-1 drop-shadow-sm">🔥</div>
+                    <div class="text-center bg-white py-3 px-5 rounded-2xl shadow-sm border border-orange-100">
+                        <div class="text-3xl mb-1 drop-shadow-sm">🔥</div>
                         <div class="font-black text-orange-600 tracking-wide"><span id="racha">0</span> DÍAS</div>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100 mb-6 relative overflow-hidden">
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
                     <h3 class="font-black text-gray-800 text-sm mb-5 flex items-center justify-between">
-                        <span>🏅 Galería de Insignias</span>
+                        <span>🏅 Insignias</span>
                         <span class="text-[10px] bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full font-black uppercase tracking-widest border border-purple-200">Rango: <span id="rango-nombre">Novato</span></span>
                     </h3>
                     
-                    <div id="contenedor-badges" class="grid grid-cols-3 gap-5 text-center">
+                    <div id="contenedor-badges" class="grid grid-cols-3 gap-5 text-center pb-2">
                     </div>
                     
                     <div id="contenido-desbloqueable" class="mt-5 p-4 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl text-center hidden border border-yellow-200 shadow-sm transition-all duration-500">
                         <span class="text-3xl animate-bounce inline-block drop-shadow-md mb-1">🎁</span>
                         <h4 class="font-black text-sm text-yellow-900 mt-1">¡Premium Desbloqueado!</h4>
-                        <p class="text-xs text-yellow-800 font-medium mt-1">Tienes acceso a rutas saludables y reportes fotográficos.</p>
+                        <p class="text-xs text-yellow-800 font-medium mt-1">Acceso a rutas saludables y reportes.</p>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center mb-4 px-1">
+                <div class="flex justify-between items-center px-1">
                     <h3 class="font-black text-gray-400 text-[11px] uppercase tracking-widest">Retos Disponibles</h3>
                     <span class="text-[10px] font-black text-green-700 bg-green-100 border border-green-200 px-2.5 py-1 rounded-full shadow-sm"><span id="logros-count">0</span> Logros Mágicos</span>
                 </div>
@@ -573,25 +596,25 @@
                 <div id="lista-retos" class="space-y-4"></div>
             </div>
 
-            <div id="screen-ranking" class="screen hidden p-5">
+            <div id="screen-ranking" class="screen hidden p-5 space-y-6">
                 
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm mb-5 border border-gray-100">
+                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
                     <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
-                    <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
-                    <div class="relative w-full flex justify-center h-48">
+                    <p class="text-[10px] text-gray-400 text-center mb-5 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
+                    <div class="relative w-full flex justify-center h-52">
                         <canvas id="rankingChart"></canvas>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
-                    <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
+                    <h2 class="text-xl font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
 
                     <div id="ranking" class="space-y-2">
-                        <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
+                        <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando satélites...</div>
                     </div>
 
                     <div class="mt-6 pt-5 border-t border-gray-100">
-                        <p class="text-gray-600 text-sm leading-relaxed font-medium">
+                        <p class="text-gray-600 text-sm leading-relaxed font-medium select-text">
                             🧠 <b class="text-blue-700 font-black">IARRI</b> 
                             (<b class="text-gray-800">Índice de Riesgo Metabólico</b>) 
                             mide cómo el <span class="text-green-700 font-bold">entorno urbano</span> 
@@ -630,13 +653,20 @@
 
     </div>
 
+    <!-- Scripts de Firebase, Leaflet, etc. -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     
     <script>
+        // Función de vibración nativa (Háptica) para Android APK
+        function vibrar(ms = 30) {
+            if ("vibrate" in navigator) {
+                navigator.vibrate(ms);
+            }
+        }
+
         // --- INICIALIZACIÓN DE FIREBASE ---
         const firebaseConfig = {
           apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
@@ -651,6 +681,7 @@
         const auth = firebase.auth();
 
         function iniciarSesionGoogle() {
+            vibrar(40);
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).then((result) => {
                 mostrarToast("Sesión iniciada correctamente", "✅");
@@ -678,10 +709,11 @@
         // --- FIN FIREBASE ---
 
         function mostrarToast(mensaje, icono = "✅") {
+            vibrar([30, 50, 30]); // Patrón de vibración feliz
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
             toast.className = "toast-msg";
-            toast.innerHTML = `<span class="text-lg">${icono}</span> <span>${mensaje}</span>`;
+            toast.innerHTML = `<span class="text-xl">${icono}</span> <span>${mensaje}</span>`;
             
             container.appendChild(toast);
 
@@ -694,6 +726,7 @@
         }
 
         function lanzarConfeti() {
+            vibrar(40);
             const emojis = ['🌟', '🏆', '🔥', '🌱', '🚀'];
             for(let i=0; i<20; i++) {
                 let p = document.createElement("div");
@@ -707,6 +740,7 @@
         }
 
         function mostrarModalNivel(nuevoNivel) {
+            vibrar([50, 100, 50, 100, 50]); 
             const modal = document.getElementById('modal-levelup');
             const content = document.getElementById('modal-levelup-content');
             document.getElementById('modal-new-level').innerText = nuevoNivel;
@@ -719,6 +753,7 @@
         }
 
         function cerrarModalNivel() {
+            vibrar(20);
             const modal = document.getElementById('modal-levelup');
             const content = document.getElementById('modal-levelup-content');
             
@@ -783,7 +818,6 @@
         let datosIARRICache = null; 
         let municipiosValidos = [];
         
-        // --- SE AGREGÓ CAPA PARA CICLOVÍAS ---
         let capas = {
             ciclovias: L.layerGroup(),
             restaurant: L.markerClusterGroup({chunkedLoading:true}),
@@ -819,13 +853,13 @@
 
                 let progreso = c.completado ? "100%" : "0%";
                 let textoBoton = c.completado ? "Completado ✅" : (c.externo ? "Leer Artículo" : "Comenzar Microcurso");
-                let extraBtnClass = c.completado ? "bg-gray-800 hover:bg-gray-900 shadow-gray-500/30" : colores.btn;
+                let extraBtnClass = c.completado ? "bg-gray-800 active:bg-gray-900 shadow-gray-500/30" : colores.btn;
 
                 html += `
-                <div class="border ${colores.border} p-6 rounded-[1.5rem] bg-white shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-1 transform">
+                <div class="border ${colores.border} p-6 rounded-[1.5rem] bg-white shadow-sm relative overflow-hidden transition-transform active:scale-[0.98]">
                     <div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-3 py-1.5 rounded-bl-xl font-black uppercase tracking-wide">${c.pts} PTS</div>
                     <div class="flex gap-4 mb-4">
-                        <div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl shadow-sm h-14 w-14 flex items-center justify-center transform transition hover:scale-110">${c.icono}</div>
+                        <div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl shadow-sm h-14 w-14 flex items-center justify-center">${c.icono}</div>
                         <div class="flex-1">
                             <h3 class="font-black ${colores.text} mb-1 leading-tight flex items-center gap-1">${c.titulo}</h3>
                             <p class="text-xs text-gray-500 font-medium line-clamp-2">${c.desc}</p>
@@ -833,23 +867,23 @@
                     </div>
                     <div class="mb-5">
                         <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5"><span>Progreso</span> <span>${progreso}</span></div>
-                        <div class="w-full ${colores.barBg} rounded-full h-2 shadow-inner">
-                            <div class="${colores.bar} h-2 rounded-full transition-all duration-1000" style="width: ${progreso}"></div>
+                        <div class="w-full ${colores.barBg} rounded-full h-2.5 shadow-inner">
+                            <div class="${colores.bar} h-2.5 rounded-full transition-all duration-1000" style="width: ${progreso}"></div>
                         </div>
                     </div>
-                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3.5 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-0.5 ${extraBtnClass}">
+                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-4 rounded-xl font-bold shadow-lg transition-transform active:scale-95 ${extraBtnClass} text-base">
                         ${textoBoton}
                     </button>
                 </div>`;
             });
 
             cont.innerHTML = html;
-            
             const statsCursos = document.getElementById('stats-cursos');
             if(statsCursos) statsCursos.innerText = completados;
         }
 
         function abrirCurso(id) {
+            vibrar(30);
             let curso = cursosData.find(c => c.id === id);
             if (!curso) return;
 
@@ -868,10 +902,11 @@
                 } else {
                     window.location.href = curso.url;
                 }
-            }, 600);
+            }, 400);
         }
 
         function irMapa(){
+            vibrar(20);
             switchScreen('territorio');
         }
 
@@ -890,13 +925,6 @@
                 .replace(/[^a-zA-Z ]/g,"")
                 .trim()
                 .toUpperCase();
-        }
-
-        function clasificarRiesgo(iarri){
-            if(iarri < 0.013) return {nivel:"Bajo", color:"#2ecc71"}; 
-            if(iarri < 0.037) return {nivel:"Medio", color:"#f1c40f"};
-            if(iarri < 0.073) return {nivel:"Alto", color:"#e67e22"};
-            return {nivel:"Crítico", color:"#e74c3c"};
         }
 
         function colorIARRI(v){
@@ -946,36 +974,39 @@
         }
 
         function toggleFiltros() {
+            vibrar(20);
             const panel = document.getElementById('panelFiltros');
             panel.classList.toggle('active');
         }
 
         function switchScreen(screen) {
+            vibrar(15);
             document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
             const selectedScreen = document.getElementById("screen-" + screen);
             if(selectedScreen) selectedScreen.classList.remove("hidden");
+            
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             const selectedNav = document.getElementById("nav-" + screen);
             if(selectedNav) selectedNav.classList.add("active");
 
+            window.scrollTo({ top: 0, behavior: 'auto' });
+
             if (screen === "territorio") setTimeout(initMap, 200);
             if (screen === "ranking") cargarRanking();
-            if (screen === "fundamentacion") window.scrollTo(0,0);
         }
 
         function updateLevel() {
-            let nextThreshold = 400;
             let percent = 0;
             let num = 1;
 
             if (userProgress.totalPoints >= 1000) { 
-                userProgress.level = "Maestro Urbano"; nextThreshold = 2000; percent = ((userProgress.totalPoints - 1000) / 1000) * 100; num = 4;
+                userProgress.level = "Maestro Urbano"; percent = ((userProgress.totalPoints - 1000) / 1000) * 100; num = 4;
             } else if (userProgress.totalPoints >= 800) { 
-                userProgress.level = "Avanzado"; nextThreshold = 1000; percent = ((userProgress.totalPoints - 800) / 200) * 100; num = 3;
+                userProgress.level = "Avanzado"; percent = ((userProgress.totalPoints - 800) / 200) * 100; num = 3;
             } else if (userProgress.totalPoints >= 400) { 
-                userProgress.level = "Intermedio"; nextThreshold = 800; percent = ((userProgress.totalPoints - 400) / 400) * 100; num = 2;
+                userProgress.level = "Intermedio"; percent = ((userProgress.totalPoints - 400) / 400) * 100; num = 2;
             } else { 
-                userProgress.level = "Básico"; nextThreshold = 400; percent = (userProgress.totalPoints / 400) * 100; num = 1;
+                userProgress.level = "Básico"; percent = (userProgress.totalPoints / 400) * 100; num = 1;
             }
 
             const bar = document.getElementById("bar-progreso-header");
@@ -1017,6 +1048,7 @@
             if(!buttonElement && !event) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
 
             if (buttonElement || event) {
+                vibrar(20);
                 const target = buttonElement || event.target;
                 const rect = target.getBoundingClientRect();
                 const floatEl = document.createElement("div");
@@ -1054,7 +1086,7 @@
                 if(m.completado) completadas++;
 
                 html+=`
-                <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm transform transition hover:shadow-md relative overflow-hidden">
+                <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm transform transition active:scale-[0.98] relative overflow-hidden">
                     ${m.completado ? '<div class="absolute inset-0 bg-green-50/50 z-0"></div>' : ''}
                     <div class="relative z-10">
                         <div class="flex justify-between items-center mb-2">
@@ -1067,7 +1099,7 @@
                         </div>
                         <button
                             onclick="completarMision('${m.id}', this)"
-                            class="${m.completado ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-900 text-white hover:bg-black shadow-[0_5px_15px_rgba(0,0,0,0.2)] hover:-translate-y-0.5'} text-sm font-bold w-full p-3.5 rounded-xl transition transform"
+                            class="${m.completado ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-900 text-white active:bg-black shadow-[0_5px_15px_rgba(0,0,0,0.2)] active:scale-95'} text-sm font-bold w-full p-4 rounded-xl transition-transform"
                             ${m.completado ? "disabled" : ""}
                         >
                             ${m.completado ? "Reto Superado 🎉" : "Completar Reto"}
@@ -1089,6 +1121,7 @@
         }
 
         function completarMision(id, btn){
+            vibrar([30, 50, 30]);
             const m = misiones.find(x=>x.id===id);
             if(!m || m.completado) return;
 
@@ -1135,7 +1168,7 @@
                 if(unlocked) rangoActual = m.name;
                 html += `
                 <div class="flex flex-col items-center gap-1.5 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
-                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-4 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110 hover:-rotate-3' : ''}">${m.icon}</div>
+                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-4 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'active:scale-110 active:-rotate-3' : ''}">${m.icon}</div>
                     <span class="text-[10px] font-black text-gray-500 mt-1 uppercase tracking-wider">${m.name}</span>
                 </div>`;
             });
@@ -1151,6 +1184,7 @@
         }
 
         function abrirModalFoto() {
+            vibrar(20);
             const modal = document.getElementById('modal-foto');
             modal.classList.remove('hidden');
             setTimeout(() => modal.style.opacity = '1', 10);
@@ -1161,6 +1195,7 @@
         }
 
         function cerrarModalFoto() {
+            vibrar(10);
             const modal = document.getElementById('modal-foto');
             modal.style.opacity = '0';
             setTimeout(() => modal.classList.add('hidden'), 300);
@@ -1178,7 +1213,8 @@
         });
 
         function guardarReporteFoto() {
-            const desc = document.getElementById('foto-desc').value || "Reporte sin descripción";
+            vibrar(30);
+            const desc = document.getElementById('foto-desc').value || "Reporte ciudadano";
             const file = document.getElementById('foto-input').files[0];
             
             if(!file) {
@@ -1196,7 +1232,7 @@
                 if(map) {
                     map.locate({setView: true, maxZoom: 15});
                     map.once('locationfound', function(e) {
-                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter active:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                         const imgData = document.getElementById('img-preview').src;
                         
                         let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
@@ -1218,6 +1254,7 @@
         }
 
         function alerta(msg){
+            vibrar([50, 100, 50]);
             document.getElementById("resultado").innerHTML =
             `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm animate-pulse flex gap-2">
             <span>⚠️</span> <span>${msg}</span>
@@ -1226,18 +1263,19 @@
 
         function generarRecomendaciones(glucosa, imc, cintura, actividad){
             let recomendaciones = [];
-            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas. Prioriza alimentos con bajo índice glucémico.");
-            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético: más actividad física y porciones controladas.");
-            if(cintura > 94) recomendaciones.push("📏 La grasa abdominal aumenta el riesgo metabólico. Integra caminatas diarias y ejercicios de fuerza.");
-            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 minutos de actividad física por semana.");
-            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores están dentro de rangos saludables. Mantén tus hábitos actuales.");
+            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y procesados.");
+            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético diario.");
+            if(cintura > 94) recomendaciones.push("📏 Integra caminatas diarias y ejercicios de fuerza.");
+            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 min de actividad por semana.");
+            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores son saludables. ¡Mantén tus hábitos!");
             return recomendaciones;
         }
 
         function calcularIRMA(){
+            vibrar(30);
             const municipio = document.getElementById("municipio").value.trim();
             if(!municipiosValidos.includes(municipio)){
-                alerta("Debes seleccionar un municipio válido de la lista.");
+                alerta("Debes seleccionar un municipio válido.");
                 return;
             }
 
@@ -1263,13 +1301,13 @@
 
             if(irma>0.75){
                 nivel="Crítico"; colorText="text-red-600"; colorBg="bg-gradient-to-r from-red-500 to-red-600"; icono="🚨";
-                explicacion="Riesgo metabólico muy alto. Se recomienda mejorar hábitos y consultar a un profesional.";
+                explicacion="Riesgo metabólico muy alto. Se recomienda consultar a un profesional.";
             } else if(irma>0.55){
                 nivel="Alto"; colorText="text-orange-500"; colorBg="bg-gradient-to-r from-orange-400 to-orange-500"; icono="⚠️";
-                explicacion="Riesgo metabólico elevado. Incrementar actividad física y mejorar alimentación puede ayudar.";
+                explicacion="Riesgo elevado. Incrementar actividad física ayudará.";
             } else if(irma>0.35){
                 nivel="Medio"; colorText="text-yellow-600"; colorBg="bg-gradient-to-r from-yellow-400 to-yellow-500"; icono="🟡";
-                explicacion="Riesgo moderado. Algunos indicadores pueden mejorar con cambios en estilo de vida.";
+                explicacion="Riesgo moderado. Pequeños cambios en el estilo de vida son clave.";
             } else {
                 nivel="Bajo"; colorText="text-green-600"; colorBg="bg-gradient-to-r from-green-400 to-green-500"; icono="🟢";
                 explicacion="Riesgo metabólico bajo. Mantén hábitos saludables.";
@@ -1342,16 +1380,11 @@
                     const lng = parseFloat(n.lng);
 
                     if(isNaN(lat) || isNaN(lng)) continue;
-
                     const categoria = clasificarCategoria(n.codigo_scian);
-
                     if(!categoria) continue;
 
                     const marker = L.circleMarker([lat,lng],{
-                        radius:4,
-                        color:"#2563eb",
-                        weight: 1,
-                        fillOpacity: 0.8
+                        radius:4, color:"#2563eb", weight: 1, fillOpacity: 0.8
                     });
 
                     marker.bindPopup(`
@@ -1371,10 +1404,8 @@
             procesarChunk();
         }
 
-        // --- NUEVA FUNCIÓN PARA CARGAR CICLOVÍAS ---
         async function cargarCiclovias() {
             try {
-                // Leemos el nuevo archivo subido
                 const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
                 if (!res.ok) throw new Error("No se encontró el archivo de ciclovías");
                 const data = await res.json();
@@ -1382,10 +1413,10 @@
                 const capaLineas = L.geoJSON(data, {
                     style: function (feature) {
                         return {
-                            color: "#0ea5e9", // Azul cielo neón / pro
+                            color: "#0ea5e9", 
                             weight: 5,
                             opacity: 0.85,
-                            dashArray: '8, 8', // Efecto punteado de carril
+                            dashArray: '8, 8', 
                             lineCap: 'round',
                             lineJoin: 'round'
                         };
@@ -1405,9 +1436,7 @@
                     }
                 });
                 
-                // Lo añadimos a la capa global
                 capas.ciclovias.addLayer(capaLineas);
-                console.log("🚴 Red Ciclista cargada exitosamente.");
             } catch(e) {
                 console.error("Error cargando ciclovías", e);
             }
@@ -1418,13 +1447,13 @@
             legend.onAdd = function(){
                 const div = L.DomUtil.create("div","info legend");
                 div.innerHTML = `
-                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:20px; margin-right:10px; border:1px solid rgba(0,0,0,0.05);">
+                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:calc(60px + env(safe-area-inset-bottom, 0px)); margin-right:10px; border:1px solid rgba(0,0,0,0.05);">
                     <b style="color:#1f2937; display:block; margin-bottom:6px; font-weight:900; letter-spacing:0.5px;">Riesgo Urbano</b>
                     <div style="display:flex; flex-direction:column; gap:5px; font-weight:600; color:#4b5563;">
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(46,204,113,0.4);"></span> Bajo</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(241,196,15,0.4);"></span> Medio</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(230,126,34,0.4);"></span> Alto</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(231,76,60,0.4);"></span> Crítico</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:3px;"></span> Bajo</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:3px;"></span> Medio</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:3px;"></span> Alto</div>
+                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:3px;"></span> Crítico</div>
                     </div>
                 </div>`;
                 return div;
@@ -1434,6 +1463,7 @@
 
         function localizarUsuario() {
             if (!map) return;
+            vibrar(20);
             map.locate({setView: true, maxZoom: 14});
             mostrarToast("Buscando tu ubicación...", "🛰️");
 
@@ -1442,20 +1472,22 @@
                     radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1
                 }).addTo(map).bindPopup("<b>¡Estás aquí!</b><br>Analiza tu entorno.").openPopup();
                 mostrarToast("Ubicación encontrada", "📍");
+                vibrar([30, 50, 30]);
             });
 
             map.once('locationerror', function(e) {
                 mostrarToast("Activa el GPS para localizarte", "❌");
+                vibrar([50, 100, 50]);
             });
         }
 
-        // ======= INICIO: SOLUCIÓN DEFINITIVA DE RUTA =======
         let areasVerdesData = null;
         let routingControl = null;
         window.markersParquesBuscados = null;
 
         async function activarRutaSaludable() {
             if (!map) return;
+            vibrar(30);
             
             mostrarToast("Buscando parques a 5 km...", "🛰️");
             map.locate({setView: true, maxZoom: 14, timeout: 5000});
@@ -1512,6 +1544,7 @@
                 });
 
                 if (parquesEncontrados.length > 0) {
+                    vibrar([40, 60, 40]);
                     mostrarToast(`¡Encontramos ${parquesEncontrados.length} parques cerca!`, "🌳");
                     
                     let bounds = [ [latUsuario, lngUsuario] ]; 
@@ -1521,7 +1554,7 @@
 
                         const marker = L.marker([parque.lat, parque.lng], {
                             icon: L.divIcon({
-                                html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`,
+                                html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white;">🌳</div>`,
                                 className: '', iconSize: [30,30], iconAnchor: [15, 30]
                             })
                         });
@@ -1532,7 +1565,7 @@
                                 <span class="text-[10px] text-gray-500 block leading-tight mb-2 font-medium">${parque.colonia}</span>
                                 <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm">A ${parque.distancia.toFixed(2)} km</span><br>
                                 <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${parque.nombre}')" 
-                                        class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
+                                        class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-3 rounded-xl font-bold shadow-md active:scale-95 transition-transform text-base">
                                     📍 Ir Aquí
                                 </button>
                             </div>
@@ -1555,6 +1588,7 @@
         }
 
         window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
+            vibrar(30);
             map.closePopup();
             
             if (window.markersParquesBuscados) {
@@ -1621,9 +1655,9 @@
             }).addTo(map).bindPopup(`<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino</span><br><b class="text-green-800">${nombre}</b></div>`).openPopup();
 
             map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
+            vibrar([40, 60, 40]);
             mostrarToast("Ruta directa generada", "✅");
         }
-        // ======= FIN: SOLUCIÓN DEFINITIVA DE RUTA =======
         
         async function initMap(){
             if(map){
@@ -1631,7 +1665,10 @@
                 return;
             }
 
-            map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
+            map = L.map("map",{preferCanvas:true, zoomControl: false}).setView([19.04,-98.20],8);
+            
+            // Reposicionamos controles de zoom por el UI de la app
+            L.control.zoom({ position: 'topleft' }).addTo(map);
 
             L.tileLayer(
                 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -1673,7 +1710,7 @@
                             color:"#64748b",
                             weight:1,
                             fillColor: colorIARRI(m.iarri),
-                            fillOpacity: 0.3 // Transparencia pro
+                            fillOpacity: 0.3 
                         };
                     },
                     onEachFeature:function(feature,layer){
@@ -1699,14 +1736,13 @@
 
                 map.fitBounds(capaMunicipios.getBounds());
                 
-                // CARGAR TODAS LAS CAPAS EXTERNAS
                 await cargarNegocios();
-                await cargarCiclovias(); // <--- Aquí se manda llamar el archivo geojson de ciclovias
+                await cargarCiclovias(); 
                 
                 agregarLeyenda(); 
                 
                 let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter active:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
                 fotosGuardadas.forEach(foto => {
                     L.marker([foto.lat, foto.lng], {icon: iconFoto}).addTo(map)
                      .bindPopup(`
@@ -1718,8 +1754,6 @@
                      `);
                 });
 
-                console.log("Mapa cargado correctamente");
-                
             } catch (error) {
                 console.error("Error inicializando el mapa:", error);
             }
@@ -1756,7 +1790,7 @@
                     let bgFila = i < 3 ? "bg-orange-50/40 border-orange-100" : "border-gray-100";
 
                     html+=`
-                    <div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl hover:bg-gray-50 transition mb-1">
+                    <div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl active:bg-gray-50 transition mb-1">
                         <span class="font-black text-gray-700 flex items-center gap-3">${medal} ${m.municipio}</span>
                         <span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-lg">${m.iarri.toFixed(3)}</span>
                     </div>`;
@@ -1828,7 +1862,7 @@
             checkLogros();
             renderizarCursos();
 
-            const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
+            const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, tap: false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
 
@@ -1890,9 +1924,9 @@
                 }
             });
 
-            // Lógica para encender/apagar capas desde el panel
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
+                    vibrar(15);
                     if(!map) return;
                     let cat = e.target.value;
                     
