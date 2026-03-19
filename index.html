@@ -1404,23 +1404,32 @@
         }
 
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+            // 1. Limpiar ruta anterior para que no se congele el mapa
             if (routingControl) { map.removeControl(routingControl); }
+            
+            // 2. Trazar la nueva ruta de forma segura
             routingControl = L.Routing.control({
                 waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
-                lineOptions: { styles: [{color: '#16a34a', weight: 6, opacity: 0.8}] },
+                language: 'es',
+                lineOptions: { styles: [{color: '#10B981', weight: 6, opacity: 0.8}] },
                 addWaypoints: false,
                 draggableWaypoints: false,
-                fitSelectedRoutes: true, // Esto ajusta el zoom para que se vea toda la ruta generada
+                fitSelectedRoutes: true,
                 show: false,
+                routeWhileDragging: false,
                 createMarker: function(i, wp) {
                     return L.marker(wp.latLng, {
                         icon: L.divIcon({
-                            html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #16a34a; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
+                            html: `<div style="font-size:25px; background:white; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center; border:2px solid #10B981; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${i===0?'🚶':'🌳'}</div>`,
                             className: '', iconSize: [35,35], iconAnchor: [17, 35]
                         })
                     }).bindPopup(i===0 ? "Tú" : `Destino: ${nombre}`);
                 }
+            }).on('routingerror', function(e) {
+                console.error("El servidor de rutas OSRM está saturado en este momento.", e);
+                mostrarToast("Error en el servidor de rutas", "⚠️");
             }).addTo(map);
+            
             mostrarToast("¡Ruta Generada!", "✅");
         }
         
