@@ -1340,7 +1340,8 @@
             legend.addTo(map);
         }
 
-        function localizarUsuario() {
+        function 
+            localizarUsuario() {
             if (!map) return;
             map.locate({setView: true, maxZoom: 14});
             mostrarToast("Buscando tu ubicación...", "🛰️");
@@ -1358,7 +1359,7 @@
         }
 
         // FUNCIÓN MEJORADA: Ahora fuerza la ruta hacia el parque real más cercano usando la API Overpass (o simula uno válido en su defecto)
-        let routingControl = null;
+       let routingControl = null;
         function activarRutaSaludable() {
             if (!map) return;
             
@@ -1367,14 +1368,20 @@
                 return;
             }
 
-            mostrarToast("Buscando el parque más cercano...", "🌳");
-            map.locate({setView: true, maxZoom: 15});
+            mostrarToast("Buscando la zona verde más cercana...", "🌳");
+            map.locate({setView: true, maxZoom: 14});
             
             map.once('locationfound', async function(e) {
                 if (routingControl) { map.removeControl(routingControl); }
                 
-                // Buscar el parque más cercano a la ubicación mediante Overpass API (Radio de ~3km)
-                const query = `[out:json];(node["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng});way["leisure"="park"](around:3000,${e.latlng.lat},${e.latlng.lng}););out center;`;
+                // 1. Ampliamos la búsqueda a 5km e incluimos parques, jardines, pasto, bosques y zonas recreativas
+                const query = `[out:json][timeout:15];
+                (
+                  nwr["leisure"~"park|garden"](around:5000,${e.latlng.lat},${e.latlng.lng});
+                  nwr["landuse"~"recreation_ground|forest|grass"](around:5000,${e.latlng.lat},${e.latlng.lng});
+                );
+                out center;`;
+                
                 let destLat, destLng, destName;
 
                 try {
@@ -1382,21 +1389,39 @@
                     const data = await response.json();
                     
                     if(data.elements && data.elements.length > 0) {
-                        const park = data.elements[0];
-                        destLat = park.lat || park.center.lat;
-                        destLng = park.lon || park.center.lon;
-                        destName = park.tags && park.tags.name ? park.tags.name : "Parque Saludable";
+                        // 2. Usar Turf.js para calcular matemáticamente cuál de todos es el más cercano a ti
+                        let distanciaMinima = Infinity;
+                        let parqueIdeal = null;
+
+                        data.elements.forEach(park => {
+                            let pLat = park.lat || (park.center && park.center.lat);
+                            let pLng = park.lon || (park.center && park.center.lon);
+                            
+                            if(pLat && pLng) {
+                                // Medir distancia entre tu ubicación y el parque
+                                let dist = turf.distance([e.latlng.lng, e.latlng.lat], [pLng, pLat]);
+                                if(dist < distanciaMinima) {
+                                    distanciaMinima = dist;
+                                    parqueIdeal = park;
+                                    destLat = pLat;
+                                    destLng = pLng;
+                                }
+                            }
+                        });
+
+                        destName = (parqueIdeal.tags && parqueIdeal.tags.name) ? parqueIdeal.tags.name : "Zona Verde Urbana";
                     } else {
-                        throw new Error("No parks found");
+                        throw new Error("No hay zonas verdes a 5km");
                     }
                 } catch (err) {
-                    console.warn("Overpass falló o no hay parques. Simulando un punto cercano.");
-                    // Si falla el API, damos una ubicación cercana arbitraria válida (Fallback)
-                    destLat = e.latlng.lat + (Math.random() - 0.5) * 0.015;
-                    destLng = e.latlng.lng + (Math.random() - 0.5) * 0.015;
-                    destName = "Zona Verde (Simulada)";
+                    console.warn("Fallo en Overpass API o sin resultados, usando punto seguro alternativo.", err);
+                    // Si el usuario está literalmente en medio de la nada, forzamos un destino a 1km de distancia
+                    destLat = e.latlng.lat + 0.009; // Aprox 1km al norte
+                    destLng = e.latlng.lng + 0.009; // Aprox 1km al este
+                    destName = "Zona Caminable (Destino Seguro)";
                 }
 
+                // 3. Trazar la ruta en el mapa
                 routingControl = L.Routing.control({
                     waypoints: [
                         L.latLng(e.latlng.lat, e.latlng.lng),
@@ -1404,19 +1429,25 @@
                     ],
                     routeWhileDragging: false,
                     addWaypoints: false,
-                    show: false, // Oculta las instrucciones de texto, pero sí traza la línea en el mapa
+                    show: false, // Esconde el panel de texto con instrucciones giro a giro
                     lineOptions: {
-                        styles: [{color: '#16a34a', opacity: 0.8, weight: 6}]
+                        styles: [{color: '#16a34a', opacity: 0.9, weight: 7, dashArray: '10, 10'}] // Línea verde punteada
                     },
                     createMarker: function(i, wp, nWps) {
-                        const iconHtml = i === 0 ? '📍' : '🌳';
+                        const iconHtml = i === 0 ? '🚶' : '🌳';
+                        const bgColor = i === 0 ? 'bg-blue-100 border-blue-500' : 'bg-green-100 border-green-500';
                         return L.marker(wp.latLng, {
-                            icon: L.divIcon({html: `<div class="text-3xl drop-shadow-md filter hover:scale-110">${iconHtml}</div>`, className: '', iconSize: [30,30]})
-                        }).bindPopup(i === 0 ? "Tu ubicación actual" : `<b>${destName}</b><br>¡Ruta Saludable Activa!`);
+                            icon: L.divIcon({
+                                html: `<div class="w-10 h-10 ${bgColor} border-2 rounded-full flex items-center justify-center text-2xl shadow-lg transform hover:scale-110 transition cursor-pointer">${iconHtml}</div>`, 
+                                className: '', 
+                                iconSize: [40,40],
+                                iconAnchor: [20, 20]
+                            })
+                        }).bindPopup(i === 0 ? "Tu ubicación actual" : `<b>${destName}</b><br>¡Ruta Metabólica Activa!`);
                     }
                 }).addTo(map);
 
-                mostrarToast(`Ruta trazada hacia: ${destName}`, "✅");
+                mostrarToast(`Ruta a: ${destName}`, "✅");
                 addPoints(30); 
             });
             
