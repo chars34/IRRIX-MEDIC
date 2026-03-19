@@ -4,15 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+
     <style>
         body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
         ::-webkit-scrollbar { width: 6px; }
@@ -81,7 +89,7 @@
 </head>
 <body class="text-gray-800 relative">
 
-    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-green-900 to-emerald-800 z-[99999] hidden opacity-0 flex flex-col items-center justify-center transition-opacity duration-500">
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-green-900 to-emerald-800 z-[100000] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl">AM</div>
         <h1 class="text-white text-3xl font-black tracking-widest mb-8 text-shadow-lg">IARRI-MX</h1>
         <p class="text-green-200 text-sm mb-8 font-medium tracking-wide">Arquitectura Metabólica</p>
@@ -89,17 +97,6 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
             Iniciar sesión con Google
         </button>
-    </div>
-
-    <div id="splash-screen" class="fixed inset-0 bg-gradient-to-br from-green-800 to-emerald-900 z-[100000] flex flex-col items-center justify-center transition-opacity duration-700">
-        <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
-        <h1 class="text-white text-3xl font-black tracking-widest text-shadow-md">IARRI-MX</h1>
-        <p class="text-green-200 text-sm mt-3 font-medium">Arquitectura Metabólica</p>
-        <div class="mt-8 flex gap-2">
-            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0s;"></div>
-            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0.1s;"></div>
-            <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce shadow-md" style="animation-delay: 0.2s;"></div>
-        </div>
     </div>
 
     <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
@@ -466,68 +463,66 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-      // 1. Inicializamos el plugin nativo al cargar la app
+       // Inicializamos el plugin nativo al cargar la app
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.GoogleAuth) {
+            if (window.Capacitor && window.Capacitor.Plugins.GoogleAuth) {
                 window.Capacitor.Plugins.GoogleAuth.initialize();
             }
         });
 
-        // 2. Función maestra de inicio de sesión
         async function iniciarSesionGoogle() {
             try {
                 if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
-                    // Si estás en la compu, usa la ventanita web
+                    // Si estamos probando en la computadora, usamos la ventana web normal
                     const provider = new firebase.auth.GoogleAuthProvider();
                     await auth.signInWithPopup(provider);
                     mostrarToast("Sesión web iniciada", "✅");
                 } else {
-                    // Si estás en el celular (APK), saca el menú nativo de Google
+                    // Si estamos en el celular (APK), usamos el plugin nativo
                     const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
                     
-                    // Conectamos tu celular con Firebase
+                    // Conectamos el usuario nativo con tu Firebase
                     const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
                     await auth.signInWithCredential(credential);
                     mostrarToast("Sesión nativa iniciada", "✅");
                 }
             } catch (error) {
-                console.error("Error en login:", error);
+                console.error("Error en login", error);
                 mostrarToast("Error al iniciar sesión", "❌");
             }
         }
 
-        // 3. El observador se queda igualito
-       // 3. Firebase controla el flujo inicial
-      auth.onAuthStateChanged((user) => {
+        // El observador de Firebase se queda igual para detectar cuando entre
+        auth.onAuthStateChanged((user) => {
             const loginScreen = document.getElementById('login-screen');
-            const splashScreen = document.getElementById('splash-screen');
-            
             if (user) {
-                // SI HAY USUARIO: Actualizamos nombre y quitamos el Splash
+                loginScreen.style.opacity = '0';
+                setTimeout(() => loginScreen.classList.add('hidden'), 500);
                 const nombreUsuarioEl = document.getElementById('user-name');
                 if(nombreUsuarioEl) {
                     nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador';
                 }
-                
-                // Ocultar Splash suavemente
-                if (splashScreen) {
-                    splashScreen.style.opacity = '0';
-                    setTimeout(() => splashScreen.classList.add('hidden'), 700);
-                }
-                loginScreen.classList.add('hidden'); 
-                
             } else {
-                // SI NO HAY USUARIO: Quitamos Splash y mostramos Login
-                if (splashScreen) {
-                    splashScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        splashScreen.classList.add('hidden');
-                        loginScreen.classList.remove('hidden');
-                        setTimeout(() => loginScreen.style.opacity = '1', 50);
-                    }, 700);
-                }
+                loginScreen.classList.remove('hidden');
+                loginScreen.style.opacity = '1';
             }
         });
+
+        auth.onAuthStateChanged((user) => {
+            const loginScreen = document.getElementById('login-screen');
+            if (user) {
+                loginScreen.style.opacity = '0';
+                setTimeout(() => loginScreen.classList.add('hidden'), 500);
+                const nombreUsuarioEl = document.getElementById('user-name');
+                if(nombreUsuarioEl) {
+                    nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador';
+                }
+            } else {
+                loginScreen.classList.remove('hidden');
+                loginScreen.style.opacity = '1';
+            }
+        });
+
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
@@ -1416,13 +1411,10 @@
             });
         }
 
-   setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.classList.add('hidden'), 700);
-                }
-            }, 1800);
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
+            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos();
+
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
