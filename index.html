@@ -1408,10 +1408,10 @@ window.markersParquesBuscados = null; // Guardará los pines verdes para poder b
 async function activarRutaSaludable() {
     if (!map) return;
     
-    mostrarToast("Buscando parques a 5 km...", "🛰️");
+    mostrarToast("Buscando parques a 1 km...", "🛰️");
     
     // Forzamos la localización
-    map.locate({setView: true, maxZoom: 14, timeout: 5000});
+    map.locate({setView: true, maxZoom: 14, timeout: 1000});
     
     map.once('locationfound', async function(e) {
         ejecutarLogicaRuta(e.latlng.lat, e.latlng.lng);
