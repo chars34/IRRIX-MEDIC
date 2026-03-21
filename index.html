@@ -826,12 +826,13 @@
         }
 
         // --- TODAS TUS MISIONES ESTÁN AQUÍ INTACTAS ---
-        let misiones = [
+     let misiones = [
             { id:"explorar_mapa", nombre:"🗺 Explorador", descripcion:"Explora 3 municipios", puntos:120, progreso:0, objetivo:3, completado:false },
             { id:"calcular_irma", nombre:"🧬 Detective", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
             { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Trazar y completar una ruta", puntos:100, progreso:0, objetivo:1, completado:false },
             { id:"parque", nombre:"🌳 Reto verde", descripcion:"Ruta a un parque", puntos:120, progreso:0, objetivo:1, completado:false },
-            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza municipio crítico", puntos:180, progreso:0, objetivo:1, completado:false }
+            // La descripción de Analista ahora pide la capital
+            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza la capital: Puebla", puntos:180, progreso:0, objetivo:1, completado:false }
         ];
 
         let logros = [{ id:"primeros_pasos", condicion:()=> userProgress.totalPoints >= 100 }, { id:"explorador", condicion:()=> municipiosVisitados.size >= 5 }, { id:"maestro", condicion:()=> userProgress.totalPoints >= 1000 }];
@@ -895,10 +896,32 @@
         }
 
         function checkLogros(){ document.getElementById("logros-count").innerText = logros.filter(l => l.condicion()).length; }
-        function registrarVisita(nombre){
+      function registrarVisita(nombre){
             municipiosVisitados.add(nombre);
+            const stZonas = document.getElementById('stats-zonas');
+            if(stZonas) stZonas.innerText = municipiosVisitados.size;
+
             const m = misiones.find(x=>x.id==="explorar_mapa");
-            if(m && !m.completado) { m.progreso = municipiosVisitados.size; if(m.progreso >= m.objetivo){ mostrarToast("Completaste Explorador", '🌍'); } renderMisiones(); }
+            if(m && !m.completado) { 
+                m.progreso = municipiosVisitados.size; 
+                if(m.progreso >= m.objetivo){ mostrarToast("Completaste Explorador", '🌍'); } 
+            }
+
+            // COMPLETAR RETO ANALISTA (Solo con Puebla)
+            const mAnalista = misiones.find(x=>x.id==="analista");
+            if(mAnalista && !mAnalista.completado && normalizarNombre(nombre) === "PUEBLA") {
+                mAnalista.progreso = 1;
+                mostrarToast("¡Completaste la misión Analista!", '📊');
+            }
+
+            // COMPLETAR RETO ARQUITECTO (Solo con Cohetzala)
+            const mArquitecto = misiones.find(x=>x.id==="municipio_critico");
+            if(mArquitecto && !mArquitecto.completado && normalizarNombre(nombre) === "COHETZALA") {
+                mArquitecto.progreso = 1;
+                mostrarToast("¡Completaste la misión Arquitecto!", '🥇');
+            }
+
+            renderMisiones();
         }
 
         let baseMedallas = [{ id: "m1", icon: "🌱", name: "Iniciado", pts: 0 }, { id: "m2", icon: "🚶", name: "Caminante", pts: 200 }, { id: "m3", icon: "🗺️", name: "Cartógrafo", pts: 600 }];
@@ -1163,15 +1186,18 @@
             renderMisiones();
         }
 
-        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia);
             if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
             try {
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], language: 'es', 
-                    // AQUÍ ESTÁ EL FIX DE LA RUTA PEATONAL
-                    router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'foot' }),
+                    // CAMBIO A SERVIDOR ESTRICTO PARA PEATONES
+                    router: L.Routing.osrmv1({ 
+                        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
+                        profile: 'foot' 
+                    }),
                     lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9}] },
                     addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
                     createMarker: function(i, wp) {
@@ -1183,7 +1209,6 @@
                 routingControl.addTo(map); cumplirRetosRuta();
             } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
         }
-
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
@@ -1225,16 +1250,18 @@
             } catch (error) {}
         }
 
-        async function cargarRanking(){
+       async function cargarRanking(){
             try {
                 const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
-                data.sort((a,b)=>b.iarri-a.iarri); 
                 
-                // FUERZA A PUEBLA COMO EL MUNICIPIO CRÍTICO PARA EL RETO
-                const peor = data.find(m => normalizarNombre(m.municipio) === "Puebla") || data[0]; 
+                // ORDENAMIENTO NATURAL: De menor (más crítico) a mayor
+                data.sort((a,b) => a.iarri - b.iarri); 
+                
+                // Toma matemáticamente el más bajo del estado (naturalmente Cohetzala)
+                const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analisa Municipio bajo(1.00): ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
                     renderMisiones();
                 }
 
@@ -1263,6 +1290,37 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
 
+            // ==================================================
+            // INICIO DE CÓDIGO AGREGADO (RESTAURA EL MAPA PEQUEÑO)
+            // ==================================================
+            obtenerUbicacionRapida().then(async (ubicacion) => {
+                miniMap.setView([ubicacion.lat, ubicacion.lng], 13);
+                let marker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(miniMap).bindPopup("Analizando tu zona...").openPopup();
+                try {
+                    if(!geoDataCache) { const res = await fetch("./puebla_municipios.json"); geoDataCache = await res.json(); }
+                    const iarriData = await cargarIARRI(); const rankingMap = {};
+                    iarriData.forEach(m => rankingMap[normalizarNombre(m.municipio)] = m);
+
+                    const pt = turf.point([ubicacion.lng, ubicacion.lat]);
+                    let municipioEncontrado = "Desconocido"; let riesgoEncontrado = "No evaluado"; let colorRiesgo = "gray";
+
+                    if (geoDataCache && geoDataCache.features) {
+                        for(let feature of geoDataCache.features) {
+                            if(turf.booleanPointInPolygon(pt, feature)) {
+                                const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
+                                municipioEncontrado = nombreOriginal; const nombre = normalizarNombre(nombreOriginal);
+                                let m = rankingMap[nombre];
+                                if(!m){ for(let key in rankingMap){ if(key.includes(nombre) || nombre.includes(key)){ m = rankingMap[key]; break; } } }
+                                if(m) { riesgoEncontrado = nivelIARRI(m.iarri); colorRiesgo = colorIARRI(m.iarri); }
+                                break;
+                            }
+                        }
+                    }
+                    marker.bindPopup(`<div class="text-center font-sans p-1"><div class="text-2xl mb-1 drop-shadow-sm">📍</div><b class="text-gray-800 text-sm font-black">Tu ubicación actual</b><br><span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span></div>`).openPopup();
+                } catch(error) { marker.bindPopup("📍 Tu ubicación (Análisis no disponible)").openPopup(); }
+            }).catch(e => {
+                L.marker([19.04,-98.20]).addTo(miniMap).bindPopup("📍 Activa tu GPS para ver tu zona").openPopup();
+            });
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     if(!map) return; let cat = e.target.value;
