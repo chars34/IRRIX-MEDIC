@@ -1234,10 +1234,32 @@
                         if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 };
                         return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.3 };
                     },
-                    onEachFeature:function(feature,layer){
+                  onEachFeature:function(feature,layer){
                         const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
-                        const m = rankingMap[normalizarNombre(nombreOriginal)];
-                        if(m){ layer.bindPopup(`<b>${nombreOriginal}</b><br>IARRI: ${m.iarri.toFixed(3)}`); layer.on("click",()=>registrarVisita(nombreOriginal)); }
+                        const nombre = normalizarNombre(nombreOriginal); 
+                        const m = rankingMap[nombre];
+                        
+                        if(m){
+                            // Determinamos el nivel y el color para el diseño del popup
+                            const nivel = nivelIARRI(m.iarri);
+                            const color = colorIARRI(m.iarri);
+                            
+                            layer.bindPopup(`
+                                <div class="font-sans text-center p-1.5 min-w-[140px]">
+                                    <b class="text-gray-800 text-sm font-black block mb-1">${nombreOriginal}</b>
+                                    <div class="flex flex-col gap-1 items-center">
+                                        <span class="text-[11px] text-gray-500 font-bold">IARRI: ${m.iarri.toFixed(3)}</span>
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border shadow-sm mt-1" 
+                                              style="background-color: ${color}20; color: ${color}; border-color: ${color}40;">
+                                            ● Riesgo ${nivel}
+                                        </span>
+                                    </div>
+                                </div>
+                            `);
+                            
+                            layer.bindTooltip(nombreOriginal,{sticky:true, className: 'font-bold text-xs'});
+                            layer.on("click",()=>{ registrarVisita(nombreOriginal); });
+                        }
                     }
                 }).addTo(map);
 
