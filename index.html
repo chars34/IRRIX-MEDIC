@@ -1231,10 +1231,10 @@
                 data.sort((a,b)=>b.iarri-a.iarri); 
                 
                 // FUERZA A PUEBLA COMO EL MUNICIPIO CRÍTICO PARA EL RETO
-                const peor = data.find(m => normalizarNombre(m.municipio) === "PUEBLA") || data[0]; 
+                const peor = data.find(m => normalizarNombre(m.municipio) === "Puebla") || data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analisa Municipio bajo(1.00): ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
                     renderMisiones();
                 }
 
