@@ -1270,11 +1270,12 @@
         }
 
         function agregarLeyenda(){
-            const legend = L.control({position:"bottomright"});
+            // Moviendo la leyenda al lado izquierdo para que no estorbe los botones de la derecha
+            const legend = L.control({position:"bottomleft"});
             legend.onAdd = function(){
                 const div = L.DomUtil.create("div","info legend");
                 div.innerHTML = `
-                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:20px; margin-right:10px; border:1px solid rgba(0,0,0,0.05);">
+                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:20px; margin-left:10px; border:1px solid rgba(0,0,0,0.05);">
                     <b style="color:#1f2937; display:block; margin-bottom:6px; font-weight:900; letter-spacing:0.5px;">Riesgo Urbano</b>
                     <div style="display:flex; flex-direction:column; gap:5px; font-weight:600; color:#4b5563;">
                         <div style="display:flex; align-items:center; gap:6px;"><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(46,204,113,0.4);"></span> Bajo</div>
@@ -1345,7 +1346,8 @@
                 window.markersParquesBuscados = L.layerGroup().addTo(map);
 
                 if (!areasVerdesData) {
-                    const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
+                    // Carga tu archivo generado con Python
+                    const response = await fetch('./Parques_Puebla_217.csv');
                     if (!response.ok) throw new Error("Archivo CSV no encontrado");
                     const csvText = await response.text();
                     const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
@@ -1424,7 +1426,7 @@
         }
 
         // ============================
-        // AJUSTE DE ENRUTADOR OSRM A PERFIL PEATONAL (foot)
+        // AJUSTE DE ENRUTADOR OSRM A PERFIL PEATONAL EXACTO (foot)
         // ============================
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
@@ -1435,7 +1437,7 @@
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
                     language: 'es', 
-                    // Se usa profile: 'foot' en lugar de walking para cumplir el estándar estricto de OSRM
+                    // Se usa profile: 'foot' obligatorio para el router OSRM
                     router: L.Routing.osrmv1({ 
                         serviceUrl: 'https://router.project-osrm.org/route/v1', 
                         profile: 'foot' 
