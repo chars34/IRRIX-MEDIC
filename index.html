@@ -277,12 +277,14 @@
                         </div>
                         
                         <div class="space-y-2 text-sm font-medium text-gray-700">
+                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition border border-transparent hover:border-blue-100">
+                                <input type="checkbox" value="ciclovias" class="filtro-cb w-4 h-4 accent-blue-600"> 🚴 Ciclovías Urbanas
+                            </label>
                             
                             <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="restaurant" class="filtro-cb w-4 h-4 accent-green-600"> 🍽 Restaurantes</label>
                             <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="cafe" class="filtro-cb w-4 h-4 accent-green-600"> ☕ Cafés</label>
                             <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="hospital" class="filtro-cb w-4 h-4 accent-green-600"> 🏥 Hospitales</label>
                             <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="pharmacy" class="filtro-cb w-4 h-4 accent-green-600"> 💊 Farmacias</label>
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="supermarket" class="filtro-cb w-4 h-4 accent-green-600"> 🛒 Supermercados</label>
                             <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition"><input type="checkbox" value="gym" class="filtro-cb w-4 h-4 accent-green-600"> 🏋️ Gimnasios</label>
                         </div>
                     </div>
@@ -783,11 +785,12 @@
         }
 
         let capas = {
+            ciclovias: L.layerGroup(),
             restaurant: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '🍽️')}),
             cafe: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '☕')}),
             hospital: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '🏥')}),
             pharmacy: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '💊')}),
-            supermarket: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '🛒')}),
+           
             gym: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '🏋️')})
         };
 
@@ -1198,7 +1201,7 @@
         function clasificarCategoria(c){
             if(!c) return null; c = c.toString();
             if(c.startsWith("621")) return "hospital"; if(c.startsWith("46411")) return "pharmacy";
-            if(c.startsWith("462")) return "supermarket"; if(c.startsWith("71394")) return "gym";
+             if(c.startsWith("71394")) return "gym";
             if(c.startsWith("72251")) return "cafe"; if(c.startsWith("722")) return "restaurant";
             return null;
         }
@@ -1210,7 +1213,7 @@
                 const batch = 500;   
                 let i = 0;
 
-                const emojisCat = { hospital: '🏥', pharmacy: '💊', supermarket: '🛒', gym: '🏋️', cafe: '☕', restaurant: '🍽️' };
+                const emojisCat = { hospital: '🏥', pharmacy: '💊', gym: '🏋️', cafe: '☕', restaurant: '🍽️' };
 
                 function procesarChunk(){
                     const limite = Math.min(i + batch, data.length);
@@ -1240,30 +1243,40 @@
         }
 
         async function cargarCiclovias() {
-            try {
-                const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
-                if (!res.ok) throw new Error("No se encontró el archivo de ciclovías");
-                const data = await res.json();
-                
-                const capaLineas = L.geoJSON(data, {
-                    style: function (feature) { return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' }; },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties) {
-                            let nombre = feature.properties.name || "Ciclovía";
-                            let tipo = feature.properties.Tipo || "Carril Exclusivo";
-                            layer.bindPopup(`
-                                <div class="font-sans text-center p-1">
-                                    <div class="text-2xl mb-1">🚴</div>
-                                    <b class="text-blue-800 text-sm block mb-1 font-black">${nombre}</b>
-                                    <span class="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold border border-blue-100">${tipo}</span>
-                                </div>
-                            `);
-                        }
-                    }
-                });
-                capas.ciclovias.addLayer(capaLineas);
-            } catch(e) { console.warn("Aviso: No se pudo cargar las ciclovías", e); }
-        }
+    try {
+        const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
+        if (!res.ok) throw new Error("No se encontró el archivo de ciclovías");
+        const data = await res.json();
+        
+        const capaLineas = L.geoJSON(data, {
+            // CORRECCIÓN AQUÍ: Evita que se dibujen los puntos azules por defecto
+            pointToLayer: function (feature, latlng) {
+                return null;
+            },
+            // Estilo de la línea
+            style: function (feature) { 
+                return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' }; 
+            },
+            // Popups informativos
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    let nombre = feature.properties.name || "Ciclovía";
+                    let tipo = feature.properties.Tipo || "Carril Exclusivo";
+                    layer.bindPopup(`
+                        <div class="font-sans text-center p-1">
+                            <div class="text-2xl mb-1">🚴</div>
+                            <b class="text-blue-800 text-sm block mb-1 font-black">${nombre}</b>
+                            <span class="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold border border-blue-100">${tipo}</span>
+                        </div>
+                    `);
+                }
+            }
+        });
+        capas.ciclovias.addLayer(capaLineas);
+    } catch(e) { 
+        console.warn("Aviso: No se pudo cargar las ciclovías", e); 
+    }
+}
 
         function agregarLeyenda(){
             const legend = L.control({position:"bottomright"});
@@ -1335,24 +1348,23 @@
             }
         }
 
-       async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
+    async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
     try {
         // Limpiamos resultados anteriores
         if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
         window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-        mostrarToast("Buscando áreas verdes con satélite...", "🛰️");
+        mostrarToast("Buscando parques cercanos en vivo...", "🔍");
 
-        // 1️⃣ Consulta Dinámica Mejorada a Overpass API (Radio de 5km)
-        const radioBusqueda = 5000;
-        
-        // Usamos 'nwr' (node, way, relation) para atrapar parques gigantes que son multipolígonos
+        // 1️⃣ Consulta Dinámica a Overpass API (Radio de 5km)
+        const radioBusqueda = 5000; // 5000 metros = 5km
         const overpassQuery = `
             [out:json][timeout:25];
             (
-              nwr["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              nwr["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              nwr["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              node["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              way["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              node["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              way["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
             );
             out center;
         `;
@@ -1369,28 +1381,16 @@
         // 2️⃣ Procesamos los resultados
         if (data.elements && data.elements.length > 0) {
             data.elements.forEach(el => {
-                // Extraemos las coordenadas del centro exacto
+                // Extraemos las coordenadas (ya sea de un 'node' o el centro de un 'way')
                 const lat = el.lat || (el.center && el.center.lat);
                 const lng = el.lon || (el.center && el.center.lon);
+                const nombre = (el.tags && el.tags.name) ? el.tags.name : "Área Verde / Parque";
                 
-                // Nombres dinámicos de respaldo si no hay etiqueta 'name'
-                let nombre = "Área Verde Local";
-                if (el.tags && el.tags.name) {
-                    nombre = el.tags.name;
-                } else if (el.tags && el.tags.leisure === "park") {
-                    nombre = "Parque Público";
-                } else if (el.tags && el.tags.leisure === "garden") {
-                    nombre = "Jardín Público";
-                }
-                
-                if (lat && lng) {
+                if(lat && lng) {
                     const puntoParque = turf.point([lng, lat]);
+                    // Calculamos la distancia exacta con Turf.js
                     const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-                    
-                    // Excluimos si la distancia es menor a 15 metros (el usuario ya está parado en el parque)
-                    if (distancia > 0.015) {
-                        parquesEncontrados.push({ lat, lng, distancia, nombre });
-                    }
+                    parquesEncontrados.push({ lat, lng, distancia, nombre });
                 }
             });
         }
@@ -1398,47 +1398,40 @@
         // 3️⃣ Filtramos, ordenamos y mostramos en el mapa
         if (parquesEncontrados.length > 0) {
             
-            // Eliminamos duplicados agrupando por proximidad geométrica y nombre
+            // Eliminamos posibles duplicados (OSM a veces devuelve el nodo y el polígono del mismo parque)
             const unicos = [];
             const mapKeys = new Set();
-            
             parquesEncontrados.forEach(p => {
-                // Redondeamos a 3 decimales (aprox 100m) para agrupar pines repetidos del mismo parque
-                const key = `${p.nombre.toLowerCase().trim()}-${p.lat.toFixed(3)}-${p.lng.toFixed(3)}`; 
-                if (!mapKeys.has(key)) {
+                const key = `${p.nombre}-${p.lat.toFixed(3)}`; // Clave única por nombre y zona
+                if(!mapKeys.has(key)) {
                     mapKeys.add(key);
                     unicos.push(p);
                 }
             });
 
-            // Ordenamos del más cercano al más lejano y tomamos los 12 mejores
+            // Ordenamos del más cercano al más lejano y tomamos los 10 mejores
             unicos.sort((a, b) => a.distancia - b.distancia);
-            const topParques = unicos.slice(0, 12); 
+            const topParques = unicos.slice(0, 10); 
 
-            mostrarToast(`Mostrando ${topParques.length} zonas verdes cercanas`, "🌳");
+            mostrarToast(`Mostrando ${topParques.length} parques cercanos`, "🌳");
             let bounds = [ [latUsuario, lngUsuario] ]; 
 
             topParques.forEach(parque => {
                 bounds.push([parque.lat, parque.lng]);
                 
+                // Creamos el marcador del parque
                 const marker = L.marker([parque.lat, parque.lng], {
-                    icon: L.divIcon({ 
-                        html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, 
-                        className: '', 
-                        iconSize: [32,32], 
-                        iconAnchor: [16, 32] 
-                    })
+                    icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, className: '', iconSize: [30,30], iconAnchor: [15, 30] })
                 });
 
-                // Limpieza robusta de strings para evitar que el HTML se rompa
-                let nombreLimpio = parque.nombre.replace(/['"]/g, "").replace(/[\n\r]/g, " ");
+                // Creamos el Popup con el botón para generar la ruta
+                // Usamos replace para evitar errores de comillas en nombres como "Parque d'Arte"
+                let nombreLimpio = parque.nombre.replace(/'/g, "\\'"); 
                 
                 marker.bindPopup(`
                     <div class="text-center font-sans p-1.5 min-w-[160px]">
                         <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
-                        <span class="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm mt-1">
-                            🚶 A ${(parque.distancia * 1000).toFixed(0)} metros
-                        </span><br>
+                        <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm mt-2">A ${(parque.distancia * 1000).toFixed(0)} metros</span><br>
                         <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" 
                                 class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
                             📍 Trazar Ruta Peatonal
@@ -1448,8 +1441,8 @@
                 window.markersParquesBuscados.addLayer(marker);
             });
             
-            // Centramos la cámara del mapa con una animación suave
-            map.fitBounds(bounds, {padding: [60, 60], animate: true, duration: 1});
+            // Centramos la cámara del mapa para que se vean todos los parques y el usuario
+            map.fitBounds(bounds, {padding: [50, 50]});
 
         } else {
             mostrarToast("No hay parques a menos de 5 km en esta zona.", "⚠️");
@@ -1562,7 +1555,7 @@
                 const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Municipio de riesgo bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
                     renderMisiones();
                 }
 
