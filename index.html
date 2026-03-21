@@ -1074,7 +1074,7 @@
                 if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
                 window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-                mostrarToast("Buscando áreas verdes con satélite...", "🛰️");
+               
 
                 const radioBusqueda = 5000;
                 const overpassQuery = `
@@ -1160,7 +1160,7 @@
                 mostrarToast("Mapa limpiado", "🧹"); return;
             }
             modoRutaActivo = true; btnRuta.classList.add('bg-green-100', 'border-green-400');
-            mostrarToast("Buscando parques con OpenStreetMap...", "🛰️");
+            mostrarToast("Buscando parques", "🛰️");
             try {
                 const ubicacion = await obtenerUbicacionRapida();
                 map.setView([ubicacion.lat, ubicacion.lng], 14);
