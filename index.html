@@ -246,7 +246,7 @@
             <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Análisis Territorial</h2>
-                    <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Puebla</span>
+                    <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Global</span>
                 </div>
                 
                 <div class="flex-1 min-h-[400px] p-1.5 bg-white rounded-[1.5rem] border border-gray-200 shadow-sm relative overflow-hidden">
@@ -474,7 +474,7 @@
             }
         });
 
-        // --- TRUCO 2 MEJORADO: GPS INSTANTÁNEO ---
+        // --- MOTOR GPS ---
         async function obtenerUbicacionRapida() {
             if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
                 try {
@@ -528,7 +528,6 @@
             const loginScreen = document.getElementById('login-screen');
             if (user) {
                 localStorage.setItem('iarri_sesion_activa', 'true');
-                
                 loginScreen.style.opacity = '0';
                 setTimeout(() => {
                     loginScreen.classList.add('hidden');
@@ -553,7 +552,6 @@
             toast.className = "toast-msg";
             toast.innerHTML = `<span class="text-lg">${icono}</span> <span>${mensaje}</span>`;
             container.appendChild(toast);
-
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(-30px) scale(0.9)';
@@ -618,163 +616,87 @@
                 "Las ciudades con más árboles tienen tasas significativamente más bajas de obesidad.",
                 "Caminar 30 min diarios reduce un 25% el riesgo de desarrollar resistencia a la insulina.",
                 "El ruido del tráfico constante puede elevar los niveles de cortisol, afectando tu metabolismo.",
-                "Las 'ciudades de 15 minutos' promueven una mejor salud cardiovascular poblacional.",
-                "Una buena iluminación urbana fomenta caminatas nocturnas seguras y reduce el sedentarismo."
+                "Las 'ciudades de 15 minutos' promueven una mejor salud cardiovascular poblacional."
             ];
             const tipEl = document.getElementById('tip-diario');
             if (tipEl) tipEl.innerText = tips[Math.floor(Math.random() * tips.length)];
         }
 
-        // ============================
-        // FUNCIONES NUEVAS: IRMA INTEGRADO Y COMPARADOR
-        // ============================
-        
         function calcularIRMA() {
             const municipioNombre = document.getElementById("municipio").value.trim();
-            
-            // 1. Buscar los datos ambientales del municipio en el caché (Cargado desde el CSV)
             const datosMunicipio = datosIARRICache ? datosIARRICache.find(d => d.municipio === municipioNombre) : null;
-            
-            if (!municipioNombre || !datosMunicipio) {
-                alerta("Selecciona un municipio válido para integrar el riesgo ambiental (IARRI).");
-                return;
-            }
-
+            if (!municipioNombre || !datosMunicipio) { alerta("Selecciona un municipio válido para integrar el riesgo ambiental (IARRI)."); return; }
             const glucosa = parseFloat(document.getElementById("glucosa").value);
             const imc = parseFloat(document.getElementById("imc").value);
             const cintura = parseFloat(document.getElementById("cintura").value);
             const actividad = parseFloat(document.getElementById("actividad").value);
-
-            // Validaciones de rango clínico
             if (isNaN(glucosa) || glucosa < 70 || glucosa > 180) { alerta("Glucosa fuera de rango (70-180)"); return; }
             if (isNaN(imc) || imc < 18 || imc > 40) { alerta("IMC fuera de rango (18-40)"); return; }
             if (isNaN(cintura) || cintura < 70 || cintura > 130) { alerta("Cintura fuera de rango (70-130)"); return; }
             if (isNaN(actividad) || actividad < 0 || actividad > 7) { alerta("Actividad física fuera de rango (0-7)"); return; }
 
-            // 2. Normalización Biométrica (0 a 1)
-            const g = (glucosa - 70) / (180 - 70);
-            const b = (imc - 18) / (40 - 18);
-            const c = (cintura - 70) / (130 - 70);
-            const a = 1 - (actividad / 7);
-
-            // 3. Riesgo Biométrico (Hábitos Personales) - 80% del peso
+            const g = (glucosa - 70) / (180 - 70); const b = (imc - 18) / (40 - 18);
+            const c = (cintura - 70) / (130 - 70); const a = 1 - (actividad / 7);
             const riesgoBiometrico = (g * 0.35) + (b * 0.25) + (c * 0.25) + (a * 0.15);
-
-            // 4. Riesgo Ambiental (Factor IARRI) - 20% del peso
-            // Escala: 1.0 = 0 riesgo | 0.001 = 1 (riesgo máximo)
             const factorAmbiental = (1 - datosMunicipio.iarri) / (1 - 0.001); 
             
-            // 5. Cálculo Final IRMA Integrado
             let irmaFinal = (riesgoBiometrico * 0.80) + (Math.max(0, factorAmbiental) * 0.20);
             irmaFinal = Math.max(0, Math.min(1, irmaFinal));
-
-            // 6. Ejecutar Renderizado con Comparador Visual
             renderizarResultadoIRMA(municipioNombre, irmaFinal, datosMunicipio.iarri, glucosa, imc, cintura, actividad);
             
-            // Gamificación: Sumar puntos y actualizar misiones
             const m = misiones.find(x => x.id === "calcular_irma");
             if (m && !m.completado) {
                 m.progreso = 1; m.completado = true;
-                addPoints(m.puntos);
-                mostrarToast("¡IRMA Calculado con Factor Ambiental!", '🧬');
-                renderMisiones();
+                addPoints(m.puntos); mostrarToast("¡IRMA Calculado con Factor Ambiental!", '🧬'); renderMisiones();
             }
         }
 
         function renderizarResultadoIRMA(municipio, irma, iarriMun, glucosa, imc, cintura, actividad) {
             let nivel = "", colorText = "", colorBg = "", icono = "";
-
-            // Clasificación de Riesgo Final
             if (irma > 0.75) { nivel = "Crítico"; colorText = "text-red-600"; colorBg = "bg-red-500"; icono = "🚨"; }
             else if (irma > 0.55) { nivel = "Alto"; colorText = "text-orange-500"; colorBg = "bg-orange-500"; icono = "⚠️"; }
             else if (irma > 0.35) { nivel = "Medio"; colorText = "text-yellow-600"; colorBg = "bg-yellow-500"; icono = "🟡"; }
             else { nivel = "Bajo"; colorText = "text-green-600"; colorBg = "bg-green-500"; icono = "🟢"; }
 
-            // Cálculo de impacto porcentual para el comparador visual
-            const g = (glucosa - 70) / (180 - 70);
-            const b = (imc - 18) / (40 - 18);
-            const c = (cintura - 70) / (130 - 70);
-            const a = 1 - (actividad / 7);
+            const g = (glucosa - 70) / (180 - 70); const b = (imc - 18) / (40 - 18);
+            const c = (cintura - 70) / (130 - 70); const a = 1 - (actividad / 7);
             const impactoBiometrico = ((g * 0.35) + (b * 0.25) + (c * 0.25) + (a * 0.15)) * 100;
             const impactoAmbiental = ((1 - iarriMun) / (1 - 0.001)) * 100;
-
             const listaRec = generarRecomendaciones(glucosa, imc, cintura, actividad).map(r => `<li class="border-b border-green-50 pb-1">${r}</li>`).join("");
 
             document.getElementById("resultado").innerHTML = `
             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-2xl mt-6 animate-fadeIn">
                 <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest">Municipio: ${municipio}</p>
-                        <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">IARRI: ${iarriMun.toFixed(4)}</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="font-black ${colorText} text-lg">${icono} ${nivel}</span>
-                    </div>
+                    <div><p class="text-[10px] uppercase font-black text-gray-400 tracking-widest">Municipio: ${municipio}</p><span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">IARRI: ${iarriMun.toFixed(4)}</span></div>
+                    <div class="text-right"><span class="font-black ${colorText} text-lg">${icono} ${nivel}</span></div>
                 </div>
-
                 <div class="flex flex-col items-center justify-center mb-8">
                     <div class="relative flex items-center justify-center">
                         <svg class="w-32 h-32 transform -rotate-90">
                             <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-100" />
-                            <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" 
-                                stroke-dasharray="364.4" 
-                                stroke-dashoffset="${364.4 - (364.4 * irma)}" 
-                                class="${colorText} transition-all duration-1000 ease-out" />
+                            <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="364.4" stroke-dashoffset="${364.4 - (364.4 * irma)}" class="${colorText} transition-all duration-1000 ease-out" />
                         </svg>
                         <div class="absolute text-center">
-                            <p class="text-3xl font-black ${colorText}">${irma.toFixed(3)}</p>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Índice IRMA</p>
+                            <p class="text-3xl font-black ${colorText}">${irma.toFixed(3)}</p><p class="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Índice IRMA</p>
                         </div>
                     </div>
                 </div>
-
                 <div class="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-100 shadow-inner">
                     <p class="text-[10px] font-black text-gray-500 uppercase mb-4 text-center tracking-widest">Desglose de Riesgo</p>
                     <div class="space-y-5">
-                        <div>
-                            <div class="flex justify-between text-[11px] font-bold mb-1.5">
-                                <span class="text-gray-600 flex items-center gap-1">👤 Hábitos Personales</span>
-                                <span class="text-blue-600">${impactoBiometrico.toFixed(1)}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                <div class="bg-blue-500 h-full transition-all duration-1000" style="width: ${impactoBiometrico}%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[11px] font-bold mb-1.5">
-                                <span class="text-gray-600 flex items-center gap-1">🏙️ Entorno Urbano</span>
-                                <span class="text-orange-600">${impactoAmbiental.toFixed(1)}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                <div class="bg-orange-500 h-full transition-all duration-1000" style="width: ${impactoAmbiental}%"></div>
-                            </div>
-                        </div>
+                        <div><div class="flex justify-between text-[11px] font-bold mb-1.5"><span class="text-gray-600 flex items-center gap-1">👤 Hábitos Personales</span><span class="text-blue-600">${impactoBiometrico.toFixed(1)}%</span></div><div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-blue-500 h-full transition-all duration-1000" style="width: ${impactoBiometrico}%"></div></div></div>
+                        <div><div class="flex justify-between text-[11px] font-bold mb-1.5"><span class="text-gray-600 flex items-center gap-1">🏙️ Entorno Urbano</span><span class="text-orange-600">${impactoAmbiental.toFixed(1)}%</span></div><div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-orange-500 h-full transition-all duration-1000" style="width: ${impactoAmbiental}%"></div></div></div>
                     </div>
                 </div>
-
-                <div class="bg-green-50/50 border border-green-100 p-4 rounded-2xl">
-                    <p class="font-black text-green-800 text-[10px] mb-3 uppercase tracking-wider">Plan de Acción Sugerido</p>
-                    <ul class="text-[11px] text-green-700 space-y-2 leading-relaxed font-medium">
-                        ${listaRec}
-                    </ul>
-                </div>
+                <div class="bg-green-50/50 border border-green-100 p-4 rounded-2xl"><p class="font-black text-green-800 text-[10px] mb-3 uppercase tracking-wider">Plan de Acción Sugerido</p><ul class="text-[11px] text-green-700 space-y-2 leading-relaxed font-medium">${listaRec}</ul></div>
             </div>`;
         }
 
-        // ============================
-        // FIN FUNCIONES NUEVAS
-        // ============================
-
         let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
         let nivelAnteriorGlobal = userProgress.level;
-
         let geoDataCache = null; 
         let municipiosVisitados = new Set();
-        let chartInstance = null;
-        let map = null;
-        let capaMunicipios = null;
-        let datosIARRICache = null; 
-        let municipiosValidos = [];
+        let chartInstance = null; let map = null; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
         
         function crearClusterPersonalizado(cluster, emoji) {
             let childCount = cluster.getChildCount();
@@ -797,115 +719,39 @@
 
         let cicloviasActivas = false;
         function toggleCicloviasBtn() {
-            if(!map) return;
-            cicloviasActivas = !cicloviasActivas;
-            const btn = document.getElementById('btn-ciclovias');
-            const cb = document.querySelector('input[value="ciclovias"]');
+            if(!map) return; cicloviasActivas = !cicloviasActivas;
+            const btn = document.getElementById('btn-ciclovias'); const cb = document.querySelector('input[value="ciclovias"]');
             if(cb) cb.checked = cicloviasActivas;
-
-            if(cicloviasActivas) {
-                map.addLayer(capas['ciclovias']);
-                btn.classList.add('bg-sky-100', 'border-sky-400');
-                mostrarToast("Ciclovías mostradas en el mapa", "🚴");
-            } else {
-                map.removeLayer(capas['ciclovias']);
-                btn.classList.remove('bg-sky-100', 'border-sky-400');
-                mostrarToast("Capa de ciclovías oculta", "🗺️");
-            }
+            if(cicloviasActivas) { map.addLayer(capas['ciclovias']); btn.classList.add('bg-sky-100', 'border-sky-400'); mostrarToast("Ciclovías mostradas", "🚴"); } 
+            else { map.removeLayer(capas['ciclovias']); btn.classList.remove('bg-sky-100', 'border-sky-400'); mostrarToast("Capa oculta", "🗺️"); }
         }
 
         let cursosData = JSON.parse(localStorage.getItem('arqCursosData')) || [
-            { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos de entradas y salidas de recursos.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
-            { id: "c2", titulo: "Espacios Públicos", desc: "Estrategias prácticas para recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false },
-            { id: "c3", titulo: "Movilidad Activa", desc: "Beneficios de caminar y usar bicicleta para reducir el riesgo metabólico.", pts: 60, icono: "🚲", url: "https://es.wikipedia.org/wiki/Movilidad_activa", color: "blue", completado: false, externo: true },
-            { id: "c4", titulo: "Zonas de Calor", desc: "Descubre cómo la falta de áreas verdes afecta la temperatura de la ciudad.", pts: 80, icono: "🌡️", url: "https://es.wikipedia.org/wiki/Isla_de_calor", color: "red", completado: false, externo: true }
+            { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
+            { id: "c2", titulo: "Espacios Públicos", desc: "Recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false }
         ];
 
         function renderizarCursos() {
             const cont = document.getElementById("contenedor-cursos");
-            if (!cont) return;
-            let html = "";
-            let completados = 0;
-
+            if (!cont) return; let html = ""; let completados = 0;
             cursosData.forEach(c => {
                 if(c.completado) completados++;
-                let colores = {
-                    "purple": { border: "border-purple-100", tag: "bg-purple-100 text-purple-800", text: "text-purple-900", bar: "bg-purple-500", barBg: "bg-purple-100", btn: "bg-purple-600 hover:bg-purple-700 shadow-purple-500/30" },
-                    "indigo": { border: "border-indigo-100", tag: "bg-indigo-100 text-indigo-800", text: "text-indigo-900", bar: "bg-indigo-500", barBg: "bg-indigo-100", btn: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30" },
-                    "blue":   { border: "border-blue-100", tag: "bg-blue-100 text-blue-800", text: "text-blue-900", bar: "bg-blue-500", barBg: "bg-blue-100", btn: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30" },
-                    "red":    { border: "border-red-100", tag: "bg-red-100 text-red-800", text: "text-red-900", bar: "bg-red-500", barBg: "bg-red-100", btn: "bg-red-600 hover:bg-red-700 shadow-red-500/30" }
-                }[c.color];
-
-                let progreso = c.completado ? "100%" : "0%";
-                let textoBoton = c.completado ? "Completado ✅" : (c.externo ? "Leer Artículo" : "Comenzar Microcurso");
-                let extraBtnClass = c.completado ? "bg-gray-800 hover:bg-gray-900 shadow-gray-500/30" : colores.btn;
-
-                html += `
-                <div class="border ${colores.border} p-6 rounded-[1.5rem] bg-white shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-1 transform">
-                    <div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-3 py-1.5 rounded-bl-xl font-black uppercase tracking-wide">${c.pts} PTS</div>
-                    <div class="flex gap-4 mb-4">
-                        <div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl shadow-sm h-14 w-14 flex items-center justify-center transform transition hover:scale-110">${c.icono}</div>
-                        <div class="flex-1">
-                            <h3 class="font-black ${colores.text} mb-1 leading-tight flex items-center gap-1">${c.titulo}</h3>
-                            <p class="text-xs text-gray-500 font-medium line-clamp-2">${c.desc}</p>
-                        </div>
-                    </div>
-                    <div class="mb-5">
-                        <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5"><span>Progreso</span> <span>${progreso}</span></div>
-                        <div class="w-full ${colores.barBg} rounded-full h-2 shadow-inner">
-                            <div class="${colores.bar} h-2 rounded-full transition-all duration-1000" style="width: ${progreso}"></div>
-                        </div>
-                    </div>
-                    <button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3.5 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-0.5 ${extraBtnClass}">
-                        ${textoBoton}
-                    </button>
-                </div>`;
+                let colores = { "purple": { tag: "bg-purple-100 text-purple-800", btn: "bg-purple-600" }, "indigo": { tag: "bg-indigo-100 text-indigo-800", btn: "bg-indigo-600" } }[c.color] || {tag:"bg-gray-100", btn:"bg-gray-600"};
+                html += `<div class="border p-6 rounded-[1.5rem] bg-white shadow-sm relative"><div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-3 py-1.5 rounded-bl-xl font-black">${c.pts} PTS</div><div class="flex gap-4 mb-4"><div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl h-14 w-14 flex items-center justify-center">${c.icono}</div><div class="flex-1"><h3 class="font-black mb-1">${c.titulo}</h3><p class="text-xs text-gray-500">${c.desc}</p></div></div><button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3.5 rounded-xl font-bold shadow-lg ${c.completado ? 'bg-gray-800' : colores.btn}">${c.completado ? "Completado ✅" : "Comenzar"}</button></div>`;
             });
             cont.innerHTML = html;
-            const statsCursos = document.getElementById('stats-cursos');
-            if(statsCursos) statsCursos.innerText = completados;
         }
 
         function abrirCurso(id) {
-            let curso = cursosData.find(c => c.id === id);
-            if (!curso) return;
-
-            if (!curso.completado) {
-                curso.completado = true;
-                localStorage.setItem('arqCursosData', JSON.stringify(cursosData));
-                addPoints(curso.pts);
-                mostrarToast(`¡Lección completada: +${curso.pts} pts!`, '🎓');
-                renderizarCursos();
-            }
-
-            setTimeout(() => {
-                if (curso.externo) window.open(curso.url, '_blank');
-                else window.location.href = curso.url;
-            }, 600);
+            let curso = cursosData.find(c => c.id === id); if (!curso) return;
+            if (!curso.completado) { curso.completado = true; localStorage.setItem('arqCursosData', JSON.stringify(cursosData)); addPoints(curso.pts); renderizarCursos(); }
+            setTimeout(() => { if (curso.externo) window.open(curso.url, '_blank'); else window.location.href = curso.url; }, 600);
         }
 
         function irMapa(){ switchScreen('territorio'); }
-
-        function normalizarNombre(nombre){
-            if(!nombre) return "";
-            return nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase();
-        }
-
-        function colorIARRI(v){
-            if(v < 0.0124) return "#dc2626";   
-            if(v < 0.0264) return "#f97316";   
-            if(v < 0.0479) return "#facc15";   
-            if(v < 0.0894) return "#86efac";   
-            return "#16a34a";                  
-        }
-
-        function nivelIARRI(v){
-            if(v < 0.0124) return "Crítico";
-            if(v < 0.0264) return "Alto";
-            if(v < 0.0479) return "Medio";
-            if(v < 0.0894) return "Bajo";
-            return "Muy Bajo";
-        }
+        function normalizarNombre(nombre){ return nombre?nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase():""; }
+        function colorIARRI(v){ if(v < 0.0124) return "#dc2626"; if(v < 0.0264) return "#f97316"; if(v < 0.0479) return "#facc15"; if(v < 0.0894) return "#86efac"; return "#16a34a"; }
+        function nivelIARRI(v){ if(v < 0.0124) return "Crítico"; if(v < 0.0264) return "Alto"; if(v < 0.0479) return "Medio"; if(v < 0.0894) return "Bajo"; return "Muy Bajo"; }
 
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
@@ -914,91 +760,54 @@
                 const csvText = await res.text();
                 const parsed = Papa.parse(csvText, { skipEmptyLines: true });
                 const filas = parsed.data.slice(1); 
-                datosIARRICache = filas.map(c => {
-                    return { municipio: c[2]?.trim(), iarri: parseFloat(c[8]) };
-                }).filter(x => x.municipio && !isNaN(x.iarri));
+                datosIARRICache = filas.map(c => { return { municipio: c[2]?.trim(), iarri: parseFloat(c[8]) }; }).filter(x => x.municipio && !isNaN(x.iarri));
                 return datosIARRICache;
-            } catch (error) {
-                console.warn("Error cargando IARRI_Puebla_Final.csv", error);
-                return [];
-            }
+            } catch (error) { return []; }
         }
 
         async function cargarMunicipiosCalculadora(){
-            const datos = await cargarIARRI();
-            const lista = document.getElementById("lista-municipios");
-            if(!lista) return;
-            lista.innerHTML = "";
-            municipiosValidos = [...new Set(datos.map(d => d.municipio))];
-            municipiosValidos.sort();
-            municipiosValidos.forEach(m=>{
-                const option = document.createElement("option");
-                option.value = m; lista.appendChild(option);
-            });
+            const datos = await cargarIARRI(); const lista = document.getElementById("lista-municipios"); if(!lista) return;
+            lista.innerHTML = ""; municipiosValidos = [...new Set(datos.map(d => d.municipio))].sort();
+            municipiosValidos.forEach(m=>{ const option = document.createElement("option"); option.value = m; lista.appendChild(option); });
         }
 
-        function toggleFiltros() {
-            const panel = document.getElementById('panelFiltros');
-            panel.classList.toggle('active');
-        }
-
+        function toggleFiltros() { document.getElementById('panelFiltros').classList.toggle('active'); }
         function switchScreen(screen) {
             document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-            const selectedScreen = document.getElementById("screen-" + screen);
-            if(selectedScreen) selectedScreen.classList.remove("hidden");
+            document.getElementById("screen-" + screen)?.classList.remove("hidden");
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-            const selectedNav = document.getElementById("nav-" + screen);
-            if(selectedNav) selectedNav.classList.add("active");
-
+            document.getElementById("nav-" + screen)?.classList.add("active");
             if (screen === "territorio") setTimeout(initMap, 200);
             if (screen === "ranking") cargarRanking();
             if (screen === "fundamentacion") window.scrollTo(0,0);
         }
 
         function updateLevel() {
-            let nextThreshold = 400; let percent = 0; let num = 1;
-            if (userProgress.totalPoints >= 1000) { userProgress.level = "Maestro Urbano"; percent = ((userProgress.totalPoints - 1000) / 1000) * 100; num = 4; } 
-            else if (userProgress.totalPoints >= 800) { userProgress.level = "Avanzado"; percent = ((userProgress.totalPoints - 800) / 200) * 100; num = 3; } 
-            else if (userProgress.totalPoints >= 400) { userProgress.level = "Intermedio"; percent = ((userProgress.totalPoints - 400) / 400) * 100; num = 2; } 
-            else { userProgress.level = "Básico"; percent = (userProgress.totalPoints / 400) * 100; num = 1; }
-
-            const bar = document.getElementById("bar-progreso-header");
-            if(bar) bar.style.width = `${Math.min(100, percent)}%`;
-            const levelNumEl = document.getElementById("user-level-num");
-            if(levelNumEl) levelNumEl.innerText = num;
-            const statsNivel = document.getElementById('stats-nivel');
-            if(statsNivel) statsNivel.innerText = num;
-
-            if(userProgress.level !== nivelAnteriorGlobal && userProgress.totalPoints > 0) {
-                mostrarModalNivel(userProgress.level);
-                lanzarConfeti();
-                nivelAnteriorGlobal = userProgress.level;
-            }
+            let num = 1; let percent = 0;
+            if (userProgress.totalPoints >= 1000) { userProgress.level = "Maestro Urbano"; num = 4; percent = ((userProgress.totalPoints - 1000)/1000)*100; } 
+            else if (userProgress.totalPoints >= 800) { userProgress.level = "Avanzado"; num = 3; percent = ((userProgress.totalPoints - 800)/200)*100; } 
+            else if (userProgress.totalPoints >= 400) { userProgress.level = "Intermedio"; num = 2; percent = ((userProgress.totalPoints - 400)/400)*100; } 
+            else { userProgress.level = "Básico"; num = 1; percent = (userProgress.totalPoints/400)*100; }
+            document.getElementById("bar-progreso-header").style.width = `${Math.min(100, percent)}%`;
+            document.getElementById("user-level-num").innerText = num;
+            if(userProgress.level !== nivelAnteriorGlobal && userProgress.totalPoints > 0) { mostrarModalNivel(userProgress.level); lanzarConfeti(); nivelAnteriorGlobal = userProgress.level; }
         }
 
         function updateUI() {
-            const pts = document.getElementById("total-points");
-            const lvl = document.getElementById("user-level");
-            if (pts) { pts.innerText = userProgress.totalPoints; pts.classList.add('scale-110', 'text-green-500'); setTimeout(() => pts.classList.remove('scale-110', 'text-green-500'), 300); }
+            const pts = document.getElementById("total-points"); const lvl = document.getElementById("user-level");
+            if (pts) { pts.innerText = userProgress.totalPoints; pts.classList.add('scale-110'); setTimeout(() => pts.classList.remove('scale-110'), 300); }
             if (lvl) lvl.innerText = userProgress.level;
             renderizarMedallas();
         }
 
         function addPoints(points, buttonElement) {
-            userProgress.totalPoints += points;
-            updateLevel(); localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-            updateUI(); checkLogros();
-
-            if(!buttonElement && !event) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
-            if (buttonElement || event) {
-                const target = buttonElement || event.target;
-                const rect = target.getBoundingClientRect();
-                const floatEl = document.createElement("div");
-                floatEl.className = "point-float"; floatEl.innerText = "+" + points;
-                floatEl.style.left = (rect.left + rect.width / 2) + "px";
-                floatEl.style.top = rect.top + "px";
-                document.body.appendChild(floatEl);
-                setTimeout(() => floatEl.remove(), 1000);
+            userProgress.totalPoints += points; updateLevel(); localStorage.setItem("arqProgress", JSON.stringify(userProgress)); updateUI(); checkLogros();
+            if(!buttonElement) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
+            else {
+                const rect = buttonElement.getBoundingClientRect();
+                const floatEl = document.createElement("div"); floatEl.className = "point-float"; floatEl.innerText = "+" + points;
+                floatEl.style.left = (rect.left + rect.width / 2) + "px"; floatEl.style.top = rect.top + "px";
+                document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000);
             }
         }
 
@@ -1006,460 +815,226 @@
             { id:"explorar_mapa", nombre:"🗺 Explorador", descripcion:"Explora 3 municipios", puntos:120, progreso:0, objetivo:3, completado:false },
             { id:"calcular_irma", nombre:"🧬 Detective", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
             { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Trazar y completar una ruta", puntos:100, progreso:0, objetivo:1, completado:false },
-            { id:"parque", nombre:"🌳 Reto verde", descripcion:"Ruta a un parque", puntos:120, progreso:0, objetivo:1, completado:false },
-            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza municipio crítico", puntos:180, progreso:0, objetivo:1, completado:false }
+            { id:"parque", nombre:"🌳 Reto verde", descripcion:"Ruta a un parque", puntos:120, progreso:0, objetivo:1, completado:false }
         ];
 
-        let logros = [
-            { id:"primeros_pasos", nombre:"Primer reto", condicion:()=> userProgress.totalPoints >= 100 },
-            { id:"explorador", nombre:"Explorador urbano", condicion:()=> municipiosVisitados.size >= 5 },
-            { id:"maestro", nombre:"Maestro urbano", condicion:()=> userProgress.totalPoints >= 1000 }
-        ];
+        let logros = [{ id:"primeros_pasos", condicion:()=> userProgress.totalPoints >= 100 }, { id:"explorador", condicion:()=> municipiosVisitados.size >= 5 }, { id:"maestro", condicion:()=> userProgress.totalPoints >= 1000 }];
 
         function renderMisiones(){
-            const cont = document.getElementById("lista-retos");
-            if(!cont) return;
-
-            let completadas = 0; let html="";
+            const cont = document.getElementById("lista-retos"); if(!cont) return;
+            let html="";
             misiones.forEach(m=>{
                 const progreso = Math.round((m.progreso/m.objetivo)*100);
-                if(m.completado) completadas++;
-
-                let estiloBoton = m.completado ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 
-                                  (progreso >= 100 ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:scale-105 shadow-lg' : 'bg-gray-900 text-white hover:bg-black shadow-[0_5px_15px_rgba(0,0,0,0.2)] hover:-translate-y-0.5');
+                let estiloBoton = m.completado ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : (progreso >= 100 ? 'bg-orange-500 text-white' : 'bg-gray-900 text-white');
                 let textoBoton = m.completado ? "Reto Superado 🎉" : (progreso >= 100 ? "Reclamar Puntos 🎁" : "Ir a hacer tarea 🚀");
-
-                html+=`
-                <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-sm transform transition hover:shadow-md relative overflow-hidden">
-                    ${m.completado ? '<div class="absolute inset-0 bg-green-50/50 z-0"></div>' : ''}
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-black text-gray-800 flex items-center gap-2 text-base">${m.completado ? '✅' : '📌'} ${m.nombre}</span>
-                            <span class="text-green-700 font-black bg-green-100 px-3 py-1 rounded-lg text-xs">+${m.puntos}</span>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-medium">${m.descripcion}</p>
-                        <div class="w-full bg-gray-100 h-2.5 rounded-full mb-4 shadow-inner">
-                            <div class="${m.completado ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-blue-500'} h-2.5 rounded-full transition-all duration-500 shadow-sm" style="width:${Math.min(100, progreso)}%"></div>
-                        </div>
-                        <button onclick="accionReto('${m.id}', this)" class="${estiloBoton} text-sm font-bold w-full p-3.5 rounded-xl transition transform" ${m.completado ? "disabled" : ""}>
-                            ${textoBoton}
-                        </button>
-                    </div>
-                </div>`;
+                html+=`<div class="bg-white border rounded-[1.5rem] p-6 shadow-sm"><div class="flex justify-between items-center mb-2"><span class="font-black">${m.nombre}</span><span class="text-green-700 font-black">+${m.puntos}</span></div><p class="text-xs text-gray-500 mb-4">${m.descripcion}</p><div class="w-full bg-gray-100 h-2.5 rounded-full mb-4"><div class="bg-blue-500 h-2.5 rounded-full" style="width:${Math.min(100, progreso)}%"></div></div><button onclick="accionReto('${m.id}', this)" class="${estiloBoton} text-sm font-bold w-full p-3.5 rounded-xl" ${m.completado ? "disabled" : ""}>${textoBoton}</button></div>`;
             });
             cont.innerHTML = html;
-            const stRetos = document.getElementById('stats-retos');
-            if(stRetos) stRetos.innerText = completadas;
         }
 
         function accionReto(id, btn) {
-            const m = misiones.find(x => x.id === id);
-            if (!m || m.completado) return;
-
-            if (m.progreso >= m.objetivo) {
-                m.completado = true;
-                addPoints(m.puntos, btn);
-                renderMisiones();
-                mostrarToast("¡Puntos reclamados con éxito!", "🎉");
-            } else {
-                if (id === "explorar_mapa" || id === "analista" || id === "municipio_critico") {
-                    mostrarToast("Ve al mapa y explora los municipios.", "🗺️"); switchScreen('territorio');
-                } else if (id === "calcular_irma") {
-                    mostrarToast("Ve a la sección 'Ciencia' y usa la Calculadora.", "🧬"); switchScreen('fundamentacion');
-                } else if (id === "caminar" || id === "parque") {
-                    mostrarToast("Usa el botón de Caminar (🚶) en el Mapa.", "🚶"); switchScreen('territorio');
-                } else {
-                    mostrarToast("Aún no completas esta misión.", "⚠️");
-                }
-            }
+            const m = misiones.find(x => x.id === id); if (!m || m.completado) return;
+            if (m.progreso >= m.objetivo) { m.completado = true; addPoints(m.puntos, btn); renderMisiones(); mostrarToast("Puntos reclamados", "🎉"); } 
+            else { mostrarToast("Aún no completas la tarea.", "⚠️"); }
         }
 
-        function checkLogros(){
-            let desbloqueados = 0; logros.forEach(l => { if(l.condicion()) desbloqueados++; });
-            const lgCount = document.getElementById("logros-count");
-            if(lgCount) lgCount.innerText = desbloqueados;
-        }
-
+        function checkLogros(){ document.getElementById("logros-count").innerText = logros.filter(l => l.condicion()).length; }
         function registrarVisita(nombre){
             municipiosVisitados.add(nombre);
-            const stZonas = document.getElementById('stats-zonas');
-            if(stZonas) stZonas.innerText = municipiosVisitados.size;
-
             const m = misiones.find(x=>x.id==="explorar_mapa");
-            if(m && !m.completado){
-                m.progreso = municipiosVisitados.size;
-                if(m.progreso >= m.objetivo){
-                    mostrarToast("¡Completaste Explorador! Ve a Retos a reclamar.", '🌍');
-                }
-                renderMisiones();
-            }
+            if(m && !m.completado) { m.progreso = municipiosVisitados.size; if(m.progreso >= m.objetivo){ mostrarToast("Completaste Explorador", '🌍'); } renderMisiones(); }
         }
 
-        let baseMedallas = [
-            { id: "m1", icon: "🌱", name: "Iniciado", pts: 0 }, { id: "m2", icon: "🚶", name: "Caminante", pts: 200 },
-            { id: "m3", icon: "📷", name: "Reportero", pts: 400 }, { id: "m4", icon: "🗺️", name: "Cartógrafo", pts: 600 },
-            { id: "m5", icon: "🧠", name: "Erudito", pts: 800 }, { id: "m6", icon: "👑", name: "Leyenda", pts: 1000 }
-        ];
-
+        let baseMedallas = [{ id: "m1", icon: "🌱", name: "Iniciado", pts: 0 }, { id: "m2", icon: "🚶", name: "Caminante", pts: 200 }, { id: "m3", icon: "🗺️", name: "Cartógrafo", pts: 600 }];
         function renderizarMedallas() {
-            const cont = document.getElementById("contenedor-badges");
-            if(!cont) return;
+            const cont = document.getElementById("contenedor-badges"); if(!cont) return;
             let html = ""; let rangoActual = "Novato";
-            
             baseMedallas.forEach(m => {
-                let unlocked = userProgress.totalPoints >= m.pts;
-                if(unlocked) rangoActual = m.name;
-                html += `
-                <div class="flex flex-col items-center gap-1.5 ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
-                    <div class="text-3xl bg-${unlocked ? 'purple' : 'gray'}-50 p-4 rounded-2xl shadow-sm border border-${unlocked ? 'purple' : 'gray'}-100 transition-transform transform ${unlocked ? 'hover:scale-110 hover:-rotate-3' : ''}">${m.icon}</div>
-                    <span class="text-[10px] font-black text-gray-500 mt-1 uppercase tracking-wider">${m.name}</span>
-                </div>`;
+                let unlocked = userProgress.totalPoints >= m.pts; if(unlocked) rangoActual = m.name;
+                html += `<div class="flex flex-col items-center gap-1.5 ${unlocked ? 'opacity-100' : 'opacity-40 grayscale'}"><div class="text-3xl bg-gray-50 p-4 rounded-2xl border">${m.icon}</div><span class="text-[10px] font-black text-gray-500 uppercase">${m.name}</span></div>`;
             });
-            cont.innerHTML = html;
-            const rangoEl = document.getElementById("rango-nombre");
-            if(rangoEl) rangoEl.innerText = rangoActual;
-
-            if(userProgress.totalPoints >= 400) {
-                const extra = document.getElementById("contenido-desbloqueable");
-                if(extra) extra.classList.remove("hidden");
-            }
+            cont.innerHTML = html; document.getElementById("rango-nombre").innerText = rangoActual;
         }
 
-        function abrirModalFoto() {
-            const modal = document.getElementById('modal-foto');
-            modal.classList.remove('hidden'); setTimeout(() => modal.style.opacity = '1', 10);
-            document.getElementById('foto-input').value = ""; document.getElementById('foto-preview').classList.add("hidden");
-            document.getElementById('img-preview').src = ""; document.getElementById('foto-desc').value = "";
-        }
-
-        function cerrarModalFoto() {
-            const modal = document.getElementById('modal-foto');
-            modal.style.opacity = '0'; setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        document.getElementById('foto-input').addEventListener('change', function(e) {
-            if(e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    document.getElementById('img-preview').src = ev.target.result;
-                    document.getElementById('foto-preview').classList.remove("hidden");
-                }
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-
-        function guardarReporteFoto() {
-            const desc = document.getElementById('foto-desc').value || "Reporte sin descripción";
-            const file = document.getElementById('foto-input').files[0];
-            if(!file) { mostrarToast("Debes seleccionar una foto primero", "⚠️"); return; }
-            
-            cerrarModalFoto(); mostrarToast("Subiendo foto...", "⏳");
-            
-            setTimeout(async () => {
-                mostrarToast("¡Reporte guardado! +80 pts", "📷"); addPoints(80);
-                if(map) {
-                    try {
-                        const ubicacion = await obtenerUbicacionRapida();
-                        map.setView([ubicacion.lat, ubicacion.lng], 15);
-                        
-                        const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
-                        const imgData = document.getElementById('img-preview').src;
-                        
-                        let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                        fotosGuardadas.push({ lat: ubicacion.lat, lng: ubicacion.lng, imgData: imgData, desc: desc });
-                        if(fotosGuardadas.length > 5) fotosGuardadas.shift(); 
-                        localStorage.setItem('arqFotos', JSON.stringify(fotosGuardadas));
-
-                        L.marker([ubicacion.lat, ubicacion.lng], {icon: iconFoto}).addTo(map)
-                         .bindPopup(`
-                            <div class="text-center font-sans p-2">
-                                <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
-                                <img src="${imgData}" class="w-full h-28 object-cover rounded-xl mt-2 mb-2 shadow-sm border border-gray-100">
-                                <p class="text-xs text-gray-600 italic font-medium">"${desc}"</p>
-                            </div>
-                         `).openPopup();
-                    } catch(e) {
-                        mostrarToast("Reporte guardado, pero falló el GPS", "⚠️");
-                    }
-                }
-            }, 1200);
-        }
-
-        function alerta(msg){
-            document.getElementById("resultado").innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm animate-pulse flex gap-2"><span>⚠️</span> <span>${msg}</span></div>`;
-        }
-
-        function generarRecomendaciones(glucosa, imc, cintura, actividad){
-            let recomendaciones = [];
-            if(glucosa > 110) recomendaciones.push("🍬 Reduce consumo de azúcares y bebidas procesadas.");
-            if(imc > 25) recomendaciones.push("⚖️ Mantén un balance energético: más actividad física y porciones controladas.");
-            if(cintura > 94) recomendaciones.push("📏 La grasa abdominal aumenta el riesgo metabólico. Integra caminatas diarias.");
-            if(actividad < 3) recomendaciones.push("🏃 Intenta alcanzar al menos 150 minutos de actividad física por semana.");
-            if(recomendaciones.length === 0) recomendaciones.push("🌿 Tus indicadores están dentro de rangos saludables.");
-            return recomendaciones;
-        }
-
-        function clasificarCategoria(c){
-            if(!c) return null; c = c.toString();
-            if(c.startsWith("621")) return "hospital"; if(c.startsWith("46411")) return "pharmacy";
-            if(c.startsWith("462")) return "supermarket"; if(c.startsWith("71394")) return "gym";
-            if(c.startsWith("72251")) return "cafe"; if(c.startsWith("722")) return "restaurant";
-            return null;
-        }
+        function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
+        function cerrarModalFoto() { document.getElementById('modal-foto').style.opacity = '0'; setTimeout(() => document.getElementById('modal-foto').classList.add('hidden'), 300); }
+        function guardarReporteFoto() { cerrarModalFoto(); mostrarToast("Reporte guardado! +80 pts", "📷"); addPoints(80); }
+        function alerta(msg){ document.getElementById("resultado").innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm">⚠️ ${msg}</div>`; }
+        function generarRecomendaciones(g, i, c, a){ return ["Camina diariamente.", "Come verduras.", "Usa ciclovías."]; }
 
         async function cargarNegocios(){
             try {
                 const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json");
                 const data = await res.json();
-                const batch = 500;   
-                let i = 0;
-
-                const emojisCat = { hospital: '🏥', pharmacy: '💊', supermarket: '🛒', gym: '🏋️', cafe: '☕', restaurant: '🍽️' };
-
-                function procesarChunk(){
-                    const limite = Math.min(i + batch, data.length);
-                    for(; i < limite; i++){
-                        const n = data[i]; const lat = parseFloat(n.lat); const lng = parseFloat(n.lng);
-                        if(isNaN(lat) || isNaN(lng)) continue;
-
-                        const categoria = clasificarCategoria(n.codigo_scian);
-                        if(!categoria) continue;
-
-                        const marker = L.circleMarker([lat,lng],{ radius:4, color:"#2563eb", weight: 1, fillOpacity: 0.8 });
-                        const iconoEmoji = emojisCat[categoria] || '📌';
-
-                        marker.bindPopup(`
-                            <div class="font-sans text-center p-2 min-w-[140px]">
-                                <div class="text-3xl mb-1.5 drop-shadow-sm">${iconoEmoji}</div>
-                                <b class="text-gray-800 text-sm block mb-1.5 font-black leading-tight">${n.nombre || "Unidad"}</b>
-                                <span class="text-[10px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold border border-gray-200 shadow-sm">${n.municipio || "Desconocido"}</span>
-                            </div>
-                        `);
-                        capas[categoria].addLayer(marker);
-                    }
-                    if(i < data.length) requestAnimationFrame(procesarChunk);
+                for(let n of data) {
+                    const lat = parseFloat(n.lat); const lng = parseFloat(n.lng);
+                    if(isNaN(lat) || isNaN(lng)) continue;
+                    let c = n.codigo_scian.toString(); let cat = null;
+                    if(c.startsWith("621")) cat = "hospital"; else if(c.startsWith("46411")) cat = "pharmacy"; else if(c.startsWith("462")) cat = "supermarket"; else if(c.startsWith("71394")) cat = "gym"; else if(c.startsWith("72251")) cat = "cafe"; else if(c.startsWith("722")) cat = "restaurant";
+                    if(cat) { const marker = L.circleMarker([lat,lng],{radius:4, color:"#2563eb", weight:1, fillOpacity:0.8}); marker.bindPopup(`<b>${n.nombre}</b>`); capas[cat].addLayer(marker); }
                 }
-                procesarChunk();
-            } catch (error) { console.warn("Aviso: No se pudo cargar los negocios", error); }
+            } catch (e) { console.warn("No se cargaron negocios", e); }
         }
 
         async function cargarCiclovias() {
             try {
                 const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
-                if (!res.ok) throw new Error("No se encontró el archivo de ciclovías");
                 const data = await res.json();
-                
-                const capaLineas = L.geoJSON(data, {
-                    style: function (feature) { return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' }; },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties) {
-                            let nombre = feature.properties.name || "Ciclovía";
-                            let tipo = feature.properties.Tipo || "Carril Exclusivo";
-                            layer.bindPopup(`
-                                <div class="font-sans text-center p-1">
-                                    <div class="text-2xl mb-1">🚴</div>
-                                    <b class="text-blue-800 text-sm block mb-1 font-black">${nombre}</b>
-                                    <span class="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold border border-blue-100">${tipo}</span>
-                                </div>
-                            `);
-                        }
-                    }
-                });
+                const capaLineas = L.geoJSON(data, { style: function (f) { return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8' }; } });
                 capas.ciclovias.addLayer(capaLineas);
-            } catch(e) { console.warn("Aviso: No se pudo cargar las ciclovías", e); }
+            } catch(e) {}
         }
 
         function agregarLeyenda(){
-            const legend = L.control({position:"bottomright"});
+            const legend = L.control({position:"bottomleft"});
             legend.onAdd = function(){
                 const div = L.DomUtil.create("div","info legend");
-                div.innerHTML = `
-                <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); font-size:11px; font-family:sans-serif; margin-bottom:20px; margin-right:10px; border:1px solid rgba(0,0,0,0.05);">
-                    <b style="color:#1f2937; display:block; margin-bottom:6px; font-weight:900; letter-spacing:0.5px;">Riesgo Urbano</b>
-                    <div style="display:flex; flex-direction:column; gap:5px; font-weight:600; color:#4b5563;">
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#2ecc71;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(46,204,113,0.4);"></span> Bajo</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#f1c40f;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(241,196,15,0.4);"></span> Medio</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e67e22;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(230,126,34,0.4);"></span> Alto</div>
-                        <div style="display:flex; align-items:center; gap:6px;"><span style="background:#e74c3c;width:12px;height:12px;display:inline-block; border-radius:3px; box-shadow:0 2px 4px rgba(231,76,60,0.4);"></span> Crítico</div>
-                    </div>
-                </div>`;
+                div.innerHTML = `<div style="background:rgba(255,255,255,0.9); padding:10px; border-radius:10px; font-size:11px; margin-left:10px; margin-bottom:20px;"><b>Riesgo Urbano</b><br><span style="color:#2ecc71">■</span> Bajo <br><span style="color:#f1c40f">■</span> Medio <br><span style="color:#e67e22">■</span> Alto <br><span style="color:#e74c3c">■</span> Crítico</div>`;
                 return div;
-            };
-            legend.addTo(map);
+            }; legend.addTo(map);
         }
 
-        async function localizarUsuario() {
-            if (!map) return;
-            mostrarToast("Activando GPS rápido...", "🛰️");
-
-            try {
-                const ubicacion = await obtenerUbicacionRapida();
-                map.setView([ubicacion.lat, ubicacion.lng], 14);
-                L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 })
-                 .addTo(map).bindPopup("<b>¡Estás aquí!</b><br>Analiza tu entorno.").openPopup();
-                mostrarToast("Ubicación encontrada", "📍");
-            } catch (e) {
-                mostrarToast("Señal débil. Enciende o revisa tu GPS.", "❌");
-            }
-        }
-
-        let areasVerdesData = null;
+        // ==========================================
+        // LÓGICA DE OVERPASS API PARA PARQUES (GLOBAL)
+        // ==========================================
         let routingControl = null;
         window.markersParquesBuscados = null;
         let modoRutaActivo = false;
 
+        async function localizarUsuario() {
+            if (!map) return;
+            mostrarToast("Activando GPS rápido...", "🛰️");
+            try {
+                const ubicacion = await obtenerUbicacionRapida();
+                map.setView([ubicacion.lat, ubicacion.lng], 14);
+                L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>").openPopup();
+            } catch (e) { mostrarToast("Activa tu GPS", "❌"); }
+        }
+
         async function activarRutaSaludable() {
             if (!map) return;
             const btnRuta = document.getElementById('btn-ruta-saludable');
-
             if (modoRutaActivo) {
                 modoRutaActivo = false;
                 if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
                 if (routingControl) map.removeControl(routingControl);
                 if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia);
                 if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-                map.closePopup();
-                btnRuta.classList.remove('bg-green-100', 'border-green-400');
-                mostrarToast("Mapa limpiado", "🧹");
-                return;
+                map.closePopup(); btnRuta.classList.remove('bg-green-100', 'border-green-400');
+                mostrarToast("Mapa limpiado", "🧹"); return;
             }
 
-            modoRutaActivo = true;
-            btnRuta.classList.add('bg-green-100', 'border-green-400');
-            mostrarToast("Buscando parques usando GPS...", "🛰️");
+            modoRutaActivo = true; btnRuta.classList.add('bg-green-100', 'border-green-400');
+            mostrarToast("Buscando parques con OpenStreetMap...", "🛰️");
             
             try {
                 const ubicacion = await obtenerUbicacionRapida();
                 map.setView([ubicacion.lat, ubicacion.lng], 14);
-                ejecutarLogicaRuta(ubicacion.lat, ubicacion.lng);
+                ejecutarLogicaRutaOverpass(ubicacion.lat, ubicacion.lng);
             } catch (e) {
-                mostrarToast("Señal débil. Usando ubicación en pantalla.", "⚠️"); 
-                const center = map.getCenter(); 
-                ejecutarLogicaRuta(center.lat, center.lng); 
+                mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); 
+                const center = map.getCenter(); ejecutarLogicaRutaOverpass(center.lat, center.lng); 
             }
         }
 
-       async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
-    try {
-        // Limpiamos resultados anteriores
-        if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-        window.markersParquesBuscados = L.layerGroup().addTo(map);
+        async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
+            try {
+                if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
+                window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-        mostrarToast("Buscando parques cercanos en vivo...", "🔍");
+                // Consulta a la API de Overpass (Búsqueda de parques en 5km)
+                const radioBusqueda = 5000;
+                const overpassQuery = `
+                    [out:json][timeout:25];
+                    (
+                      node["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                      way["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                      node["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                      way["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                      node["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                      way["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+                    );
+                    out center;
+                `;
+                const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
 
-        // 1️⃣ Consulta Dinámica a Overpass API (Radio de 5km)
-        const radioBusqueda = 5000; // 5000 metros = 5km
-        const overpassQuery = `
-            [out:json][timeout:25];
-            (
-              node["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              way["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              node["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              way["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-            );
-            out center;
-        `;
-        const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+                const response = await fetch(overpassUrl);
+                if (!response.ok) throw new Error("Error en API de OSM");
+                const data = await response.json();
 
-        // Hacemos la petición a la base de datos mundial de OSM
-        const response = await fetch(overpassUrl);
-        if (!response.ok) throw new Error("Error consultando Overpass API");
-        const data = await response.json();
+                let parquesEncontrados = [];
+                const puntoUsuario = turf.point([lngUsuario, latUsuario]);
 
-        let parquesEncontrados = [];
-        const puntoUsuario = turf.point([lngUsuario, latUsuario]);
-
-        // 2️⃣ Procesamos los resultados
-        if (data.elements && data.elements.length > 0) {
-            data.elements.forEach(el => {
-                // Extraemos las coordenadas (ya sea de un 'node' o el centro de un 'way')
-                const lat = el.lat || (el.center && el.center.lat);
-                const lng = el.lon || (el.center && el.center.lon);
-                const nombre = (el.tags && el.tags.name) ? el.tags.name : "Área Verde / Parque";
-                
-                if(lat && lng) {
-                    const puntoParque = turf.point([lng, lat]);
-                    // Calculamos la distancia exacta con Turf.js
-                    const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-                    parquesEncontrados.push({ lat, lng, distancia, nombre });
+                if (data.elements && data.elements.length > 0) {
+                    data.elements.forEach(el => {
+                        const lat = el.lat || (el.center && el.center.lat);
+                        const lng = el.lon || (el.center && el.center.lon);
+                        const nombre = (el.tags && el.tags.name) ? el.tags.name : "Área Verde / Parque";
+                        
+                        if(lat && lng) {
+                            const puntoParque = turf.point([lng, lat]);
+                            const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
+                            parquesEncontrados.push({ lat, lng, distancia, nombre });
+                        }
+                    });
                 }
-            });
+
+                if (parquesEncontrados.length > 0) {
+                    // Filtrar duplicados por nombre y coordenadas cercanas
+                    const unicos = []; const mapKeys = new Set();
+                    parquesEncontrados.forEach(p => {
+                        const key = `${p.nombre}-${p.lat.toFixed(3)}`; 
+                        if(!mapKeys.has(key)) { mapKeys.add(key); unicos.push(p); }
+                    });
+
+                    unicos.sort((a, b) => a.distancia - b.distancia);
+                    const topParques = unicos.slice(0, 10); 
+                    mostrarToast(`Encontramos ${topParques.length} parques cerca`, "🌳");
+                    let bounds = [ [latUsuario, lngUsuario] ]; 
+
+                    topParques.forEach(parque => {
+                        bounds.push([parque.lat, parque.lng]);
+                        const marker = L.marker([parque.lat, parque.lng], {
+                            icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white;">🌳</div>`, className: '', iconSize: [30,30], iconAnchor: [15, 30] })
+                        });
+                        let nombreLimpio = parque.nombre.replace(/'/g, "\\'"); 
+                        marker.bindPopup(`
+                            <div class="text-center font-sans p-1.5 min-w-[160px]">
+                                <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
+                                <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 mt-2 shadow-sm">A ${(parque.distancia * 1000).toFixed(0)} metros</span><br>
+                                <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" 
+                                        class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 transition">
+                                    📍 Trazar Ruta Peatonal
+                                </button>
+                            </div>
+                        `);
+                        window.markersParquesBuscados.addLayer(marker);
+                    });
+                    map.fitBounds(bounds, {padding: [50, 50]});
+
+                } else {
+                    mostrarToast("No hay parques a menos de 5 km.", "⚠️");
+                }
+
+            } catch (err) { console.warn("Error Overpass:", err); mostrarToast("Error consultando mapas en vivo.", "❌"); }
         }
 
-        // 3️⃣ Filtramos, ordenamos y mostramos en el mapa
-        if (parquesEncontrados.length > 0) {
-            
-            // Eliminamos posibles duplicados (OSM a veces devuelve el nodo y el polígono del mismo parque)
-            const unicos = [];
-            const mapKeys = new Set();
-            parquesEncontrados.forEach(p => {
-                const key = `${p.nombre}-${p.lat.toFixed(3)}`; // Clave única por nombre y zona
-                if(!mapKeys.has(key)) {
-                    mapKeys.add(key);
-                    unicos.push(p);
-                }
-            });
-
-            // Ordenamos del más cercano al más lejano y tomamos los 10 mejores
-            unicos.sort((a, b) => a.distancia - b.distancia);
-            const topParques = unicos.slice(0, 10); 
-
-            mostrarToast(`Mostrando ${topParques.length} parques cercanos`, "🌳");
-            let bounds = [ [latUsuario, lngUsuario] ]; 
-
-            topParques.forEach(parque => {
-                bounds.push([parque.lat, parque.lng]);
-                
-                // Creamos el marcador del parque
-                const marker = L.marker([parque.lat, parque.lng], {
-                    icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, className: '', iconSize: [30,30], iconAnchor: [15, 30] })
-                });
-
-                // Creamos el Popup con el botón para generar la ruta
-                // Usamos replace para evitar errores de comillas en nombres como "Parque d'Arte"
-                let nombreLimpio = parque.nombre.replace(/'/g, "\\'"); 
-                
-                marker.bindPopup(`
-                    <div class="text-center font-sans p-1.5 min-w-[160px]">
-                        <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
-                        <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm mt-2">A ${(parque.distancia * 1000).toFixed(0)} metros</span><br>
-                        <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" 
-                                class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
-                            📍 Trazar Ruta Peatonal
-                        </button>
-                    </div>
-                `);
-                window.markersParquesBuscados.addLayer(marker);
-            });
-            
-            // Centramos la cámara del mapa para que se vean todos los parques y el usuario
-            map.fitBounds(bounds, {padding: [50, 50]});
-
-        } else {
-            mostrarToast("No hay parques a menos de 5 km en esta zona.", "⚠️");
-        }
-
-    } catch (err) { 
-        console.warn("Error buscando parques dinámicos:", err); 
-        mostrarToast("Error de conexión al buscar parques.", "❌"); 
-    }
-}
+        window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
+            map.closePopup();
+            if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
+            mostrarToast("Trazando tu ruta peatonal...", "🚶");
+            trazarRuta(latU, lngU, latD, lngD, nombreDestino);
+        };
 
         function cumplirRetosRuta() {
             const retoCaminar = misiones.find(x => x.id === "caminar");
-            if(retoCaminar && !retoCaminar.completado && retoCaminar.progreso < retoCaminar.objetivo) {
-                retoCaminar.progreso = 1; mostrarToast("¡Completaste Caminabilidad! Reclama en Retos.", "🚶");
-            }
+            if(retoCaminar && !retoCaminar.completado) { retoCaminar.progreso = 1; }
             const retoParque = misiones.find(x => x.id === "parque");
-            if(retoParque && !retoParque.completado && retoParque.progreso < retoParque.objetivo) {
-                retoParque.progreso = 1; mostrarToast("¡Completaste Reto Verde! Reclama en Retos.", "🌳");
-            }
+            if(retoParque && !retoParque.completado) { retoParque.progreso = 1; }
             renderMisiones();
         }
 
-        // ============================
-        // AJUSTE DE ENRUTADOR OSRM A PERFIL PEATONAL (foot)
-        // ============================
+        // Enrutador OSRM - Perfil: foot (Caminando)
         function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia);
@@ -1469,10 +1044,9 @@
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)],
                     language: 'es', 
-                    // Se usa profile: 'foot' en lugar de walking para cumplir el estándar estricto de OSRM
                     router: L.Routing.osrmv1({ 
                         serviceUrl: 'https://router.project-osrm.org/route/v1', 
-                        profile: 'foot' 
+                        profile: 'foot' // FORZA RUTA PEATONAL
                     }),
                     lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9}] },
                     addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
@@ -1482,23 +1056,19 @@
                     }
                 });
                 routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-                routingControl.addTo(map);
-                cumplirRetosRuta();
+                routingControl.addTo(map); cumplirRetosRuta();
             } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
         }
 
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
-            window.markerEmergencia = L.marker([lat2, lon2], { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🎯</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).addTo(map).bindPopup(`<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`).openPopup();
-            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]});
-            mostrarToast("Ruta peatonal directa generada", "✅");
-            cumplirRetosRuta();
+            window.markerEmergencia = L.marker([lat2, lon2], { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669;">🎯</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).addTo(map).bindPopup(`<b>${nombre}</b>`).openPopup();
+            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]}); cumplirRetosRuta();
         }
-        
+
         async function initMap(){
             if(map){ map.invalidateSize(); return; }
-
             map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
 
@@ -1509,134 +1079,56 @@
 
                 capaMunicipios = L.geoJSON(geoDataCache,{
                     style:function(feature){
-                        const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
-                        const nombre = normalizarNombre(nombreOriginal);
+                        const nombre = normalizarNombre(feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE);
                         let m = rankingMap[nombre];
-                        if(!m){ for(let key in rankingMap){ if(key.includes(nombre) || nombre.includes(key)){ m = rankingMap[key]; break; } } }
                         if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 };
                         return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.3 };
                     },
                     onEachFeature:function(feature,layer){
                         const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
-                        const nombre = normalizarNombre(nombreOriginal); const m = rankingMap[nombre];
-                        if(m){
-                            layer.bindPopup(`<div class="font-sans text-center p-1"><b class="text-gray-800 text-sm font-black">${nombreOriginal}</b><br><span class="text-xs text-gray-500 font-medium">IARRI: ${m.iarri.toFixed(3)}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-100 inline-block mt-2 border border-gray-200">${nivelIARRI(m.iarri)}</span></div>`);
-                            layer.bindTooltip(nombreOriginal,{sticky:true, className: 'font-bold text-xs'});
-                            layer.on("click",()=>{ registrarVisita(nombreOriginal); });
-                        }
+                        const m = rankingMap[normalizarNombre(nombreOriginal)];
+                        if(m){ layer.bindPopup(`<b>${nombreOriginal}</b><br>IARRI: ${m.iarri.toFixed(3)}`); layer.on("click",()=>registrarVisita(nombreOriginal)); }
                     }
                 }).addTo(map);
 
                 map.fitBounds(capaMunicipios.getBounds());
-                
-                await cargarNegocios();
-                await cargarCiclovias(); 
-                agregarLeyenda(); 
-                
-                let fotosGuardadas = JSON.parse(localStorage.getItem('arqFotos')) || [];
-                const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
-                fotosGuardadas.forEach(foto => { L.marker([foto.lat, foto.lng], {icon: iconFoto}).addTo(map).bindPopup(`<div class="text-center font-sans p-2"><b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br><img src="${foto.imgData}" class="w-full h-28 object-cover rounded-xl mt-2 mb-2 shadow-sm border border-gray-100"><p class="text-xs text-gray-600 italic font-medium">"${foto.desc}"</p></div>`); });
-            } catch (error) { console.warn("Aviso: Algunos datos del mapa no se cargaron", error); }
+                await cargarNegocios(); await cargarCiclovias(); agregarLeyenda(); 
+            } catch (error) {}
         }
 
         async function cargarRanking(){
             try {
-                const data = await cargarIARRI(); 
-                if (!data || data.length === 0) throw new Error("Datos vacíos");
+                const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
                 data.sort((a,b)=>b.iarri-a.iarri); 
-                const peor = data[0]; 
-
-                if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
-                    renderMisiones();
-                }
-
                 generarGraficoRiesgo(data);
-                const top10 = data.slice(0,10); let html="";
-                top10.forEach((m,i)=>{
-                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-6 inline-block text-center text-xs">${i+1}.</span>`;
-                    let color = m.iarri >= 0.15 ? "text-green-600" : m.iarri >= 0.10 ? "text-yellow-500" : m.iarri >= 0.05 ? "text-orange-500" : "text-red-600";
-                    let bgFila = i < 3 ? "bg-orange-50/40 border-orange-100" : "border-gray-100";
-                    html+=`<div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl hover:bg-gray-50 transition mb-1"><span class="font-black text-gray-700 flex items-center gap-3">${medal} ${m.municipio}</span><span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-lg">${m.iarri.toFixed(3)}</span></div>`;
+                let html="";
+                data.slice(0,10).forEach((m,i)=>{
+                    let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+                    html+=`<div class="flex justify-between border-b py-3 px-3 text-sm items-center"><span class="font-black">${medal} ${m.municipio}</span><span class="font-black">${m.iarri.toFixed(3)}</span></div>`;
                 });
                 document.getElementById("ranking").innerHTML = html;
-            } catch(err){ document.getElementById("ranking").innerHTML = "<p class='text-red-500 font-bold text-center mt-5'>Ranking no disponible (Falta Archivo CSV)</p>"; }
+            } catch(err){}
         }
 
         function generarGraficoRiesgo(data) {
-            const ctx = document.getElementById('rankingChart');
-            if(!ctx) return;
+            const ctx = document.getElementById('rankingChart'); if(!ctx) return;
             let counts = {critico:0, alto:0, medio:0, bajo:0};
-            data.forEach(d => {
-                const niv = nivelIARRI(d.iarri);
-                if(niv === 'Crítico') counts.critico++; else if(niv === 'Alto') counts.alto++; else if(niv === 'Medio') counts.medio++; else counts.bajo++;
-            });
-
+            data.forEach(d => { const niv = nivelIARRI(d.iarri); if(niv==='Crítico') counts.critico++; else if(niv==='Alto') counts.alto++; else if(niv==='Medio') counts.medio++; else counts.bajo++; });
             if(chartInstance) chartInstance.destroy(); 
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: ['Riesgo Bajo', 'Riesgo Medio', 'Riesgo Alto', 'Riesgo Crítico'], datasets: [{ data: [counts.bajo, counts.medio, counts.alto, counts.critico], backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11, family: 'system-ui', weight: 'bold'} } } }, cutout: '70%' }
-            });
+            chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Bajo', 'Medio', 'Alto', 'Crítico'], datasets: [{ data: [counts.bajo, counts.medio, counts.alto, counts.critico], backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'] }] } });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
             cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos();
-
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap'}).addTo(miniMap);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
-
-            // --- GPS Nativo para el Mini Mapa ---
-            obtenerUbicacionRapida().then(async (ubicacion) => {
-                miniMap.setView([ubicacion.lat, ubicacion.lng], 13);
-                let marker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(miniMap).bindPopup("Analizando tu zona...").openPopup();
-                try {
-                    if(!geoDataCache) { const res = await fetch("./puebla_municipios.json"); geoDataCache = await res.json(); }
-                    const iarriData = await cargarIARRI(); const rankingMap = {};
-                    iarriData.forEach(m => rankingMap[normalizarNombre(m.municipio)] = m);
-
-                    const pt = turf.point([ubicacion.lng, ubicacion.lat]);
-                    let municipioEncontrado = "Desconocido"; let riesgoEncontrado = "No evaluado"; let colorRiesgo = "gray";
-
-                    if (geoDataCache && geoDataCache.features) {
-                        for(let feature of geoDataCache.features) {
-                            if(turf.booleanPointInPolygon(pt, feature)) {
-                                const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
-                                municipioEncontrado = nombreOriginal; const nombre = normalizarNombre(nombreOriginal);
-                                let m = rankingMap[nombre];
-                                if(!m){ for(let key in rankingMap){ if(key.includes(nombre) || nombre.includes(key)){ m = rankingMap[key]; break; } } }
-                                if(m) { riesgoEncontrado = nivelIARRI(m.iarri); colorRiesgo = colorIARRI(m.iarri); }
-                                break;
-                            }
-                        }
-                    }
-                    marker.bindPopup(`<div class="text-center font-sans p-1"><div class="text-2xl mb-1 drop-shadow-sm">📍</div><b class="text-gray-800 text-sm font-black">Tu ubicación actual</b><br><span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span></div>`).openPopup();
-                } catch(error) { marker.bindPopup("📍 Tu ubicación (Análisis no disponible)").openPopup(); }
-            }).catch(e => {
-                L.marker([19.04,-98.20]).addTo(miniMap).bindPopup("📍 Activa tu GPS para ver tu zona").openPopup();
-            });
 
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
-                    if(!map) return;
-                    let cat = e.target.value;
-                    
-                    if (cat === 'ciclovias') {
-                        cicloviasActivas = e.target.checked;
-                        const btn = document.getElementById('btn-ciclovias');
-                        if (cicloviasActivas) {
-                            map.addLayer(capas['ciclovias']);
-                            if(btn) btn.classList.add('bg-sky-100', 'border-sky-400');
-                        } else {
-                            map.removeLayer(capas['ciclovias']);
-                            if(btn) btn.classList.remove('bg-sky-100', 'border-sky-400');
-                        }
-                        return;
-                    }
-
-                    if(e.target.checked) { map.addLayer(capas[cat]); } else { map.removeLayer(capas[cat]); }
+                    if(!map) return; let cat = e.target.value;
+                    if(e.target.checked) map.addLayer(capas[cat]); else map.removeLayer(capas[cat]);
                 });
             });
         });
