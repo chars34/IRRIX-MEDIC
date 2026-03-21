@@ -1339,77 +1339,111 @@
             }
         }
 
-        async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
-            try {
-                if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-                window.markersParquesBuscados = L.layerGroup().addTo(map);
+       async function ejecutarLogicaRuta(latUsuario, lngUsuario) {
+    try {
+        // Limpiamos resultados anteriores
+        if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
+        window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-                if (!areasVerdesData) {
-                    const response = await fetch('./Mantenimiento_de_Áreas_Verdes_primer.semestre.2025.csv');
-                    if (!response.ok) throw new Error("Archivo CSV no encontrado");
-                    const csvText = await response.text();
-                    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-                    areasVerdesData = parsed.data.filter(row => row.LATITUD && row.LONGITUD);
-                }
+        mostrarToast("Buscando parques cercanos en vivo...", "🔍");
 
-                const puntoUsuario = turf.point([lngUsuario, latUsuario]);
-                let parquesEncontrados = [];
+        // 1️⃣ Consulta Dinámica a Overpass API (Radio de 5km)
+        const radioBusqueda = 5000; // 5000 metros = 5km
+        const overpassQuery = `
+            [out:json][timeout:25];
+            (
+              node["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              way["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              node["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+              way["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
+            );
+            out center;
+        `;
+        const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
 
-                areasVerdesData.forEach(function (row) {
-                    const lat = parseFloat(row.LATITUD); const lng = parseFloat(row.LONGITUD);
-                    if(isNaN(lat) || isNaN(lng)) return;
+        // Hacemos la petición a la base de datos mundial de OSM
+        const response = await fetch(overpassUrl);
+        if (!response.ok) throw new Error("Error consultando Overpass API");
+        const data = await response.json();
 
+        let parquesEncontrados = [];
+        const puntoUsuario = turf.point([lngUsuario, latUsuario]);
+
+        // 2️⃣ Procesamos los resultados
+        if (data.elements && data.elements.length > 0) {
+            data.elements.forEach(el => {
+                // Extraemos las coordenadas (ya sea de un 'node' o el centro de un 'way')
+                const lat = el.lat || (el.center && el.center.lat);
+                const lng = el.lon || (el.center && el.center.lon);
+                const nombre = (el.tags && el.tags.name) ? el.tags.name : "Área Verde / Parque";
+                
+                if(lat && lng) {
                     const puntoParque = turf.point([lng, lat]);
+                    // Calculamos la distancia exacta con Turf.js
                     const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-
-                    if (distancia <= 5) {
-                        let nombreLimpio = (row['NOMBRE '] || row['NOMBRE'] || "Área Verde").replace(/'/g, "");
-                        parquesEncontrados.push({
-                            lat: lat, lng: lng, distancia: distancia, nombre: nombreLimpio, colonia: row['COLONIA'] || "Puebla"
-                        });
-                    }
-                });
-
-                if (parquesEncontrados.length > 0) {
-                    parquesEncontrados.sort((a, b) => a.distancia - b.distancia);
-                    parquesEncontrados = parquesEncontrados.slice(0, 10);
-
-                    mostrarToast(`Mostrando ${parquesEncontrados.length} parques cercanos`, "🌳");
-                    let bounds = [ [latUsuario, lngUsuario] ]; 
-
-                    parquesEncontrados.forEach(parque => {
-                        bounds.push([parque.lat, parque.lng]);
-                        const marker = L.marker([parque.lat, parque.lng], {
-                            icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, className: '', iconSize: [30,30], iconAnchor: [15, 30] })
-                        });
-                        marker.bindPopup(`
-                            <div class="text-center font-sans p-1.5 min-w-[160px]">
-                                <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
-                                <span class="text-[10px] text-gray-500 block leading-tight mb-2 font-medium">${parque.colonia}</span>
-                                <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm">A ${(parque.distancia * 1000).toFixed(0)} metros</span><br>
-                                <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${parque.nombre}')" 
-                                        class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
-                                    📍 Ir Aquí
-                                </button>
-                            </div>
-                        `);
-                        window.markersParquesBuscados.addLayer(marker);
-                    });
-                    map.fitBounds(bounds, {padding: [50, 50]});
-
-                } else {
-                    mostrarToast("No hay parques a menos de 5 km.", "⚠️");
+                    parquesEncontrados.push({ lat, lng, distancia, nombre });
                 }
-
-            } catch (err) { console.warn("Error leyendo el CSV.", err); mostrarToast("Error al cargar datos de parques.", "❌"); }
+            });
         }
 
-        window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
-            map.closePopup();
-            if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-            mostrarToast("Trazando tu ruta peatonal...", "🚶");
-            trazarRuta(latU, lngU, latD, lngD, nombreDestino);
-        };
+        // 3️⃣ Filtramos, ordenamos y mostramos en el mapa
+        if (parquesEncontrados.length > 0) {
+            
+            // Eliminamos posibles duplicados (OSM a veces devuelve el nodo y el polígono del mismo parque)
+            const unicos = [];
+            const mapKeys = new Set();
+            parquesEncontrados.forEach(p => {
+                const key = `${p.nombre}-${p.lat.toFixed(3)}`; // Clave única por nombre y zona
+                if(!mapKeys.has(key)) {
+                    mapKeys.add(key);
+                    unicos.push(p);
+                }
+            });
+
+            // Ordenamos del más cercano al más lejano y tomamos los 10 mejores
+            unicos.sort((a, b) => a.distancia - b.distancia);
+            const topParques = unicos.slice(0, 10); 
+
+            mostrarToast(`Mostrando ${topParques.length} parques cercanos`, "🌳");
+            let bounds = [ [latUsuario, lngUsuario] ]; 
+
+            topParques.forEach(parque => {
+                bounds.push([parque.lat, parque.lng]);
+                
+                // Creamos el marcador del parque
+                const marker = L.marker([parque.lat, parque.lng], {
+                    icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 10px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, className: '', iconSize: [30,30], iconAnchor: [15, 30] })
+                });
+
+                // Creamos el Popup con el botón para generar la ruta
+                // Usamos replace para evitar errores de comillas en nombres como "Parque d'Arte"
+                let nombreLimpio = parque.nombre.replace(/'/g, "\\'"); 
+                
+                marker.bindPopup(`
+                    <div class="text-center font-sans p-1.5 min-w-[160px]">
+                        <b class="text-green-900 text-sm leading-tight block mb-1 font-black">${parque.nombre}</b>
+                        <span class="text-xs font-black text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-block mb-3 shadow-sm mt-2">A ${(parque.distancia * 1000).toFixed(0)} metros</span><br>
+                        <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" 
+                                class="bg-gradient-to-r from-green-600 to-emerald-600 text-white w-full py-2.5 rounded-xl font-bold shadow-md hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-0.5">
+                            📍 Trazar Ruta Peatonal
+                        </button>
+                    </div>
+                `);
+                window.markersParquesBuscados.addLayer(marker);
+            });
+            
+            // Centramos la cámara del mapa para que se vean todos los parques y el usuario
+            map.fitBounds(bounds, {padding: [50, 50]});
+
+        } else {
+            mostrarToast("No hay parques a menos de 5 km en esta zona.", "⚠️");
+        }
+
+    } catch (err) { 
+        console.warn("Error buscando parques dinámicos:", err); 
+        mostrarToast("Error de conexión al buscar parques.", "❌"); 
+    }
+}
 
         function cumplirRetosRuta() {
             const retoCaminar = misiones.find(x => x.id === "caminar");
