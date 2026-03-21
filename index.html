@@ -1250,29 +1250,34 @@
             } catch (error) {}
         }
 
-       async function cargarRanking(){
+      async function cargarRanking(){
             try {
-                const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
+                const data = await cargarIARRI(); 
+                if (!data || data.length === 0) throw new Error("Datos vacíos");
                 
-                // ORDENAMIENTO NATURAL: De menor (más crítico) a mayor
-                data.sort((a,b) => a.iarri - b.iarri); 
-                
-                // Toma matemáticamente el más bajo del estado (naturalmente Cohetzala)
+                // ORDENAMIENTO ORIGINAL DE TU CÓDIGO
+                data.sort((a,b)=>b.iarri-a.iarri); 
                 const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio mas bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
                     renderMisiones();
                 }
 
                 generarGraficoRiesgo(data);
-                let html="";
-                data.slice(0,10).forEach((m,i)=>{
-                    let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
-                    html+=`<div class="flex justify-between border-b py-3 px-3 text-sm items-center"><span class="font-black">${medal} ${m.municipio}</span><span class="font-black">${m.iarri.toFixed(3)}</span></div>`;
+                const top10 = data.slice(0,10); let html="";
+                top10.forEach((m,i)=>{
+                    // DISEÑO ORIGINAL CON SUS COLORES Y MEDALLAS
+                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-6 inline-block text-center text-xs">${i+1}.</span>`;
+                    let color = m.iarri >= 0.15 ? "text-green-600" : m.iarri >= 0.10 ? "text-yellow-500" : m.iarri >= 0.05 ? "text-orange-500" : "text-red-600";
+                    let bgFila = i < 3 ? "bg-orange-50/40 border-orange-100" : "border-gray-100";
+                    
+                    html+=`<div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl hover:bg-gray-50 transition mb-1"><span class="font-black text-gray-700 flex items-center gap-3">${medal} ${m.municipio}</span><span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-lg">${m.iarri.toFixed(3)}</span></div>`;
                 });
                 document.getElementById("ranking").innerHTML = html;
-            } catch(err){}
+            } catch(err){ 
+                document.getElementById("ranking").innerHTML = "<p class='text-red-500 font-bold text-center mt-5'>Ranking no disponible (Falta Archivo CSV)</p>"; 
+            }
         }
 
         function generarGraficoRiesgo(data) {
