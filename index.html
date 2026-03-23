@@ -1064,7 +1064,25 @@ let defaultCursos = [
                     onEachFeature:function(feature,layer){
                         const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
                         const m = rankingMap[normalizarNombre(nombreOriginal)];
-                        if(m){ layer.bindPopup(`<b>${nombreOriginal}</b><br>IARRI: ${m.iarri.toFixed(3)}`); layer.on("click",()=>registrarVisita(nombreOriginal)); }
+                        
+                        if(m){ 
+                            // Esta línea decide si poner "Alto", "Bajo", etc.
+                            let nivel = nivelIARRI(m.iarri);
+                            // Esta línea decide el color (Rojo para crítico, Verde para bajo, etc.)
+                            let color = colorIARRI(m.iarri);
+                            
+                            layer.bindPopup(`
+                                <div style="text-align: center; font-family: sans-serif; min-width: 120px;">
+                                    <b style="font-size: 14px; color: #1f2937; display: block; margin-bottom: 2px;">${nombreOriginal}</b>
+                                    <span style="font-size: 10px; color: #9ca3af; font-weight: bold;">IARRI: ${m.iarri.toFixed(3)}</span>
+                                    <div style="margin-top: 8px; padding: 4px; border-radius: 6px; background-color: ${color}15; color: ${color}; font-size: 11px; font-weight: 800; text-transform: uppercase; border: 1px solid ${color}40;">
+                                        Riesgo ${nivel}
+                                    </div>
+                                </div>
+                            `); 
+                            
+                            layer.on("click",()=>registrarVisita(nombreOriginal)); 
+                        }
                     }
                 }).addTo(map);
 
@@ -1096,8 +1114,61 @@ let defaultCursos = [
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
             cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos();
             
-            const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); setTimeout(()=>miniMap.invalidateSize(),200);
+           // --- INICIO MINI MAPA CON GPS Y COLORES ---
+            const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false}).setView([19.04,-98.20],8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+            setTimeout(()=>miniMap.invalidateSize(),200);
+
+            obtenerUbicacionRapida().then(async (ubicacion) => {
+                // Centramos el mapa en el usuario con un zoom más cercano
+                miniMap.setView([ubicacion.lat, ubicacion.lng], 11);
+                let marker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(miniMap);
+                
+                try {
+                    // Cargamos los polígonos y los datos IARRI
+                    if(!geoDataCache) { const res = await fetch("./puebla_municipios.json"); geoDataCache = await res.json(); }
+                    const iarriData = await cargarIARRI();
+                    const rankingMap = {};
+                    iarriData.forEach(m => rankingMap[normalizarNombre(m.municipio)] = m);
+
+                    // Pintamos los municipios en el minimapa con los mismos colores
+                    L.geoJSON(geoDataCache, {
+                        style: function(feature) {
+                            const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
+                            const nombre = normalizarNombre(nombreOriginal);
+                            let m = rankingMap[nombre];
+                            if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 };
+                            return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.5 };
+                        }
+                    }).addTo(miniMap);
+
+                    // Calculamos en qué municipio está parado el usuario usando Turf.js
+                    const pt = turf.point([ubicacion.lng, ubicacion.lat]);
+                    let municipioEncontrado = "Desconocido"; let riesgoEncontrado = "No evaluado"; let colorRiesgo = "gray";
+
+                    if (geoDataCache && geoDataCache.features) {
+                        for(let feature of geoDataCache.features) {
+                            if(turf.booleanPointInPolygon(pt, feature)) {
+                                const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
+                                municipioEncontrado = nombreOriginal;
+                                const nombre = normalizarNombre(nombreOriginal);
+                                let m = rankingMap[nombre];
+                                if(!m){ for(let key in rankingMap){ if(key.includes(nombre) || nombre.includes(key)){ m = rankingMap[key]; break; } } }
+                                if(m) { riesgoEncontrado = nivelIARRI(m.iarri); colorRiesgo = colorIARRI(m.iarri); }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Mostramos el popup bonito en el minimapa
+                    marker.bindPopup(`<div class="text-center font-sans p-1"><b class="text-gray-800 text-sm font-black">📍 Tu ubicación</b><br><span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span></div>`).openPopup();
+                } catch(error) { 
+                    marker.bindPopup("📍 Tu ubicación").openPopup(); 
+                }
+            }).catch(e => {
+                L.marker([19.04,-98.20]).addTo(miniMap).bindPopup("📍 Activa tu GPS para ver tu zona").openPopup();
+            });
+            // --- FIN MINI MAPA CON GPS Y COLORES ---
 
             const inputMunicipio = document.getElementById('municipio');
             if (inputMunicipio) {
