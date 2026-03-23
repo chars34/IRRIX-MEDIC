@@ -705,8 +705,7 @@
             if(cicloviasActivas) { map.addLayer(capas['ciclovias']); btn.classList.add('bg-sky-100', 'border-sky-400'); mostrarToast("Ciclovías mostradas", "🚴"); } 
             else { map.removeLayer(capas['ciclovias']); btn.classList.remove('bg-sky-100', 'border-sky-400'); mostrarToast("Capa oculta", "🗺️"); }
         }
-
-        let defaultCursos = [
+let defaultCursos = [
             { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos y flujos de energía.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
             { id: "c2", titulo: "Espacios Públicos", desc: "Estrategias de recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false },
             { id: "c3", titulo: "Islas de Calor", desc: "Cómo la vegetación reduce el estrés térmico en la ciudad.", pts: 60, icono: "🌡️", url: "curso_calor.html", color: "orange", completado: false, externo: false },
@@ -727,10 +726,30 @@
             cont.innerHTML = html; const stCursos = document.getElementById('stats-cursos'); if(stCursos) stCursos.innerText = completados;
         }
 
-        function abrirCurso(id) {
-            let curso = cursosData.find(c => c.id === id); if (!curso) return;
-            if (!curso.completado) { curso.completado = true; localStorage.setItem('arqCursosData', JSON.stringify(cursosData)); addPoints(curso.pts); renderizarCursos(); }
-            setTimeout(() => { if (curso.externo) window.open(curso.url, '_blank'); else window.location.href = curso.url; }, 600);
+    function abrirCurso(id) {
+            // 1. Busca qué curso se presionó
+            let curso = cursosData.find(c => c.id === id); 
+            if (!curso) return;
+
+            // 2. Si es la primera vez, lo marca como completado y te da los puntos
+            if (!curso.completado) { 
+                curso.completado = true; 
+                localStorage.setItem('arqCursosData', JSON.stringify(cursosData)); 
+                addPoints(curso.pts); 
+                renderizarCursos(); 
+            }
+
+            // 3. Espera medio segundo (para que veas la animación) y luego abre el archivo
+            setTimeout(() => { 
+                // Si quieres que el curso abra en una pestaña nueva para no cerrar tu mapa, 
+                // puedes cambiar 'window.location.href' por 'window.open(curso.url, "_blank")'
+                
+                if (curso.externo) {
+                    window.open(curso.url, '_blank'); 
+                } else {
+                    window.location.href = curso.url; 
+                }
+            }, 600);
         }
 
         function irMapa(){ switchScreen('territorio'); }
