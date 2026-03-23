@@ -113,8 +113,11 @@
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
             <p class="text-xs text-gray-500 mb-4">Sube fotos de parques, calles o zonas de riesgo.</p>
             <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
-            <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner">
+           <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner relative">
                 <img id="img-preview" class="w-full h-full object-cover">
+                <button type="button" onclick="eliminarFotoSeleccionada()" class="absolute top-2 right-2 bg-white/90 backdrop-blur text-red-600 w-8 h-8 rounded-full flex items-center justify-center shadow-md font-black hover:bg-red-50 transition transform hover:scale-110" title="Eliminar foto">
+                    ✕
+                </button>
             </div>
             <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
             <div class="flex gap-3">
@@ -884,7 +887,26 @@ let defaultCursos = [
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
-
+function eliminarFotoSeleccionada() {
+            // 1. Limpiamos el input del archivo para que la app sepa que ya no hay foto
+            document.getElementById('foto-input').value = "";
+            
+            // 2. Quitamos la imagen del preview
+            document.getElementById('img-preview').src = "";
+            
+            // 3. Volvemos a ocultar el cuadro gris
+            document.getElementById('foto-preview').classList.add("hidden");
+            
+            mostrarToast("Foto descartada", "🗑️");
+        }
+        function cerrarModalFoto() { 
+            document.getElementById('modal-foto').style.opacity = '0'; 
+            setTimeout(() => { 
+                document.getElementById('modal-foto').classList.add('hidden'); 
+                eliminarFotoSeleccionada(); // Limpiamos todo al cerrar
+                document.getElementById('foto-desc').value = ""; // Limpiamos el texto también
+            }, 300); 
+        }
         function comprimirImagen(dataUrl, maxWidth, callback) {
             const img = new Image(); img.src = dataUrl;
             img.onload = () => {
@@ -1000,23 +1022,41 @@ let defaultCursos = [
                 } else { mostrarToast("No hay parques a menos de 5 km.", "⚠️"); }
             } catch (err) { console.warn("Error buscando parques:", err); mostrarToast("Error de conexión al buscar parques.", "❌"); }
         }
-
-        async function activarRutaSaludable() {
-            if (!map) return; const btnRuta = document.getElementById('btn-ruta-saludable');
-            if (modoRutaActivo) {
-                modoRutaActivo = false; if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados); if (routingControl) map.removeControl(routingControl);
-                if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-                map.closePopup(); btnRuta.classList.remove('bg-green-100', 'border-green-400'); mostrarToast("Mapa limpiado", "🧹"); return;
+async function activarRutaSaludable() {
+            if (!map) return; 
+            const btnRuta = document.getElementById('btn-ruta-saludable');
+            
+            // Si el modo ruta está activo o si hay cualquier línea/pin dibujado, LIMPIAMOS EL MAPA
+            if (modoRutaActivo || routingControl || window.rutaEmergencia || window.markersParquesBuscados) {
+                modoRutaActivo = false; 
+                
+                if (window.markersParquesBuscados) { map.removeLayer(window.markersParquesBuscados); window.markersParquesBuscados = null; }
+                if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+                if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); window.rutaEmergencia = null; }
+                if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); window.markerEmergencia = null; }
+                
+                map.closePopup(); 
+                btnRuta.classList.remove('bg-green-100', 'border-green-400'); 
+                mostrarToast("Mapa y rutas limpiados", "🧹"); 
+                return;
             }
-         
-            try { const ubicacion = await obtenerUbicacionRapida(); map.setView([ubicacion.lat, ubicacion.lng], 14); ejecutarLogicaRutaOverpass(ubicacion.lat, ubicacion.lng); } 
-            catch (e) { mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); const center = map.getCenter(); ejecutarLogicaRutaOverpass(center.lat, center.lng); }
+            
+            // Si el mapa está limpio, ACTIVAMOS LA BÚSQUEDA
+            modoRutaActivo = true; 
+            btnRuta.classList.add('bg-green-100', 'border-green-400'); 
+            mostrarToast("Buscando parques con OpenStreetMap...", "🛰️");
+            
+            try { 
+                const ubicacion = await obtenerUbicacionRapida(); 
+                map.setView([ubicacion.lat, ubicacion.lng], 14); 
+                ejecutarLogicaRutaOverpass(ubicacion.lat, ubicacion.lng); 
+            } 
+            catch (e) { 
+                mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); 
+                const center = map.getCenter(); 
+                ejecutarLogicaRutaOverpass(center.lat, center.lng); 
+            }
         }
-
-        window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
-            map.closePopup(); if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-            mostrarToast("Trazando tu ruta peatonal...", "🚶"); trazarRuta(latU, lngU, latD, lngD, nombreDestino);
-        };
 
         function cumplirRetosRuta() {
             const retoCaminar = misiones.find(x => x.id === "caminar"); if(retoCaminar && !retoCaminar.completado) { retoCaminar.progreso = 1; }
