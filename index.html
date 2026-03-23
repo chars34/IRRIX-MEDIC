@@ -325,12 +325,12 @@
                     </p>
 
                     <div class="space-y-4">
-                       <div>
-    <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
-    <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
-    <datalist id="lista-municipios"></datalist>
-    <div id="badge-municipio" class="mt-2 empty:hidden transition-all duration-300"></div>
-</div>
+                        <div>
+                            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
+                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
+                            <datalist id="lista-municipios"></datalist>
+                            <div id="badge-municipio" class="mt-2 empty:hidden transition-all duration-300"></div>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -468,13 +468,22 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // --- HABILITAR PERSISTENCIA OFFLINE DE FIREBASE ---
+        db.enablePersistence()
+          .catch((err) => {
+              console.warn("Error habilitando persistencia offline de Firebase:", err);
+          });
+
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Capacitor && window.Capacitor.Plugins.GoogleAuth) {
                 window.Capacitor.Plugins.GoogleAuth.initialize();
             }
         });
 
-        // Este es el GPS de tu archivo index(5).html intacto
+        // --- MANEJO DE ESTADO DE RED ---
+        window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
+        window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
+
         async function obtenerUbicacionRapida() {
             if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
                 try {
@@ -483,13 +492,10 @@
                         await window.Capacitor.Plugins.Geolocation.requestPermissions();
                     }
                     const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition({
-                        enableHighAccuracy: false, 
-                        timeout: 5000, 
-                        maximumAge: 600000 
+                        enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 
                     });
                     return { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 } catch (e) {
-                    console.error("Error GPS Nativo:", e);
                     throw e;
                 }
             } else {
@@ -505,6 +511,10 @@
 
         async function iniciarSesionGoogle() {
             try {
+                if(!navigator.onLine) {
+                    mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️");
+                    return;
+                }
                 document.getElementById('btn-iniciar-google').innerHTML = "⏳ Conectando...";
                 if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
                     const provider = new firebase.auth.GoogleAuthProvider();
@@ -517,7 +527,6 @@
                     mostrarToast("Sesión nativa iniciada", "✅");
                 }
             } catch (error) {
-                console.error("Error en login", error);
                 mostrarToast("Error al iniciar sesión", "❌");
                 document.getElementById('btn-iniciar-google').innerHTML = "Iniciar sesión con Google";
             }
@@ -693,7 +702,7 @@
         let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
         let nivelAnteriorGlobal = userProgress.level;
         let geoDataCache = null; 
-        let municipiosVisitados = new Set();
+        let municipiosVisitados = new Set(JSON.parse(localStorage.getItem("arqVisitados")) || []);
         let chartInstance = null; let map = null; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
         
         function crearClusterPersonalizado(cluster, emoji) {
@@ -716,7 +725,6 @@
             gym: L.markerClusterGroup({chunkedLoading:true, iconCreateFunction: (c) => crearClusterPersonalizado(c, '🏋️')})
         };
 
-        // --- MANEJO DE FOTOS EN VIVO ---
         let fotosActivas = true;
         function toggleFotosGlobales() {
             if(!map) return;
@@ -741,32 +749,70 @@
             else { map.removeLayer(capas['ciclovias']); btn.classList.remove('bg-sky-100', 'border-sky-400'); mostrarToast("Capa oculta", "🗺️"); }
         }
 
-        let cursosData = JSON.parse(localStorage.getItem('arqCursosData')) || [
-            { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
-            { id: "c2", titulo: "Espacios Públicos", desc: "Recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false }
+        // --- EXPANSIÓN DE CURSOS EN "APRENDE" ---
+        let defaultCursos = [
+            { id: "c1", titulo: "Metabolismo Urbano", desc: "Aprende los conceptos básicos y flujos de energía.", pts: 50, icono: "🌱", url: "curso_metabolismo.html", color: "purple", completado: false, externo: false },
+            { id: "c2", titulo: "Espacios Públicos", desc: "Estrategias de recuperación de zonas peatonales.", pts: 75, icono: "🏙️", url: "curso_espacios.html", color: "indigo", completado: false, externo: false },
+            { id: "c3", titulo: "Islas de Calor", desc: "Cómo la vegetación reduce el estrés térmico en la ciudad.", pts: 60, icono: "🌡️", url: "curso_calor.html", color: "orange", completado: false, externo: false },
+            { id: "c4", titulo: "Movilidad Activa", desc: "Diseño urbano para ciclovías y entornos caminables.", pts: 80, icono: "🚴", url: "curso_movilidad.html", color: "sky", completado: false, externo: false },
+            { id: "c5", titulo: "Salud Metabólica", desc: "Relación clínica entre el entorno urbano y la insulina.", pts: 100, icono: "🧬", url: "curso_salud.html", color: "rose", completado: false, externo: false }
         ];
+
+        let cursosData = JSON.parse(localStorage.getItem('arqCursosData'));
+        if (!cursosData || cursosData.length < defaultCursos.length) {
+            cursosData = defaultCursos; // Actualiza si hay cursos nuevos
+            localStorage.setItem('arqCursosData', JSON.stringify(cursosData));
+        }
 
         function renderizarCursos() {
             const cont = document.getElementById("contenedor-cursos");
             if (!cont) return; let html = ""; let completados = 0;
             cursosData.forEach(c => {
                 if(c.completado) completados++;
-                let colores = { "purple": { tag: "bg-purple-100 text-purple-800", btn: "bg-purple-600" }, "indigo": { tag: "bg-indigo-100 text-indigo-800", btn: "bg-indigo-600" } }[c.color] || {tag:"bg-gray-100", btn:"bg-gray-600"};
+                let colores = { 
+                    "purple": { tag: "bg-purple-100 text-purple-800", btn: "bg-purple-600" }, 
+                    "indigo": { tag: "bg-indigo-100 text-indigo-800", btn: "bg-indigo-600" },
+                    "orange": { tag: "bg-orange-100 text-orange-800", btn: "bg-orange-500" },
+                    "sky": { tag: "bg-sky-100 text-sky-800", btn: "bg-sky-500" },
+                    "rose": { tag: "bg-rose-100 text-rose-800", btn: "bg-rose-500" }
+                }[c.color] || {tag:"bg-gray-100", btn:"bg-gray-600"};
+                
                 html += `<div class="border p-6 rounded-[1.5rem] bg-white shadow-sm relative"><div class="absolute top-0 right-0 ${colores.tag} text-[10px] px-3 py-1.5 rounded-bl-xl font-black">${c.pts} PTS</div><div class="flex gap-4 mb-4"><div class="text-4xl bg-gray-50 border border-gray-100 p-2 rounded-2xl h-14 w-14 flex items-center justify-center">${c.icono}</div><div class="flex-1"><h3 class="font-black mb-1">${c.titulo}</h3><p class="text-xs text-gray-500">${c.desc}</p></div></div><button onclick="abrirCurso('${c.id}')" class="w-full text-white px-4 py-3.5 rounded-xl font-bold shadow-lg ${c.completado ? 'bg-gray-800' : colores.btn}">${c.completado ? "Completado ✅" : "Comenzar"}</button></div>`;
             });
             cont.innerHTML = html;
+            const stCursos = document.getElementById('stats-cursos');
+            if(stCursos) stCursos.innerText = completados;
         }
 
         function abrirCurso(id) {
             let curso = cursosData.find(c => c.id === id); if (!curso) return;
-            if (!curso.completado) { curso.completado = true; localStorage.setItem('arqCursosData', JSON.stringify(cursosData)); addPoints(curso.pts); renderizarCursos(); }
+            if (!curso.completado) { 
+                curso.completado = true; 
+                localStorage.setItem('arqCursosData', JSON.stringify(cursosData)); 
+                addPoints(curso.pts); 
+                renderizarCursos(); 
+            }
             setTimeout(() => { if (curso.externo) window.open(curso.url, '_blank'); else window.location.href = curso.url; }, 600);
         }
 
         function irMapa(){ switchScreen('territorio'); }
         function normalizarNombre(nombre){ return nombre?nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase():""; }
-        function colorIARRI(v){ if(v < 0.0124) return "#dc2626"; if(v < 0.0264) return "#f97316"; if(v < 0.0479) return "#facc15"; if(v < 0.0894) return "#86efac"; return "#16a34a"; }
-        function nivelIARRI(v){ if(v < 0.0124) return "Crítico"; if(v < 0.0264) return "Alto"; if(v < 0.0479) return "Medio"; if(v < 0.0894) return "Bajo"; return "Muy Bajo"; }
+        
+        function nivelIARRI(v) {
+            if (v <= 0.085) return "Crítico";
+            if (v <= 0.150) return "Alto";
+            if (v <= 0.300) return "Medio";
+            if (v <= 0.500) return "Bajo";
+            return "Muy Bajo";
+        }
+
+        function colorIARRI(v) {
+            if (v <= 0.085) return "#dc2626";
+            if (v <= 0.150) return "#f97316";
+            if (v <= 0.300) return "#facc15";
+            if (v <= 0.500) return "#86efac";
+            return "#16a34a";
+        }
 
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
@@ -813,6 +859,8 @@
             if (pts) { pts.innerText = userProgress.totalPoints; pts.classList.add('scale-110'); setTimeout(() => pts.classList.remove('scale-110'), 300); }
             if (lvl) lvl.innerText = userProgress.level;
             renderizarMedallas();
+            const stZonas = document.getElementById('stats-zonas');
+            if(stZonas) stZonas.innerText = municipiosVisitados.size;
         }
 
         function addPoints(points, buttonElement) {
@@ -826,15 +874,19 @@
             }
         }
 
-        // --- TODAS TUS MISIONES ESTÁN AQUÍ INTACTAS ---
-     let misiones = [
+        let defaultMisiones = [
             { id:"explorar_mapa", nombre:"🗺 Explorador", descripcion:"Explora 3 municipios", puntos:120, progreso:0, objetivo:3, completado:false },
             { id:"calcular_irma", nombre:"🧬 Detective", descripcion:"Calcula tu índice IRMA", puntos:80, progreso:0, objetivo:1, completado:false },
             { id:"caminar", nombre:"🚶 Caminabilidad", descripcion:"Trazar y completar una ruta", puntos:100, progreso:0, objetivo:1, completado:false },
             { id:"parque", nombre:"🌳 Reto verde", descripcion:"Ruta a un parque", puntos:120, progreso:0, objetivo:1, completado:false },
-            // La descripción de Analista ahora pide la capital
-            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza la capital: Puebla", puntos:180, progreso:0, objetivo:1, completado:false }
+            { id:"analista", nombre:"📊 Analista", descripcion:"Analiza la Capital: Puebla", puntos:180, progreso:0, objetivo:1, completado:false }
         ];
+
+        let misiones = JSON.parse(localStorage.getItem('arqMisionesData'));
+        if(!misiones || misiones.length === 0) {
+            misiones = defaultMisiones;
+            localStorage.setItem('arqMisionesData', JSON.stringify(misiones));
+        }
 
         let logros = [{ id:"primeros_pasos", condicion:()=> userProgress.totalPoints >= 100 }, { id:"explorador", condicion:()=> municipiosVisitados.size >= 5 }, { id:"maestro", condicion:()=> userProgress.totalPoints >= 1000 }];
 
@@ -872,6 +924,7 @@
             cont.innerHTML = html;
             const stRetos = document.getElementById('stats-retos');
             if(stRetos) stRetos.innerText = completadas;
+            localStorage.setItem('arqMisionesData', JSON.stringify(misiones));
         }
 
         function accionReto(id, btn) {
@@ -897,8 +950,10 @@
         }
 
         function checkLogros(){ document.getElementById("logros-count").innerText = logros.filter(l => l.condicion()).length; }
-      function registrarVisita(nombre){
+        
+        function registrarVisita(nombre){
             municipiosVisitados.add(nombre);
+            localStorage.setItem("arqVisitados", JSON.stringify([...municipiosVisitados])); // Guarda local
             const stZonas = document.getElementById('stats-zonas');
             if(stZonas) stZonas.innerText = municipiosVisitados.size;
 
@@ -908,14 +963,12 @@
                 if(m.progreso >= m.objetivo){ mostrarToast("Completaste Explorador", '🌍'); } 
             }
 
-            // COMPLETAR RETO ANALISTA (Solo con Puebla)
             const mAnalista = misiones.find(x=>x.id==="analista");
             if(mAnalista && !mAnalista.completado && normalizarNombre(nombre) === "PUEBLA") {
                 mAnalista.progreso = 1;
                 mostrarToast("¡Completaste la misión Analista!", '📊');
             }
 
-            // COMPLETAR RETO ARQUITECTO (Solo con Cohetzala)
             const mArquitecto = misiones.find(x=>x.id==="municipio_critico");
             if(mArquitecto && !mArquitecto.completado && normalizarNombre(nombre) === "COHETZALA") {
                 mArquitecto.progreso = 1;
@@ -939,7 +992,6 @@
         function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
         function cerrarModalFoto() { document.getElementById('modal-foto').style.opacity = '0'; setTimeout(() => document.getElementById('modal-foto').classList.add('hidden'), 300); }
         
-        // --- COMPRESOR DE IMÁGENES Y SUBIDA A FIRESTORE ---
         document.getElementById('foto-input').addEventListener('change', function(e) {
             if(e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
@@ -971,7 +1023,8 @@
             if(!file) { mostrarToast("Debes seleccionar una foto primero", "⚠️"); return; }
             if(!auth.currentUser) { mostrarToast("Debes iniciar sesión para reportar", "🔒"); return; }
             
-            cerrarModalFoto(); mostrarToast("Comprimiendo y subiendo a la nube...", "⏳");
+            cerrarModalFoto(); 
+            mostrarToast("Procesando imagen...", "⏳");
             const imgDataRaw = document.getElementById('img-preview').src;
             
             comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
@@ -982,18 +1035,27 @@
                         usuario: auth.currentUser.displayName || "Explorador", uid: auth.currentUser.uid,
                         fecha: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); 
+                    
+                    // --- MANEJO INTELIGENTE OFFLINE/ONLINE EN EL MENSAJE ---
+                    if(navigator.onLine) {
+                        mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); 
+                    } else {
+                        mostrarToast("Guardado localmente. Se subirá al tener internet. +80 pts", "💾");
+                    }
+                    
                     addPoints(80);
-                    map.setView([ubicacion.lat, ubicacion.lng], 15);
+                    if(map) map.setView([ubicacion.lat, ubicacion.lng], 15);
                 } catch(e) {
                     console.error("Error al subir:", e);
-                    mostrarToast("Error al subir. Revisa tu conexión.", "❌");
+                    mostrarToast("Error guardando reporte.", "❌");
                 }
             });
         }
 
         function escucharReportesEnVivo() {
             const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
+            
+            // Firebase obtiene de la caché local primero si no hay internet
             db.collection("reportes_ciudadanos").orderBy("fecha", "desc").limit(50).onSnapshot((snapshot) => {
                 capas['fotos'].clearLayers(); 
                 snapshot.forEach((doc) => {
@@ -1027,7 +1089,7 @@
                     if(c.startsWith("621")) cat = "hospital"; else if(c.startsWith("46411")) cat = "pharmacy"; else if(c.startsWith("462")) cat = "supermarket"; else if(c.startsWith("71394")) cat = "gym"; else if(c.startsWith("72251")) cat = "cafe"; else if(c.startsWith("722")) cat = "restaurant";
                     if(cat) { const marker = L.circleMarker([lat,lng],{radius:4, color:"#2563eb", weight:1, fillOpacity:0.8}); marker.bindPopup(`<b>${n.nombre}</b>`); capas[cat].addLayer(marker); }
                 }
-            } catch (e) { console.warn("No se cargaron negocios", e); }
+            } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
         }
 
         async function cargarCiclovias() {
@@ -1035,7 +1097,6 @@
                 const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson");
                 const data = await res.json();
                 const capaLineas = L.geoJSON(data, { 
-                    // AQUÍ ESTÁ EL FIX DE LA CICLOVÍA (sin puntos azules)
                     pointToLayer: function (feature, latlng) { return null; }, 
                     style: function (f) { return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8' }; } 
                 });
@@ -1052,14 +1113,10 @@
             }; legend.addTo(map);
         }
 
-        // ==========================================
-        // LÓGICA DE OVERPASS API PARA PARQUES (GLOBAL)
-        // ==========================================
         let routingControl = null;
         window.markersParquesBuscados = null;
         let modoRutaActivo = false;
 
-        // ESTE ES EL GPS DE TU ARCHIVO index(5).html
         async function localizarUsuario() {
             if (!map) return;
             mostrarToast("Activando GPS rápido...", "🛰️");
@@ -1071,11 +1128,15 @@
         }
 
         async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
+            if(!navigator.onLine) {
+                mostrarToast("Necesitas internet para buscar parques satelitales.", "📡");
+                return;
+            }
             try {
                 if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
                 window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-               
+                mostrarToast("Buscando áreas verdes con satélite...", "🛰️");
 
                 const radioBusqueda = 5000;
                 const overpassQuery = `
@@ -1132,7 +1193,6 @@
                         const marker = L.marker([parque.lat, parque.lng], {
                             icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(16,185,129,0.5); color:white; transform: transition; hover:scale-110">🌳</div>`, className: '', iconSize: [32,32], iconAnchor: [16, 32] })
                         });
-                        // Limpia caracteres para no romper el botón HTML
                         let nombreLimpio = parque.nombre.replace(/['"]/g, "").replace(/[\n\r]/g, " ");
                         marker.bindPopup(`
                             <div class="text-center font-sans p-1.5 min-w-[160px]">
@@ -1161,7 +1221,7 @@
                 mostrarToast("Mapa limpiado", "🧹"); return;
             }
             modoRutaActivo = true; btnRuta.classList.add('bg-green-100', 'border-green-400');
-            mostrarToast("Buscando parques", "🛰️");
+            mostrarToast("Buscando parques con OpenStreetMap...", "🛰️");
             try {
                 const ubicacion = await obtenerUbicacionRapida();
                 map.setView([ubicacion.lat, ubicacion.lng], 14);
@@ -1187,18 +1247,14 @@
             renderMisiones();
         }
 
-      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia);
             if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
             try {
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], language: 'es', 
-                    // CAMBIO A SERVIDOR ESTRICTO PARA PEATONES
-                    router: L.Routing.osrmv1({ 
-                        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
-                        profile: 'foot' 
-                    }),
+                    router: L.Routing.osrmv1({ serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'foot' }),
                     lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9}] },
                     addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
                     createMarker: function(i, wp) {
@@ -1210,6 +1266,7 @@
                 routingControl.addTo(map); cumplirRetosRuta();
             } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
         }
+
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
             window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
@@ -1234,13 +1291,11 @@
                         if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 };
                         return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.3 };
                     },
-                  onEachFeature:function(feature,layer){
+                    onEachFeature: function(feature, layer) {
                         const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
-                        const nombre = normalizarNombre(nombreOriginal); 
-                        const m = rankingMap[nombre];
+                        const m = rankingMap[normalizarNombre(nombreOriginal)];
                         
-                        if(m){
-                            // Determinamos el nivel y el color para el diseño del popup
+                        if(m) {
                             const nivel = nivelIARRI(m.iarri);
                             const color = colorIARRI(m.iarri);
                             
@@ -1256,9 +1311,8 @@
                                     </div>
                                 </div>
                             `);
-                            
                             layer.bindTooltip(nombreOriginal,{sticky:true, className: 'font-bold text-xs'});
-                            layer.on("click",()=>{ registrarVisita(nombreOriginal); });
+                            layer.on("click", () => registrarVisita(nombreOriginal));
                         }
                     }
                 }).addTo(map);
@@ -1266,41 +1320,32 @@
                 map.fitBounds(capaMunicipios.getBounds());
                 await cargarNegocios(); await cargarCiclovias(); agregarLeyenda(); 
                 
-                // --- INICIA ESCUCHA DE FIREBASE EN VIVO ---
                 escucharReportesEnVivo();
                 if(fotosActivas) map.addLayer(capas['fotos']);
 
-            } catch (error) {}
+            } catch (error) { console.warn("Error cargando mapa base", error); }
         }
 
-      async function cargarRanking(){
+        async function cargarRanking(){
             try {
-                const data = await cargarIARRI(); 
-                if (!data || data.length === 0) throw new Error("Datos vacíos");
+                const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
+                data.sort((a,b)=>a.iarri - b.iarri); 
                 
-                // ORDENAMIENTO ORIGINAL DE TU CÓDIGO
-                data.sort((a,b)=>b.iarri-a.iarri); 
                 const peor = data[0]; 
 
                 if(peor && !misiones.find(m=>m.id==="municipio_critico")){
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el municipio mas bajo: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más crítico: ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false });
                     renderMisiones();
                 }
 
                 generarGraficoRiesgo(data);
-                const top10 = data.slice(0,10); let html="";
-                top10.forEach((m,i)=>{
-                    // DISEÑO ORIGINAL CON SUS COLORES Y MEDALLAS
-                    let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<span class="text-gray-400 font-bold w-6 inline-block text-center text-xs">${i+1}.</span>`;
-                    let color = m.iarri >= 0.15 ? "text-green-600" : m.iarri >= 0.10 ? "text-yellow-500" : m.iarri >= 0.05 ? "text-orange-500" : "text-red-600";
-                    let bgFila = i < 3 ? "bg-orange-50/40 border-orange-100" : "border-gray-100";
-                    
-                    html+=`<div class="flex justify-between border-b ${bgFila} py-3.5 px-3 text-sm items-center rounded-xl hover:bg-gray-50 transition mb-1"><span class="font-black text-gray-700 flex items-center gap-3">${medal} ${m.municipio}</span><span class="font-black ${color} bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-lg">${m.iarri.toFixed(3)}</span></div>`;
+                let html="";
+                data.slice(0,10).forEach((m,i)=>{
+                    let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+                    html+=`<div class="flex justify-between border-b py-3 px-3 text-sm items-center"><span class="font-black">${medal} ${m.municipio}</span><span class="font-black text-red-600">${m.iarri.toFixed(3)}</span></div>`;
                 });
                 document.getElementById("ranking").innerHTML = html;
-            } catch(err){ 
-                document.getElementById("ranking").innerHTML = "<p class='text-red-500 font-bold text-center mt-5'>Ranking no disponible (Falta Archivo CSV)</p>"; 
-            }
+            } catch(err){}
         }
 
         function generarGraficoRiesgo(data) {
@@ -1314,13 +1359,12 @@
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
             cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos();
+            
             const miniMap = L.map('miniMapa',{zoomControl:false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
             setTimeout(()=>miniMap.invalidateSize(),200);
 
-            // ==================================================
-            // INICIO DE CÓDIGO AGREGADO (RESTAURA EL MAPA PEQUEÑO)
-            // ==================================================
+            // --- INICIO MINI MAPA INTELIGENTE ---
             obtenerUbicacionRapida().then(async (ubicacion) => {
                 miniMap.setView([ubicacion.lat, ubicacion.lng], 13);
                 let marker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(miniMap).bindPopup("Analizando tu zona...").openPopup();
@@ -1345,10 +1389,28 @@
                         }
                     }
                     marker.bindPopup(`<div class="text-center font-sans p-1"><div class="text-2xl mb-1 drop-shadow-sm">📍</div><b class="text-gray-800 text-sm font-black">Tu ubicación actual</b><br><span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span></div>`).openPopup();
-                } catch(error) { marker.bindPopup("📍 Tu ubicación (Análisis no disponible)").openPopup(); }
+                } catch(error) { marker.bindPopup("📍 Tu ubicación (Análisis offline)").openPopup(); }
             }).catch(e => {
                 L.marker([19.04,-98.20]).addTo(miniMap).bindPopup("📍 Activa tu GPS para ver tu zona").openPopup();
             });
+            // --- FIN MINI MAPA ---
+
+            const inputMunicipio = document.getElementById('municipio');
+            if (inputMunicipio) {
+                inputMunicipio.addEventListener('input', (e) => {
+                    const nombre = e.target.value.trim();
+                    const badgeContainer = document.getElementById('badge-municipio');
+                    if (!datosIARRICache || !badgeContainer) return;
+                    const municipioInfo = datosIARRICache.find(d => d.municipio === nombre);
+                    
+                    if (municipioInfo) {
+                        const nivel = nivelIARRI(municipioInfo.iarri);
+                        const color = colorIARRI(municipioInfo.iarri);
+                        badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm" style="background-color: ${color}20; color: ${color}; border-color: ${color}40;">● Riesgo de Zona: ${nivel}</span>`;
+                    } else { badgeContainer.innerHTML = ''; }
+                });
+            }
+
             document.querySelectorAll('.filtro-cb').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     if(!map) return; let cat = e.target.value;
