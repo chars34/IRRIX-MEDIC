@@ -797,9 +797,21 @@
 
         function irMapa(){ switchScreen('territorio'); }
         function normalizarNombre(nombre){ return nombre?nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase():""; }
-        function colorIARRI(v){ if(v < 0.0124) return "#dc2626"; if(v < 0.0264) return "#f97316"; if(v < 0.0479) return "#facc15"; if(v < 0.0894) return "#86efac"; return "#16a34a"; }
-        function nivelIARRI(v){ if(v < 0.0124) return "Crítico"; if(v < 0.0264) return "Alto"; if(v < 0.0479) return "Medio"; if(v < 0.0894) return "Bajo"; return "Muy Bajo"; }
-
+     function colorIARRI(v){ 
+            if(v < 0.0124) return "#dc2626"; 
+            if(v < 0.0264) return "#f97316"; 
+            if(v < 0.0479) return "#facc15"; 
+            if(v < 0.0894) return "#86efac"; 
+            return "#16a34a"; 
+        }
+        
+        function nivelIARRI(v){ 
+            if(v < 0.0124) return "Crítico"; 
+            if(v < 0.0264) return "Alto"; 
+            if(v < 0.0479) return "Medio"; 
+            if(v < 0.0894) return "Bajo"; 
+            return "Muy Bajo"; 
+        }
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
             try {
