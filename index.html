@@ -1033,7 +1033,7 @@
             if(!navigator.onLine) { mostrarToast("Necesitas internet para buscar parques satelitales.", "📡"); return; }
             try {
                 if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados); window.markersParquesBuscados = L.layerGroup().addTo(map);
-                mostrarToast("Buscando áreas verdes con satélite...", "🛰️"); const radioBusqueda = 5000;
+                mostrarToast("Buscando áreas verdes ", "🛰️"); const radioBusqueda = 10000;
                 const overpassQuery = `[out:json][timeout:25];(nwr["leisure"="park"](around:${radioBusqueda},${latUsuario},${lngUsuario});nwr["leisure"="garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});nwr["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario}););out center;`;
                 const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`);
                 if (!response.ok) throw new Error("Error consultando Overpass API");
@@ -1074,7 +1074,6 @@
                 if (window.markerEmergencia) { map.removeLayer(window.markerEmergencia); window.markerEmergencia = null; }
                 map.closePopup(); btnRuta.classList.remove('bg-green-100', 'border-green-400'); mostrarToast("Mapa y rutas limpiados", "🧹"); return;
             }
-            modoRutaActivo = true; btnRuta.classList.add('bg-green-100', 'border-green-400'); mostrarToast("Buscando parques con OpenStreetMap...", "🛰️");
             try { const ubicacion = await obtenerUbicacionRapida(); map.setView([ubicacion.lat, ubicacion.lng], 14); ejecutarLogicaRutaOverpass(ubicacion.lat, ubicacion.lng); } 
             catch (e) { mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); const center = map.getCenter(); ejecutarLogicaRutaOverpass(center.lat, center.lng); }
         }
@@ -1090,23 +1089,33 @@
             renderMisiones();
         }
 
-        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-            if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-            try {
-                routingControl = L.Routing.control({
-                    waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], language: 'es', 
-                    // SERVIDOR OSRM OFICIAL PARA RUTAS PEATONALES MÁS ESTABLE
-                    router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'foot' }),
-                    lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9}] }, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
-                    createMarker: function(i, wp) {
-                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                        .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
-                    }
-                });
-                routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-                routingControl.addTo(map); cumplirRetosRuta();
-            } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
-        }
+      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
+    try {
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
+            language: 'es', 
+            
+            // 🔥 AQUÍ ESTÁ EL CAMBIO: Servidor dedicado a peatones (routed-foot)
+            router: L.Routing.osrmv1({ 
+                serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
+                profile: 'foot' 
+            }),
+            
+            lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, // Agregué un dashArray para que parezca de pasos
+            addWaypoints: false, 
+            draggableWaypoints: false, 
+            fitSelectedRoutes: true, 
+            show: false,
+            createMarker: function(i, wp) {
+                return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
+                .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
+            }
+        });
+        routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
+        routingControl.addTo(map); cumplirRetosRuta();
+    } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
+}
 
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
