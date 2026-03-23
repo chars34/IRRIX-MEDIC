@@ -1090,19 +1090,37 @@ let defaultCursos = [
             } catch (error) { console.warn("Error cargando mapa base", error); }
         }
 
-        async function cargarRanking(){
+       async function cargarRanking(){
             try {
                 const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
-                data.sort((a,b)=>b.iarri-a.iarri); const peor = data.find(m => normalizarNombre(m.municipio) === "Puebla") || data[0]; 
+                data.sort((a,b)=>b.iarri-a.iarri); 
 
-                if(peor && !misiones.find(m=>m.id==="municipio_critico")){ misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analisa Municipio bajo(1.00): ${peor.municipio}`, puntos:200, progreso:0, objetivo:1, completado:false }); renderMisiones(); }
+                // 1. Verificamos si la misión ya existe en la memoria
+                let misionArq = misiones.find(m => m.id === "municipio_critico");
+                
+                if(!misionArq){ 
+                    // Si no existe, la creamos forzando el nombre de Cohetzala
+                    misiones.push({ 
+                        id:"municipio_critico", 
+                        nombre:"🥇 Arquitecto", 
+                        descripcion:`Analiza el más bajo: Cohetzala`, 
+                        puntos:200, 
+                        progreso:0, 
+                        objetivo:1, 
+                        completado:false 
+                    }); 
+                } else {
+                    // 2. Si ya existía, le cambiamos el texto a la fuerza para borrar "Juan C. Bonilla"
+                    misionArq.descripcion = `Analiza el más bajo: Cohetzala`;
+                }
+                
+                renderMisiones();
 
                 generarGraficoRiesgo(data); let html="";
                 data.slice(0,10).forEach((m,i)=>{ let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`; html+=`<div class="flex justify-between border-b py-3 px-3 text-sm items-center"><span class="font-black">${medal} ${m.municipio}</span><span class="font-black">${m.iarri.toFixed(3)}</span></div>`; });
                 document.getElementById("ranking").innerHTML = html;
             } catch(err){}
         }
-
         function generarGraficoRiesgo(data) {
             const ctx = document.getElementById('rankingChart'); if(!ctx) return; let counts = {critico:0, alto:0, medio:0, bajo:0};
             data.forEach(d => { const niv = nivelIARRI(d.iarri); if(niv==='Crítico') counts.critico++; else if(niv==='Alto') counts.alto++; else if(niv==='Medio') counts.medio++; else counts.bajo++; });
