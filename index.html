@@ -868,13 +868,67 @@
 
         function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
         
+    // 1. Función para cuando tocas la "X" (Borra y te deja cambiarla)
         function eliminarFotoSeleccionada() {
             document.getElementById('foto-input').value = "";
             document.getElementById('img-preview').src = "";
             document.getElementById('foto-preview').classList.add("hidden");
-            mostrarToast("Foto descartada", "🗑️");
+            document.getElementById('foto-input').classList.remove("hidden"); // Vuelve a mostrar el botón de elegir foto
+            mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
         }
 
+        // 2. Función que detecta cuando seleccionaste una foto nueva
+        document.getElementById('foto-input').addEventListener('change', function(e) {
+            if(e.target.files && e.target.files[0]) {
+                const reader = new FileReader(); 
+                reader.onload = function(ev) { 
+                    document.getElementById('img-preview').src = ev.target.result; 
+                    document.getElementById('foto-preview').classList.remove("hidden"); 
+                    document.getElementById('foto-input').classList.add("hidden"); // Oculta el botón para que se vea limpio
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // 3. Función para subir el reporte a la base de datos
+        function guardarReporteFoto() {
+            const desc = document.getElementById('foto-desc').value || "Sin descripción"; 
+            const file = document.getElementById('foto-input').files[0];
+            if(!file) { mostrarToast("Debes seleccionar una foto primero", "⚠️"); return; }
+            if(!auth.currentUser) { mostrarToast("Debes iniciar sesión para reportar", "🔒"); return; }
+            
+            cerrarModalFoto(); 
+            mostrarToast("Procesando imagen...", "⏳"); 
+            const imgDataRaw = document.getElementById('img-preview').src;
+            
+            comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
+                try {
+                    const ubicacion = await obtenerUbicacionRapida();
+                    await db.collection("reportes_ciudadanos").add({ 
+                        lat: ubicacion.lat, lng: ubicacion.lng, imgData: imgComprimida, desc: desc, 
+                        usuario: auth.currentUser.displayName || "Explorador", uid: auth.currentUser.uid, 
+                        fecha: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                    
+                    if(navigator.onLine) { mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); } 
+                    else { mostrarToast("Guardado localmente. Se subirá al tener internet. +80 pts", "💾"); }
+                    
+                    addPoints(80); 
+                    if(map) map.setView([ubicacion.lat, ubicacion.lng], 15);
+                    
+                    // ¡Éxito! Limpiamos todo para el próximo reporte
+                    document.getElementById('foto-input').value = "";
+                    document.getElementById('img-preview').src = "";
+                    document.getElementById('foto-preview').classList.add("hidden");
+                    document.getElementById('foto-input').classList.remove("hidden"); // Restauramos el botón
+                    document.getElementById('foto-desc').value = ""; 
+                    
+                } catch(e) { 
+                    console.error("Error al subir:", e); 
+                    mostrarToast("Error guardando reporte.", "❌"); 
+                }
+            });
+        }
         function cerrarModalFoto() { 
             document.getElementById('modal-foto').style.opacity = '0'; 
             setTimeout(() => { 
