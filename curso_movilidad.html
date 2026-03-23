@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso: Movilidad Activa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-gray-800 pb-10">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative overflow-hidden">
+        
+        <header class="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6 rounded-b-3xl shadow-md relative">
+            <button onclick="window.history.back()" class="absolute top-4 left-4 bg-white/20 hover:bg-white/30 p-2 rounded-full transition backdrop-blur-sm">🔙</button>
+            <div class="text-center mt-4">
+                <div class="text-5xl mb-2 drop-shadow-md">🚴</div>
+                <h1 class="text-2xl font-black tracking-tight">Movilidad Activa</h1>
+                <p class="text-sky-100 text-sm mt-1 font-medium">Pirámide de la movilidad urbana</p>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <div class="bg-sky-50 p-5 rounded-2xl border border-sky-100 mb-6 fade-in shadow-inner">
+                <h2 class="font-bold text-sky-900 mb-2 flex items-center gap-2"><span>🚶</span> Calles Completas</h2>
+                <p class="text-sm text-sky-800 leading-relaxed mb-3">
+                    El diseño urbano del siglo XX priorizó el flujo de automóviles, obligando a las personas a ser sedentarias. 
+                </p>
+                <p class="text-sm text-sky-800 leading-relaxed">
+                    Las <b>Calles Completas</b> devuelven el espacio a peatones y ciclistas, fomentando el ejercicio incidental (caminar al trabajo) que es vital para la salud metabólica poblacional.
+                </p>
+            </div>
+
+            <div class="fade-in" style="animation-delay: 0.2s;">
+                <h3 class="font-black text-gray-800 text-lg mb-3">Auditoría Vial 🎯</h3>
+                <p class="text-sm text-gray-600 mb-4 font-medium">Analiza esta avenida que conecta una zona residencial con un hospital. ¿Cuál es la intervención correcta?</p>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="checkAnswer(this, true)" class="text-left bg-white border-2 border-gray-200 p-4 rounded-xl hover:border-sky-400 transition transform hover:-translate-y-1 shadow-sm flex items-start gap-4">
+                        <div class="text-3xl mt-1">🛣️🚴</div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Reducción de carriles (Road Diet)</h4>
+                            <p class="text-[11px] text-gray-500 mt-1">Quitar un carril de autos para meter una ciclovía segregada y ampliar banquetas.</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="checkAnswer(this, false)" class="text-left bg-white border-2 border-gray-200 p-4 rounded-xl hover:border-sky-400 transition transform hover:-translate-y-1 shadow-sm flex items-start gap-4">
+                        <div class="text-3xl mt-1">🌉🚗</div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Puente Peatonal</h4>
+                            <p class="text-[11px] text-gray-500 mt-1">Construir un puente peatonal elevado para que los autos no se detengan.</p>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="feedback" class="hidden"></div>
+            </div>
+
+            <button id="btn-completar" onclick="completarCurso()" class="w-full bg-gray-300 text-gray-500 font-black py-4 rounded-xl shadow-md cursor-not-allowed transition-all duration-300 mt-8 pointer-events-none">
+                Completa el reto para avanzar
+            </button>
+        </main>
+    </div>
+
+    <script>
+        let quizAprobado = false;
+
+        function checkAnswer(boton, isCorrect) {
+            if(quizAprobado) return;
+            const botones = document.querySelectorAll('button');
+            botones.forEach(b => { if(b.id !== 'btn-completar') b.classList.remove('border-sky-500', 'bg-sky-50', 'border-red-500', 'bg-red-50'); });
+
+            const feedback = document.getElementById("feedback");
+            feedback.classList.remove("hidden");
+
+            if (isCorrect) {
+                quizAprobado = true;
+                boton.classList.add("border-sky-500", "bg-sky-50", "ring-4", "ring-sky-100");
+                feedback.className = "mt-4 p-4 rounded-xl text-center font-bold text-sm bg-green-50 text-green-700 border border-green-200 fade-in";
+                feedback.innerHTML = "✅ ¡Correcto! El 'Road Diet' pacifica el tráfico y protege a los usuarios vulnerables.";
+                
+                const btnFinal = document.getElementById("btn-completar");
+                btnFinal.className = "w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black py-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300 mt-8 animate-pulse";
+                btnFinal.innerHTML = "Reclamar +80 pts 🎁";
+                btnFinal.style.pointerEvents = "auto";
+            } else {
+                boton.classList.add("border-red-500", "bg-red-50");
+                feedback.className = "mt-4 p-3 rounded-xl text-center font-bold text-[11px] bg-red-50 text-red-700 border border-red-200 fade-in";
+                feedback.innerHTML = "❌ Inadecuado. Los puentes peatonales (anti-peatonales) obligan al vulnerable a subir 3 pisos de escaleras para no molestar al auto.";
+            }
+        }
+
+        function completarCurso() {
+            if(!quizAprobado) return;
+            
+            let arqProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
+            arqProgress.totalPoints += 80; 
+            localStorage.setItem("arqProgress", JSON.stringify(arqProgress));
+
+            let cursosData = JSON.parse(localStorage.getItem("arqCursosData")) || [];
+            let cursoActual = cursosData.find(c => c.id === "c4");
+            if(cursoActual) { cursoActual.completado = true; }
+            localStorage.setItem("arqCursosData", JSON.stringify(cursosData));
+
+            const btn = document.getElementById("btn-completar");
+            btn.innerHTML = "¡Puntos ganados! 🌟";
+            btn.classList.replace("from-sky-500", "from-green-500");
+            btn.classList.replace("to-blue-600", "to-green-600");
+            btn.classList.remove("animate-pulse");
+            
+            setTimeout(() => { window.history.back(); }, 1200);
+        }
+    </script>
+</body>
+</html>

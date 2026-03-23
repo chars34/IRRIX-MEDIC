@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso: Islas de Calor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-gray-800 pb-10">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative overflow-hidden">
+        
+        <header class="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 rounded-b-3xl shadow-md relative">
+            <button onclick="window.history.back()" class="absolute top-4 left-4 bg-white/20 hover:bg-white/30 p-2 rounded-full transition backdrop-blur-sm">🔙</button>
+            <div class="text-center mt-4">
+                <div class="text-5xl mb-2 drop-shadow-md">🌡️</div>
+                <h1 class="text-2xl font-black tracking-tight">Islas de Calor</h1>
+                <p class="text-orange-100 text-sm mt-1 font-medium">Mitigación térmica urbana</p>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100 mb-6 fade-in shadow-inner">
+                <h2 class="font-bold text-orange-900 mb-2 flex items-center gap-2"><span>🔥</span> ¿Qué es el Efecto Albedo?</h2>
+                <p class="text-sm text-orange-800 leading-relaxed mb-3">
+                    Las ciudades absorben más calor que el campo porque el asfalto y el concreto oscuro retienen la radiación solar. A esto se le llama <b>Isla de Calor Urbana (ICU)</b>.
+                </p>
+                <p class="text-sm text-orange-800 leading-relaxed">
+                    Aumentar la cobertura vegetal y usar materiales reflejantes (alto albedo) puede reducir la temperatura local hasta en 4°C, salvando vidas en olas de calor.
+                </p>
+            </div>
+
+            <div class="fade-in" style="animation-delay: 0.2s;">
+                <h3 class="font-black text-gray-800 text-lg mb-3">Reto Práctico 🎯</h3>
+                <p class="text-sm text-gray-600 mb-4 font-medium">El presidente municipal quiere remodelar la plancha del zócalo para bajar la temperatura. ¿Qué diseño eliges?</p>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="checkAnswer(this, false)" class="text-left bg-white border-2 border-gray-200 p-4 rounded-xl hover:border-orange-400 transition transform hover:-translate-y-1 shadow-sm group">
+                        <div class="text-3xl mb-2">🛣️</div>
+                        <h4 class="font-bold text-gray-800">Plaza Cívica de Concreto</h4>
+                        <p class="text-xs text-gray-500 mt-1">Concreto hidráulico liso para facilitar eventos masivos y limpieza.</p>
+                    </button>
+                    
+                    <button onclick="checkAnswer(this, true)" class="text-left bg-white border-2 border-gray-200 p-4 rounded-xl hover:border-orange-400 transition transform hover:-translate-y-1 shadow-sm group">
+                        <div class="text-3xl mb-2">🌳</div>
+                        <h4 class="font-bold text-gray-800">Bosque de Bolsillo</h4>
+                        <p class="text-xs text-gray-500 mt-1">Suelo permeable, árboles nativos de copa ancha y mobiliario de colores claros.</p>
+                    </button>
+                </div>
+
+                <div id="feedback" class="hidden"></div>
+            </div>
+
+            <button id="btn-completar" onclick="completarCurso()" class="w-full bg-gray-300 text-gray-500 font-black py-4 rounded-xl shadow-md cursor-not-allowed transition-all duration-300 mt-8 pointer-events-none">
+                Completa el reto para avanzar
+            </button>
+        </main>
+    </div>
+
+    <script>
+        let quizAprobado = false;
+
+        function checkAnswer(boton, isCorrect) {
+            if(quizAprobado) return;
+            const botones = document.querySelectorAll('button');
+            botones.forEach(b => { if(b.id !== 'btn-completar') b.classList.remove('border-orange-500', 'bg-orange-50', 'border-red-500', 'bg-red-50'); });
+
+            const feedback = document.getElementById("feedback");
+            feedback.classList.remove("hidden");
+
+            if (isCorrect) {
+                quizAprobado = true;
+                boton.classList.add("border-orange-500", "bg-orange-50", "ring-4", "ring-orange-100");
+                feedback.className = "mt-4 p-4 rounded-xl text-center font-bold text-sm bg-green-50 text-green-700 border border-green-200 fade-in";
+                feedback.innerHTML = "✅ ¡Correcto! La evapotranspiración de los árboles y la sombra son el mejor aire acondicionado urbano.";
+                
+                const btnFinal = document.getElementById("btn-completar");
+                btnFinal.className = "w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-black py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 mt-8 animate-pulse";
+                btnFinal.innerHTML = "Reclamar +60 pts 🎁";
+                btnFinal.style.pointerEvents = "auto";
+            } else {
+                boton.classList.add("border-red-500", "bg-red-50");
+                feedback.className = "mt-4 p-3 rounded-xl text-center font-bold text-sm bg-red-50 text-red-700 border border-red-200 fade-in";
+                feedback.innerHTML = "❌ Cuidado. Una plancha de concreto masiva multiplica el calor retenido por radiación.";
+            }
+        }
+
+        function completarCurso() {
+            if(!quizAprobado) return;
+            
+            // Lógica unificada con index.html
+            let arqProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
+            arqProgress.totalPoints += 60; // Puntos del curso Calor
+            localStorage.setItem("arqProgress", JSON.stringify(arqProgress));
+
+            let cursosData = JSON.parse(localStorage.getItem("arqCursosData")) || [];
+            let cursoActual = cursosData.find(c => c.id === "c3");
+            if(cursoActual) { cursoActual.completado = true; }
+            localStorage.setItem("arqCursosData", JSON.stringify(cursosData));
+
+            const btn = document.getElementById("btn-completar");
+            btn.innerHTML = "¡Puntos ganados! 🌟";
+            btn.classList.replace("from-orange-500", "from-green-500");
+            btn.classList.replace("to-red-500", "to-green-600");
+            btn.classList.remove("animate-pulse");
+            
+            setTimeout(() => { window.history.back(); }, 1200);
+        }
+    </script>
+</body>
+</html>
