@@ -347,9 +347,6 @@
 
                     <div id="map" class="h-full w-full rounded-[1.2rem] z-0"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
-                    <span class="text-lg">👆</span> Explora, reporta o crea rutas.
-                </p>
 
                 <div id="ranking-container" class="mt-8 space-y-6">
                     <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
@@ -1175,15 +1172,16 @@
             }
         }
 
-        // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
+     // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
         function guardarContactos(context) {
             let c1 = document.getElementById(context + '-c1-tel');
             let c2 = document.getElementById(context + '-c2-tel');
             
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {c1Tel: "", c2Tel: ""};
             
-            if (c1 && c1.value) guardados.c1Tel = c1.value;
-            if (c2 && c2.value) guardados.c2Tel = c2.value;
+            // Corrección: Ahora guarda ambos números exactamente como estén escritos
+            if (c1 != null) guardados.c1Tel = c1.value.trim();
+            if (c2 != null) guardados.c2Tel = c2.value.trim();
             
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
             
@@ -1200,19 +1198,31 @@
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
             if(guardados && (guardados.c1Tel || guardados.c2Tel)) {
-                // Rellenar los campos de texto
+                // 1. Rellenar los campos de texto
                 document.querySelectorAll('input[id$="-c1-tel"]').forEach(el => el.value = guardados.c1Tel || "");
                 document.querySelectorAll('input[id$="-c2-tel"]').forEach(el => el.value = guardados.c2Tel || "");
                 
-                // Ocultar recuadros de configuración si ya hay números guardados
+                // 2. Ocultar recuadros de configuración
                 let homeConfig = document.getElementById('home-config-contactos');
                 if (homeConfig) homeConfig.classList.add('hidden');
                 
                 let testConfig = document.getElementById('test-config-contactos');
                 if (testConfig) testConfig.classList.add('hidden');
                 
-                // Mostrar el enlace de "Editar números de confianza"
+                // 3. Mostrar el enlace de "Editar"
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
+
+                // 4. NUEVO: Mostrar los números en los botones verdes para que siempre los veas
+                if (guardados.c1Tel) {
+                    document.querySelectorAll("button[onclick*=\"notificarContacto('home', 1)\"], button[onclick*=\"notificarContacto('test', 1)\"]").forEach(btn => {
+                        btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c1Tel}`;
+                    });
+                }
+                if (guardados.c2Tel) {
+                    document.querySelectorAll("button[onclick*=\"notificarContacto('home', 2)\"], button[onclick*=\"notificarContacto('test', 2)\"]").forEach(btn => {
+                        btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c2Tel}`;
+                    });
+                }
             }
         }
 
@@ -1696,9 +1706,21 @@
             catch (e) { mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); const center = map.getCenter(); ejecutarLogicaRutaOverpass(center.lat, center.lng); }
         }
 
-        window.iniciarRutaSeleccionada = function(latU, lngU, latD, lngD, nombreDestino) {
-            map.closePopup(); if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-            mostrarToast("Trazando tu ruta peatonal...", "🚶"); trazarRuta(latU, lngU, latD, lngD, nombreDestino);
+      window.iniciarRutaSeleccionada = async function(latU, lngU, latD, lngD, nombreDestino) {
+            map.closePopup(); 
+            if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
+            
+            mostrarToast("Obteniendo tu ubicación exacta...", "🛰️"); 
+            
+            try {
+                // Forzamos a obtener tu GPS en tiempo real en lugar del centro del mapa
+                const miUbicacion = await obtenerUbicacionRapida();
+                mostrarToast("Trazando ruta...", "🚶");
+                trazarRuta(miUbicacion.lat, miUbicacion.lng, latD, lngD, nombreDestino);
+            } catch (e) {
+                mostrarToast("No se pudo obtener GPS. Usando ubicación aproximada.", "⚠️");
+                trazarRuta(latU, lngU, latD, lngD, nombreDestino);
+            }
         };
 
         function cumplirRetosRuta() {
@@ -1707,38 +1729,36 @@
             renderMisiones();
         }
 
-      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-    try {
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
-            language: 'es', 
+        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+            if (routingControl) map.removeControl(routingControl); 
+            if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); 
+            if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
             
-            router: L.Routing.osrmv1({ 
-                serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
-                profile: 'foot' 
-            }),
-            
-            lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, 
-            addWaypoints: false, 
-            draggableWaypoints: false, 
-            fitSelectedRoutes: true, 
-            show: false,
-            createMarker: function(i, wp) {
-                return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
+            try {
+                routingControl = L.Routing.control({
+                    waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
+                    language: 'es', 
+                    
+                    // Quitamos el router inestable para que use el servidor principal por defecto
+                    lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, 
+                    addWaypoints: false, 
+                    draggableWaypoints: false, 
+                    fitSelectedRoutes: true, 
+                    show: false,
+                    createMarker: function(i, wp) {
+                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'📍':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
+                        .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino</span><br><b class="text-green-800">${nombre}</b></div>`);
+                    }
+                });
+                
+                // Si el servidor llega a fallar, dibuja una línea recta automáticamente
+                routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
+                routingControl.addTo(map); 
+                cumplirRetosRuta();
+                
+            } catch (error) { 
+                dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
             }
-        });
-        routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-        routingControl.addTo(map); cumplirRetosRuta();
-    } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
-}
-
-        function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
-            if (routingControl) map.removeControl(routingControl);
-            window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
-            window.markerEmergencia = L.marker([lat2, lon2], { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669;">🎯</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).addTo(map).bindPopup(`<b>${nombre}</b>`).openPopup();
-            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]}); cumplirRetosRuta();
         }
 
         async function initMap(){
