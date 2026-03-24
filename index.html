@@ -347,6 +347,9 @@
 
                     <div id="map" class="h-full w-full rounded-[1.2rem] z-0"></div>
                 </div>
+                <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
+                    <span class="text-lg">👆</span> Explora, reporta o crea rutas.
+                </p>
 
                 <div id="ranking-container" class="mt-8 space-y-6">
                     <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
@@ -1172,7 +1175,7 @@
             }
         }
 
-     // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
+        // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
         function guardarContactos(context) {
             let c1 = document.getElementById(context + '-c1-tel');
             let c2 = document.getElementById(context + '-c2-tel');
@@ -1212,7 +1215,7 @@
                 // 3. Mostrar el enlace de "Editar"
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
 
-                // 4. NUEVO: Mostrar los números en los botones verdes para que siempre los veas
+                // 4. Mostrar los números en los botones verdes para que siempre los veas
                 if (guardados.c1Tel) {
                     document.querySelectorAll("button[onclick*=\"notificarContacto('home', 1)\"], button[onclick*=\"notificarContacto('test', 1)\"]").forEach(btn => {
                         btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c1Tel}`;
@@ -1706,16 +1709,16 @@
             catch (e) { mostrarToast("GPS débil. Usando centro de pantalla.", "⚠️"); const center = map.getCenter(); ejecutarLogicaRutaOverpass(center.lat, center.lng); }
         }
 
-      window.iniciarRutaSeleccionada = async function(latU, lngU, latD, lngD, nombreDestino) {
+        window.iniciarRutaSeleccionada = async function(latU, lngU, latD, lngD, nombreDestino) {
             map.closePopup(); 
             if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
             
             mostrarToast("Obteniendo tu ubicación exacta...", "🛰️"); 
             
             try {
-                // Forzamos a obtener tu GPS en tiempo real en lugar del centro del mapa
+                // Forzamos a obtener tu GPS en tiempo real
                 const miUbicacion = await obtenerUbicacionRapida();
-                mostrarToast("Trazando ruta...", "🚶");
+                mostrarToast("Trazando ruta peatonal...", "🚶");
                 trazarRuta(miUbicacion.lat, miUbicacion.lng, latD, lngD, nombreDestino);
             } catch (e) {
                 mostrarToast("No se pudo obtener GPS. Usando ubicación aproximada.", "⚠️");
@@ -1738,8 +1741,11 @@
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
                     language: 'es', 
-                    
-                    // Quitamos el router inestable para que use el servidor principal por defecto
+                    // Obliga a usar el ruteador peatonal siempre
+                    router: L.Routing.osrmv1({ 
+                        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
+                        profile: 'foot' 
+                    }),
                     lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, 
                     addWaypoints: false, 
                     draggableWaypoints: false, 
@@ -1747,7 +1753,7 @@
                     show: false,
                     createMarker: function(i, wp) {
                         return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'📍':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                        .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino</span><br><b class="text-green-800">${nombre}</b></div>`);
+                        .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
                     }
                 });
                 
@@ -1759,6 +1765,13 @@
             } catch (error) { 
                 dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
             }
+        }
+
+        function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
+            if (routingControl) map.removeControl(routingControl);
+            window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
+            window.markerEmergencia = L.marker([lat2, lon2], { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669;">🎯</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).addTo(map).bindPopup(`<b>${nombre}</b>`).openPopup();
+            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]}); cumplirRetosRuta();
         }
 
         async function initMap(){
