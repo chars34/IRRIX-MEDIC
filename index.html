@@ -27,6 +27,19 @@
     </script>
 
     <style>
+        /* --- ESTILOS EXCLUSIVOS PARA POPUPS DE HOSPITALES --- */
+        .hospital-popup .leaflet-popup-content-wrapper { 
+            border-radius: 1.25rem !important; 
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.2) !important; 
+            border: 1px solid rgba(220, 38, 38, 0.1);
+        }
+        .hospital-popup .leaflet-popup-content { 
+            margin: 14px 16px !important; 
+        }
+        .hospital-popup .leaflet-popup-tip { 
+            background: white; 
+        }
+        /* ---------------------------------------------------- */
         .hidden { display: none !important; }
         #login-screen { background-color: #064e3b; display: flex; }
         #splash-screen { background-color: #064e3b; }
@@ -1289,28 +1302,66 @@
         // ---> CAMBIO APLICADO: Ahora los marcadores de hospital muestran botones para llamar a su número o al 911
         async function cargarNegocios(){
             try {
-                const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json"); const data = await res.json();
+                const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json"); 
+                const data = await res.json();
+                
                 for(let n of data) {
-                    const lat = parseFloat(n.lat || n.latitud); const lng = parseFloat(n.lng || n.longitud); 
+                    const lat = parseFloat(n.lat || n.latitud); 
+                    const lng = parseFloat(n.lng || n.longitud); 
                     if(isNaN(lat) || isNaN(lng)) continue; 
-                    let c = (n.codigo_scian || n.codigo_act || "").toString(); let cat = null;
-                    if(c.startsWith("621") || c.startsWith("622")) cat = "hospital"; else if(c.startsWith("46411")) cat = "pharmacy"; else if(c.startsWith("462")) cat = "supermarket"; else if(c.startsWith("71394")) cat = "gym"; else if(c.startsWith("72251")) cat = "cafe"; else if(c.startsWith("722")) cat = "restaurant";
+                    
+                    let c = (n.codigo_scian || n.codigo_act || "").toString(); 
+                    let cat = null;
+                    let catName = "";
+                    let emoji = "";
+
+                    // Clasificación
+                    if(c.startsWith("621") || c.startsWith("622")) { cat = "hospital"; catName = "Asistencia Médica"; emoji = "🏥"; }
+                    else if(c.startsWith("46411")) { cat = "pharmacy"; catName = "Farmacia"; emoji = "💊"; }
+                    else if(c.startsWith("462")) { cat = "supermarket"; catName = "Supermercado"; emoji = "🛒"; }
+                    else if(c.startsWith("71394")) { cat = "gym"; catName = "Gimnasio"; emoji = "🏋️"; }
+                    else if(c.startsWith("72251")) { cat = "cafe"; catName = "Cafetería"; emoji = "☕"; }
+                    else if(c.startsWith("722")) { cat = "restaurant"; catName = "Restaurante"; emoji = "🍽️"; }
                     
                     if(cat) { 
-                        let colorMarker = cat === "hospital" ? "#dc2626" : "#2563eb";
-                        const marker = L.circleMarker([lat,lng],{radius:4, color: colorMarker, weight:1, fillOpacity:0.8}); 
+                        // Marcadores más estéticos (círculo blanco con borde de color)
+                        let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
+                        const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
                         
-                        let popupHtml = `<div class="text-center font-sans p-1"><b class="text-gray-800">${n.nombre || n.nom_estab}</b>`;
-                        
+                        let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
+                        let popupHtml = "";
+
                         if (cat === "hospital") {
+                            // --- DISEÑO PREMIUM PARA HOSPITALES ---
                             let tel = n.telefono || n.numero_telefono || null;
+                            let btnHtml = "";
+                            
                             if (tel && tel.trim() !== "") {
-                                popupHtml += `<br><a href="tel:${tel}" class="mt-2 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition">📞 Llamar ${tel}</a>`;
+                                btnHtml = `<a href="tel:${tel}" class="mt-3 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"><span class="text-base">📞</span> Llamar al ${tel}</a>`;
                             } else {
-                                popupHtml += `<br><a href="tel:911" class="mt-2 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition">🚨 Emergencias 911</a>`;
+                                btnHtml = `<a href="tel:911" class="mt-3 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"><span class="text-base">🚨</span> Emergencias 911</a>`;
                             }
+                            
+                            popupHtml = `
+                            <div class="min-w-[190px] font-sans">
+                                <div class="flex items-center gap-3 border-b border-gray-100 pb-3">
+                                    <div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0">🏥</div>
+                                    <div class="flex-1">
+                                        <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
+                                        <span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">${catName}</span>
+                                    </div>
+                                </div>
+                                ${btnHtml}
+                            </div>`;
+                        } else {
+                            // --- DISEÑO LIMPIO PARA OTROS NEGOCIOS ---
+                            popupHtml = `
+                            <div class="min-w-[140px] text-center font-sans p-1">
+                                <div class="text-3xl mb-2 drop-shadow-sm">${emoji}</div>
+                                <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
+                                <span class="text-[9px] text-blue-500 font-bold uppercase tracking-widest block mt-1.5 bg-blue-50 py-1 rounded-md border border-blue-100">${catName}</span>
+                            </div>`;
                         }
-                        popupHtml += `</div>`;
                         
                         marker.bindPopup(popupHtml); 
                         capas[cat].addLayer(marker); 
@@ -1318,7 +1369,6 @@
                 }
             } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
         }
-
         async function cargarCiclovias() {
             try {
                 const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson"); const data = await res.json();
