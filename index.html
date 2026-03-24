@@ -234,9 +234,25 @@
                         <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
-                                <input type="tel" id="home-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
-                                <input type="tel" id="home-c2-tel" placeholder="Tel. Familiar 2 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
-                                <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                               <input 
+  type="tel" 
+  id="sos-numero-1" 
+  placeholder="Ingresa el número a 10 dígitos" 
+  maxlength="10" 
+  pattern="[0-9]{10}"
+  oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+  class="tu-clase-de-estilos-aqui"
+>
+
+<input 
+  type="tel" 
+  id="sos-numero-2" 
+  placeholder="Ingresa el número a 10 dígitos" 
+  maxlength="10" 
+  pattern="[0-9]{10}"
+  oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+  class="tu-clase-de-estilos-aqui"
+> <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
                                     <span>💾</span> Guardar Números
                                 </button>
                             </div>
@@ -870,7 +886,25 @@
                 setTimeout(() => loginScreen.style.opacity = '1', 50);
             }
         });
+function guardarNumeros() {
+    const num1 = document.getElementById('sos-numero-1').value;
+    const num2 = document.getElementById('sos-numero-2').value;
 
+    // Validar que si ingresan algo, sean exactamente 10 números
+    if ((num1 !== "" && num1.length !== 10) || (num2 !== "" && num2.length !== 10)) {
+        alert("⚠️ Por favor, ingresa números telefónicos válidos de 10 dígitos.");
+        return; // Detiene la ejecución para no guardar errores
+    }
+
+    // Aquí va tu lógica actual para guardar en localStorage o base de datos
+    // localStorage.setItem('sos_1', num1);
+    // localStorage.setItem('sos_2', num2);
+    
+    alert("✅ Números guardados correctamente");
+    
+    // Aquí mandas llamar tu función que actualiza los botones verdes
+    // actualizarBotonesSOS(); 
+}
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = "toast-msg";
             toast.innerHTML = `<span class="text-lg">${icono}</span> <span>${mensaje}</span>`; container.appendChild(toast);
