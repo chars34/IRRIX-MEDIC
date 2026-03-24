@@ -196,7 +196,7 @@
                         <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
                         <h3 class="font-black text-white mb-2 flex items-center gap-2 text-lg"><span>⚠️</span> Alerta Metabólica</h3>
                         <p class="text-xs text-white/90 leading-relaxed font-medium mb-3">
-                            Tu último test indica un riesgo ALTO. Las señales de alerta incluyen mareos [cite: 55, 57], visión borrosa [cite: 58], mucha sed [cite: 59] y fatiga extrema[cite: 60]. Acude a un médico[cite: 56].
+                            Tu último test indica un riesgo ALTO. Las señales de alerta incluyen mareos, visión borrosa, mucha sed y fatiga extrema. Acude a un médico.
                         </p>
                         <button onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-3 rounded-xl font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
                             <span class="text-lg">🏥</span> Encontrar ayuda cercana
@@ -667,18 +667,20 @@
         window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
         window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
 
+        // ---> CAMBIO APLICADO: Configuración de GPS mucho más precisa y robusta para evitar fallos (timeout más largo)
         async function obtenerUbicacionRapida() {
+            const opcionesGPS = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
             if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
                 try {
                     const check = await window.Capacitor.Plugins.Geolocation.checkPermissions();
                     if (check.location !== 'granted') { await window.Capacitor.Plugins.Geolocation.requestPermissions(); }
-                    const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 });
+                    const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition(opcionesGPS);
                     return { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 } catch (e) { throw e; }
             } else {
                 return new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(
-                        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }), err => reject(err), { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+                        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }), err => reject(err), opcionesGPS
                     );
                 });
             }
@@ -957,6 +959,17 @@
             if (screen === "fundamentacion") window.scrollTo(0,0);
         }
 
+        // ---> CAMBIO APLICADO: Función faltante para el botón de "Encontrar ayuda cercana"
+        function buscarHospitalCercano() {
+            if (!map) return;
+            map.addLayer(capas['hospital']);
+            const cbHospital = document.querySelector('input[value="hospital"]');
+            if (cbHospital) cbHospital.checked = true;
+            switchScreen('territorio');
+            localizarUsuario();
+            mostrarToast("Buscando hospitales cercanos...", "🏥");
+        }
+
      function evaluarTest() {
             const checkedBoxes = document.querySelectorAll('.test-cb:checked');
             let score = checkedBoxes.length;
@@ -1220,13 +1233,35 @@
             });
         }
 
+        // ---> CAMBIO APLICADO: Ahora los marcadores de hospital muestran botones para llamar a su número o al 911
         async function cargarNegocios(){
             try {
                 const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json"); const data = await res.json();
                 for(let n of data) {
-                    const lat = parseFloat(n.lat); const lng = parseFloat(n.lng); if(isNaN(lat) || isNaN(lng)) continue; let c = n.codigo_scian.toString(); let cat = null;
-                    if(c.startsWith("621")) cat = "hospital"; else if(c.startsWith("46411")) cat = "pharmacy"; else if(c.startsWith("462")) cat = "supermarket"; else if(c.startsWith("71394")) cat = "gym"; else if(c.startsWith("72251")) cat = "cafe"; else if(c.startsWith("722")) cat = "restaurant";
-                    if(cat) { const marker = L.circleMarker([lat,lng],{radius:4, color:"#2563eb", weight:1, fillOpacity:0.8}); marker.bindPopup(`<b>${n.nombre}</b>`); capas[cat].addLayer(marker); }
+                    const lat = parseFloat(n.lat || n.latitud); const lng = parseFloat(n.lng || n.longitud); 
+                    if(isNaN(lat) || isNaN(lng)) continue; 
+                    let c = (n.codigo_scian || n.codigo_act || "").toString(); let cat = null;
+                    if(c.startsWith("621") || c.startsWith("622")) cat = "hospital"; else if(c.startsWith("46411")) cat = "pharmacy"; else if(c.startsWith("462")) cat = "supermarket"; else if(c.startsWith("71394")) cat = "gym"; else if(c.startsWith("72251")) cat = "cafe"; else if(c.startsWith("722")) cat = "restaurant";
+                    
+                    if(cat) { 
+                        let colorMarker = cat === "hospital" ? "#dc2626" : "#2563eb";
+                        const marker = L.circleMarker([lat,lng],{radius:4, color: colorMarker, weight:1, fillOpacity:0.8}); 
+                        
+                        let popupHtml = `<div class="text-center font-sans p-1"><b class="text-gray-800">${n.nombre || n.nom_estab}</b>`;
+                        
+                        if (cat === "hospital") {
+                            let tel = n.telefono || n.numero_telefono || null;
+                            if (tel && tel.trim() !== "") {
+                                popupHtml += `<br><a href="tel:${tel}" class="mt-2 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition">📞 Llamar ${tel}</a>`;
+                            } else {
+                                popupHtml += `<br><a href="tel:911" class="mt-2 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition">🚨 Emergencias 911</a>`;
+                            }
+                        }
+                        popupHtml += `</div>`;
+                        
+                        marker.bindPopup(popupHtml); 
+                        capas[cat].addLayer(marker); 
+                    }
                 }
             } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
         }
@@ -1316,24 +1351,32 @@
             renderMisiones();
         }
 
-        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-            if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-            try {
-                routingControl = L.Routing.control({
-                    waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
-                    language: 'es', 
-                    router: L.Routing.osrmv1({ serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'foot' }),
-                    lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] },
-                    addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
-                    createMarker: function(i, wp) {
-                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                        .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
-                    }
-                });
-                routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-                routingControl.addTo(map); cumplirRetosRuta();
-            } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
-        }
+      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+    if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
+    try {
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
+            language: 'es', 
+            
+            router: L.Routing.osrmv1({ 
+                serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
+                profile: 'foot' 
+            }),
+            
+            lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, 
+            addWaypoints: false, 
+            draggableWaypoints: false, 
+            fitSelectedRoutes: true, 
+            show: false,
+            createMarker: function(i, wp) {
+                return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
+                .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
+            }
+        });
+        routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
+        routingControl.addTo(map); cumplirRetosRuta();
+    } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
+}
 
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
