@@ -203,6 +203,84 @@
 
         <main class="flex-1 overflow-y-auto pb-32">
             <div id="screen-home" class="screen p-5 space-y-6">
+              <div class="bg-white rounded-[1.5rem] shadow-sm border border-red-100 p-5 mt-4 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-6xl opacity-10 transform rotate-12">🆘</div>
+                        <h3 class="font-black text-red-700 text-lg mb-2 flex items-center gap-2 relative z-10"><span>🆘</span> Red de Apoyo</h3>
+                        <p class="text-[11px] text-gray-500 mb-4 font-medium relative z-10">Guarda 2 números de confianza para enviarles tu ubicación exacta en caso de emergencia médica.</p>
+                        
+                        <div class="space-y-3 relative z-10">
+                            <div class="bg-red-50/50 p-3 rounded-xl border border-red-100">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" id="contacto1-nombre" placeholder="Nombre (ej. Mamá)" class="text-xs p-2.5 rounded-lg border border-gray-200 w-1/2 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 transition bg-white">
+                                    <input type="tel" id="contacto1-tel" placeholder="Teléfono (10 dígitos)" class="text-xs p-2.5 rounded-lg border border-gray-200 w-1/2 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 transition bg-white">
+                                </div>
+                                <button onclick="notificarContacto(1)" class="w-full bg-[#25D366] text-white py-2.5 rounded-lg text-xs font-black shadow-md hover:bg-[#1ebe57] transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                    <span class="text-base">💬</span> Avisar y enviar mi ubicación
+                                </button>
+                            </div>
+                            
+                            <div class="bg-red-50/50 p-3 rounded-xl border border-red-100">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" id="contacto2-nombre" placeholder="Nombre (ej. Pareja)" class="text-xs p-2.5 rounded-lg border border-gray-200 w-1/2 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 transition bg-white">
+                                    <input type="tel" id="contacto2-tel" placeholder="Teléfono (10 dígitos)" class="text-xs p-2.5 rounded-lg border border-gray-200 w-1/2 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 transition bg-white">
+                                </div>
+                                <button onclick="notificarContacto(2)" class="w-full bg-[#25D366] text-white py-2.5 rounded-lg text-xs font-black shadow-md hover:bg-[#1ebe57] transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                    <span class="text-base">💬</span> Avisar y enviar mi ubicación
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ```
+
+### 3. Agregar la lógica para guardar y enviar mensajes (JavaScript)
+Ve a la parte inferior de tu código (justo encima de donde dice `function evaluarTest()`) y pega estas funciones que se encargan de guardar los números en la memoria de la app y abrir WhatsApp con la ubicación:
+
+```javascript
+        // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
+        function guardarContactos() {
+            const c1Nombre = document.getElementById('contacto1-nombre').value;
+            const c1Tel = document.getElementById('contacto1-tel').value;
+            const c2Nombre = document.getElementById('contacto2-nombre').value;
+            const c2Tel = document.getElementById('contacto2-tel').value;
+            localStorage.setItem('arqContactosEmergencia', JSON.stringify({ c1Nombre, c1Tel, c2Nombre, c2Tel }));
+        }
+
+        function cargarContactos() {
+            const guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
+            if(guardados) {
+                if(document.getElementById('contacto1-nombre')) document.getElementById('contacto1-nombre').value = guardados.c1Nombre || "";
+                if(document.getElementById('contacto1-tel')) document.getElementById('contacto1-tel').value = guardados.c1Tel || "";
+                if(document.getElementById('contacto2-nombre')) document.getElementById('contacto2-nombre').value = guardados.c2Nombre || "";
+                if(document.getElementById('contacto2-tel')) document.getElementById('contacto2-tel').value = guardados.c2Tel || "";
+            }
+        }
+
+        async function notificarContacto(num) {
+            guardarContactos(); // Guarda automáticamente al pulsar
+            let telOriginal = document.getElementById(`contacto${num}-tel`).value;
+            let telLimpio = telOriginal.replace(/\D/g,''); // Quita espacios o guiones
+            
+            if(!telLimpio || telLimpio.length < 10) {
+                mostrarToast("Ingresa un número válido de 10 dígitos.", "⚠️");
+                return;
+            }
+            
+            // Si en tu país se usa prefijo, lo agregamos (ej. 52 para México)
+            if(telLimpio.length === 10) telLimpio = "52" + telLimpio; 
+
+            mostrarToast("Obteniendo tu ubicación exacta...", "🛰️");
+            
+            try {
+                const pos = await obtenerUbicacionRapida();
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia. Esta es mi ubicación exacta en el mapa:\n\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
+                
+                // Abre WhatsApp web o la app nativa con el mensaje pre-cargado
+                window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
+            } catch(e) {
+                mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
+            }
+        }
+        // -----------------------------------------
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
                     <div id="alerta-medica-home" class="hidden bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 mt-4 shadow-xl relative overflow-hidden transform transition hover:-translate-y-1">
@@ -1330,45 +1408,45 @@
                         
                         let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
                         let popupHtml = "";
+if (cat === "hospital") {
+                            // --- DISEÑO PREMIUM SOLO PARA HOSPITALES (CON EMOJI) ---
+                            const hospitalIcon = L.divIcon({
+                                html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>',
+                                className: 'bg-transparent border-none',
+                                iconSize: [36, 36],
+                                iconAnchor: [18, 18]
+                            });
+                            const marker = L.marker([lat, lng], { icon: hospitalIcon });
 
-                        if (cat === "hospital") {
-                            // --- DISEÑO PREMIUM PARA HOSPITALES ---
-                            let tel = n.telefono || n.numero_telefono || null;
-                            let btnHtml = "";
+                            // Mensaje de WhatsApp codificado con la latitud y longitud del hospital
+                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}. Mi ubicación exacta es: https://www.google.com/maps?q=${lat},${lng}`);
                             
-                            if (tel && tel.trim() !== "") {
-                                btnHtml = `<a href="tel:${tel}" class="mt-3 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"><span class="text-base">📞</span> Llamar al ${tel}</a>`;
-                            } else {
-                                btnHtml = `<a href="tel:911" class="mt-3 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"><span class="text-base">🚨</span> Emergencias 911</a>`;
-                            }
-                            
-                            popupHtml = `
-                            <div class="min-w-[190px] font-sans">
-                                <div class="flex items-center gap-3 border-b border-gray-100 pb-3">
-                                    <div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0">🏥</div>
+                            let popupHtml = `
+                            <div class="min-w-[220px] font-sans">
+                                <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3">
+                                    <div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div>
                                     <div class="flex-1">
                                         <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
-                                        <span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">${catName}</span>
+                                        <span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span>
                                     </div>
                                 </div>
-                                ${btnHtml}
+                                
+                                <div class="flex gap-2 mb-2">
+                                    ${btnLlamar}
+                                    <button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5">
+                                        <span class="text-sm">📍</span> Ir allá
+                                    </button>
+                                </div>
+                                
+                                <a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2">
+                                    <span class="text-sm">💬</span> Enviar ubicación a familiar
+                                </a>
                             </div>`;
-                        } else {
-                            // --- DISEÑO LIMPIO PARA OTROS NEGOCIOS ---
-                            popupHtml = `
-                            <div class="min-w-[140px] text-center font-sans p-1">
-                                <div class="text-3xl mb-2 drop-shadow-sm">${emoji}</div>
-                                <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
-                                <span class="text-[9px] text-blue-500 font-bold uppercase tracking-widest block mt-1.5 bg-blue-50 py-1 rounded-md border border-blue-100">${catName}</span>
-                            </div>`;
+                            
+                            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); 
+                            capas[cat].addLayer(marker);
+
                         }
-                        
-                        marker.bindPopup(popupHtml); 
-                        capas[cat].addLayer(marker); 
-                    }
-                }
-            } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
-        }
         async function cargarCiclovias() {
             try {
                 const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson"); const data = await res.json();
@@ -1552,7 +1630,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
-            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();
+            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();cargarContactos(); // Carga los números de emergencia guardados
             // CHECK TEST AL INICIAR
             const savedScore = localStorage.getItem('arqTestInsulina');
             if (savedScore && parseInt(savedScore) >= 8) {
