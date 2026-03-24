@@ -192,7 +192,16 @@
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
-                    
+                    <div id="alerta-medica-home" class="hidden bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 mt-4 shadow-xl relative overflow-hidden transform transition hover:-translate-y-1">
+                        <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
+                        <h3 class="font-black text-white mb-2 flex items-center gap-2 text-lg"><span>⚠️</span> Alerta Metabólica</h3>
+                        <p class="text-xs text-white/90 leading-relaxed font-medium mb-3">
+                            Tu último test indica un riesgo ALTO. Las señales de alerta incluyen mareos [cite: 55, 57], visión borrosa [cite: 58], mucha sed [cite: 59] y fatiga extrema[cite: 60]. Acude a un médico[cite: 56].
+                        </p>
+                        <button onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-3 rounded-xl font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                            <span class="text-lg">🏥</span> Encontrar ayuda cercana
+                        </button>
+                    </div>
                     <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1 hover:shadow-md">
                         <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12">💡</div>
                         <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
@@ -429,76 +438,182 @@
 
                 <div id="lista-retos" class="space-y-4"></div>
             </div>
-
-            <div id="screen-test" class="screen hidden p-5 space-y-5">
-                <h2 class="text-2xl font-black text-gray-800 mb-2">🩺 Test de Resistencia</h2>
-                <p class="text-sm text-gray-500 font-medium mb-4">Evalúa tu riesgo de resistencia a la insulina respondiendo estas preguntas.</p>
+<div id="screen-test" class="screen hidden p-5 space-y-5">
+                <div class="text-center mb-6">
+                    <div class="text-5xl mb-2 drop-shadow-md">🩺</div>
+                    <h2 class="text-2xl font-black text-gray-800">Test de Resistencia</h2>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Evaluación de Riesgo</p>
+                </div>
 
                 <form id="test-insulina-form" class="space-y-6">
-                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
-                        <h3 class="font-black text-purple-800 mb-4 flex items-center gap-2"><span>👤</span> Síntomas físicos </h3>
+                    
+                    <div>
+                        <h3 class="font-black text-purple-800 mb-3 flex items-center gap-2 text-sm bg-purple-100 inline-block px-4 py-2 rounded-full shadow-sm">
+                            <span>👤</span> Síntomas físicos
+                        </h3>
                         <div class="space-y-3">
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">1. ¿Sientes cansancio frecuente después de comer? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">1. ¿Sientes cansancio frecuente después de comer?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">2. ¿Tienes antojos intensos de azúcar o carbohidratos? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">2. ¿Tienes antojos intensos de azúcar o carbohidratos?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">3. ¿Te cuesta bajar de peso, especialmente en abdomen? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">3. ¿Te cuesta bajar de peso, especialmente en abdomen?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">4. ¿Presentas grasa abdominal (tipo "panza")? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">4. ¿Presentas grasa abdominal (tipo "panza")?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">5. ¿Tienes piel oscura en cuello/axilas (acantosis)? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">5. ¿Tienes piel oscura en cuello/axilas (acantosis)?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
-                                <span class="pr-2">6. ¿Sientes hambre constante aunque hayas comido? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-purple-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-purple-800 transition-colors">6. ¿Sientes hambre constante aunque hayas comido?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-purple-500 peer-checked:border-purple-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
                         </div>
                     </div>
 
-                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
-                        <h3 class="font-black text-blue-800 mb-4 flex items-center gap-2"><span>🩸</span> Indicadores metabólicos </h3>
+                    <div>
+                        <h3 class="font-black text-blue-800 mb-3 flex items-center gap-2 text-sm bg-blue-100 inline-block px-4 py-2 rounded-full shadow-sm">
+                            <span>🩸</span> Indicadores metabólicos
+                        </h3>
                         <div class="space-y-3">
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
-                                <span class="pr-2">7. ¿Tienes triglicéridos altos?</span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-blue-800 transition-colors">7. ¿Tienes triglicéridos altos?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-blue-500 peer-checked:border-blue-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
-                                <span class="pr-2">8. ¿Tienes colesterol HDL bajo ("colesterol bueno")? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-blue-800 transition-colors">8. ¿Tienes colesterol HDL bajo?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-blue-500 peer-checked:border-blue-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
-                                <span class="pr-2">9. ¿Te han dicho que tienes glucosa ligeramente elevada? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-blue-800 transition-colors">9. ¿Te han dicho que tienes glucosa elevada?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-blue-500 peer-checked:border-blue-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
-                                <span class="pr-2">10. ¿Tienes presión arterial elevada? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-blue-800 transition-colors">10. ¿Tienes presión arterial elevada?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-blue-500 peer-checked:border-blue-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
                         </div>
                     </div>
 
-                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
-                        <h3 class="font-black text-green-800 mb-4 flex items-center gap-2"><span>🏃</span> Estilo de vida ]</h3>
+                    <div>
+                        <h3 class="font-black text-emerald-800 mb-3 flex items-center gap-2 text-sm bg-emerald-100 inline-block px-4 py-2 rounded-full shadow-sm">
+                            <span>🏃</span> Estilo de vida
+                        </h3>
                         <div class="space-y-3">
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
-                                <span class="pr-2">11. ¿Haces poco o nada de ejercicio?</span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-emerald-800 transition-colors">11. ¿Haces poco o nada de ejercicio?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
-                                <span class="pr-2">12. ¿Consumes bebidas azucaradas frecuentemente? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-emerald-800 transition-colors">12. ¿Consumes bebidas azucaradas frecuentemente?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
-                                <span class="pr-2">13. ¿Duermes menos de 6-7 horas regularmente? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-emerald-800 transition-colors">13. ¿Duermes menos de 6-7 horas regularmente?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
-                                <span class="pr-2">14. ¿Tienes estrés constante? </span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+
+                            <label class="cursor-pointer block relative group">
+                                <input type="checkbox" class="peer sr-only test-cb">
+                                <div class="p-4 rounded-2xl border-2 border-gray-100 bg-white group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all duration-300 flex justify-between items-center shadow-sm">
+                                    <span class="text-sm font-bold text-gray-600 pr-4 peer-checked:text-emerald-800 transition-colors">14. ¿Tienes estrés constante?</span>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0 flex items-center justify-center peer-checked:bg-emerald-500 peer-checked:border-emerald-500 text-transparent peer-checked:text-white transition-all shadow-inner">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
                             </label>
                         </div>
                     </div>
 
-                    <button type="button" onclick="evaluarTest()" class="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:from-black hover:to-gray-800 transition transform hover:-translate-y-1">📊 Evaluar Resultados</button>
+                    <button type="button" onclick="evaluarTest()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-black py-4 rounded-2xl shadow-xl hover:from-green-700 hover:to-emerald-700 transition transform hover:-translate-y-1 hover:shadow-2xl mt-8">
+                        📊 Evaluar Resultados
+                    </button>
                 </form>
 
-                <div id="test-resultado" class="hidden mt-6 pb-6"></div>
+                <div id="test-resultado" class="hidden mt-8 pb-8"></div>
             </div>
         </main>
 
@@ -842,43 +957,88 @@
             if (screen === "fundamentacion") window.scrollTo(0,0);
         }
 
-        function evaluarTest() {
+     function evaluarTest() {
             const checkedBoxes = document.querySelectorAll('.test-cb:checked');
             let score = checkedBoxes.length;
             
-            let nivel = "", colorText = "", colorBg = "", mensaje = "";
+            // GUARDAR EL RESULTADO EN MEMORIA
+            localStorage.setItem('arqTestInsulina', score);
+            
+            let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
+            let extraHTML = ""; 
+            
+            // Referencia a la alerta de la pantalla de inicio
+            const alertaHome = document.getElementById('alerta-medica-home');
             
             if (score >= 8) {
-                nivel = "Alto riesgo"; 
-                colorText = "text-red-600"; 
-                colorBg = "bg-red-100";
-                mensaje = "Se recomiendan exámenes médicos como Glucosa en ayuno, Insulina, HOMA-IR y Hemoglobina glucosilada.";
+                nivel = "Alto Riesgo"; 
+                colorText = "text-red-700"; 
+                colorBg = "bg-red-50";
+                gradient = "from-red-500 to-rose-600";
+                icon = "🚨";
+                mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
+                
+                // Activar la alerta en la pantalla principal
+                if(alertaHome) alertaHome.classList.remove('hidden');
+                
+                extraHTML = `
+                    <div class="mt-5 p-5 bg-white/60 backdrop-blur rounded-2xl border-2 border-red-200 text-left shadow-sm">
+                        <h4 class="font-black text-red-800 flex items-center gap-2 mb-2 text-lg"><span>⚠️</span> Señales de alerta</h4>
+                        <p class="text-xs text-red-700 mb-3 font-bold uppercase tracking-wide">Consulta a un médico si tienes:</p>
+                        <ul class="list-disc pl-5 text-sm text-red-900 font-medium space-y-1.5 mb-5">
+                            <li>Mareos frecuentes</li>
+                            <li>Visión borrosa</li>
+                            <li>Mucha sed o ganas de orinar</li>
+                            <li>Fatiga extrema</li>
+                        </ul>
+                        <button type="button" onclick="buscarHospitalCercano()" class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-black py-3.5 rounded-xl shadow-lg hover:from-red-700 hover:to-red-800 transition transform hover:-translate-y-1 flex justify-center items-center gap-2">
+                            <span class="text-xl">🏥</span> Buscar Hospital Cerca
+                        </button>
+                    </div>
+                `;
             } else if (score >= 4) {
-                nivel = "Riesgo moderado"; 
-                colorText = "text-orange-500"; 
-                colorBg = "bg-orange-100";
-                mensaje = "Considera mejorar tus hábitos alimenticios y de actividad física. ";
+                nivel = "Riesgo Moderado"; 
+                colorText = "text-orange-700"; 
+                colorBg = "bg-orange-50";
+                gradient = "from-orange-400 to-amber-500";
+                icon = "⚠️";
+                mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
+                if(alertaHome) alertaHome.classList.add('hidden'); // Ocultar alerta si bajó su riesgo
             } else {
-                nivel = "Bajo riesgo"; 
-                colorText = "text-green-600"; 
-                colorBg = "bg-green-100";
-                mensaje = "¡Excelente! Mantén tu estilo de vida saludable. ";
+                nivel = "Bajo Riesgo"; 
+                colorText = "text-green-700"; 
+                colorBg = "bg-green-50";
+                gradient = "from-green-400 to-emerald-500";
+                icon = "🌟";
+                mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
+                if(alertaHome) alertaHome.classList.add('hidden'); // Ocultar alerta
             }
 
             const resDiv = document.getElementById('test-resultado');
             resDiv.innerHTML = `
-                <div class="bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-xl text-center">
-                    <div class="${colorBg} rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-inner">
-                        <span class="text-3xl font-black ${colorText}">${score}</span>
+                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden transform transition-all duration-500 animate-fadeIn">
+                    <div class="bg-gradient-to-br ${gradient} p-8 text-center relative overflow-hidden">
+                        <div class="absolute -top-4 -right-4 opacity-20 text-9xl transform rotate-12">${icon}</div>
+                        <div class="relative z-10 flex flex-col items-center">
+                            <p class="text-white/90 font-bold uppercase tracking-widest text-[10px] mb-3">Puntuación Total</p>
+                            <div class="bg-white rounded-full w-28 h-28 flex items-center justify-center mb-3 shadow-[0_10px_25px_rgba(0,0,0,0.2)] border-4 border-white/40">
+                                <span class="text-5xl font-black ${colorText}">${score}</span><span class="text-sm font-bold text-gray-300 ml-1 mt-3">/ 14</span>
+                            </div>
+                            <h3 class="text-3xl font-black text-white drop-shadow-md tracking-tight">${nivel}</h3>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-black ${colorText} mb-2">${nivel}</h3>
-                    <p class="text-sm text-gray-600 font-medium">${mensaje}</p>
+                    <div class="${colorBg} p-6">
+                        <p class="text-sm ${colorText} font-medium leading-relaxed text-center mb-2">${mensaje}</p>
+                        ${extraHTML}
+                        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-full bg-white ${colorText} font-bold py-3.5 mt-5 rounded-xl shadow-sm border border-white hover:bg-gray-50 transition transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
+                            <span>🔄</span> Revisar mis respuestas
+                        </button>
+                    </div>
                 </div>
             `;
             resDiv.classList.remove('hidden');
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
-
         function updateLevel() {
             let num = 1; let percent = 0;
             if (userProgress.totalPoints >= 1000) { userProgress.level = "Maestro Urbano"; num = 4; percent = ((userProgress.totalPoints - 1000)/1000)*100; } 
@@ -1247,7 +1407,17 @@
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
             cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();
-            
+            // CHECK TEST AL INICIAR
+            const savedScore = localStorage.getItem('arqTestInsulina');
+            if (savedScore && parseInt(savedScore) >= 8) {
+                const alertaHome = document.getElementById('alerta-medica-home');
+                if(alertaHome) alertaHome.classList.remove('hidden');
+                
+                // Mostrar notificación tipo Toast con retraso para que resalte después de que cargue la app
+                setTimeout(() => {
+                    mostrarToast("⚠️ Riesgo metabólico ALTO detectado. Revisa tus alertas.", "🚨");
+                }, 2000); 
+            }
             const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); setTimeout(()=>miniMap.invalidateSize(),200);
 
