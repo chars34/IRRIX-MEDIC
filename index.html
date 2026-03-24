@@ -960,14 +960,67 @@
         }
 
         // ---> CAMBIO APLICADO: Función faltante para el botón de "Encontrar ayuda cercana"
-        function buscarHospitalCercano() {
+      async function buscarHospitalCercano() {
             if (!map) return;
+            
+            // 1. Activar capa de hospitales y marcar el checkbox visualmente
             map.addLayer(capas['hospital']);
             const cbHospital = document.querySelector('input[value="hospital"]');
             if (cbHospital) cbHospital.checked = true;
+            
+            // 2. Cambiar a pantalla de mapa
             switchScreen('territorio');
-            localizarUsuario();
-            mostrarToast("Buscando hospitales cercanos...", "🏥");
+            mostrarToast("Calculando distancias a hospitales...", "⏳");
+
+            try {
+                // 3. Obtener ubicación exacta del usuario
+                const ubicacion = await obtenerUbicacionRapida();
+                const userLatLng = L.latLng(ubicacion.lat, ubicacion.lng);
+                
+                // Marcar al usuario en el mapa
+                L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>");
+
+                // 4. Obtener todos los hospitales cargados y calcular su distancia
+                const hospitales = capas['hospital'].getLayers();
+                if (hospitales.length === 0) {
+                    mostrarToast("No hay hospitales cargados en el mapa aún.", "⚠️");
+                    map.setView(userLatLng, 14);
+                    return;
+                }
+
+                // Calcular distancia del usuario a cada hospital
+                const hospitalesConDistancia = hospitales.map(marker => {
+                    return {
+                        marker: marker,
+                        distancia: userLatLng.distanceTo(marker.getLatLng()) // distancia en metros
+                    };
+                });
+
+                // Ordenar del más cercano al más lejano
+                hospitalesConDistancia.sort((a, b) => a.distancia - b.distancia);
+
+                // Tomar los 5 hospitales más cercanos para enmarcarlos en la pantalla
+                const masCercanos = hospitalesConDistancia.slice(0, 5);
+
+                // 5. Ajustar la cámara del mapa para mostrar al usuario Y a los 5 hospitales
+                let bounds = L.latLngBounds([userLatLng]);
+                masCercanos.forEach(h => bounds.extend(h.marker.getLatLng()));
+                
+                // Animación suave de la cámara
+                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16, animate: true });
+
+                // Abrir el popup del hospital ABSOLUTAMENTE más cercano después de mover la cámara
+                setTimeout(() => {
+                    masCercanos[0].marker.openPopup();
+                    let distKm = (masCercanos[0].distancia / 1000).toFixed(1);
+                    mostrarToast(`🏥 Hospital más cercano a ${distKm} km`, "🚑");
+                }, 800);
+
+            } catch (e) {
+                // Si falla el GPS, hacemos el fallback básico
+                mostrarToast("Activa tu GPS para encontrar hospitales cercanos.", "❌");
+                localizarUsuario(); 
+            }
         }
 
      function evaluarTest() {
