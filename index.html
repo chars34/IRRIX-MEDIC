@@ -227,10 +227,11 @@
                                         <span>💬</span> S.O.S Familiar 2
                                     </button>
                                 </div>
+                                <button type="button" onclick="mostrarConfigContactos('home')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
                         </div>
 
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                        <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
                                 <input type="tel" id="home-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
@@ -298,13 +299,13 @@
                 </div>
             </div>
 
-            <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
+            <div id="screen-territorio" class="screen hidden p-5 flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Análisis Territorial</h2>
                     <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Global</span>
                 </div>
                 
-                <div class="flex-1 min-h-[400px] p-1.5 bg-white rounded-[1.5rem] border border-gray-200 shadow-sm relative overflow-hidden">
+                <div class="h-[55vh] min-h-[400px] p-1.5 bg-white rounded-[1.5rem] border border-gray-200 shadow-sm relative overflow-hidden">
                     
                     <button onclick="toggleFiltros()" class="btn-toggle-filtros">
                         <span>🔍</span> FILTRAR
@@ -349,6 +350,24 @@
                 <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
                     <span class="text-lg">👆</span> Explora, reporta o crea rutas.
                 </p>
+
+                <div id="ranking-container" class="mt-8 space-y-6">
+                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
+                        <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
+                        <div class="relative w-full flex justify-center h-48">
+                            <canvas id="rankingChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
+                        <div id="ranking" class="space-y-2">
+                            <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
@@ -518,23 +537,6 @@
                 </div>
 
                 <div id="lista-retos" class="space-y-4"></div>
-            </div>
-
-            <div id="screen-ranking" class="screen hidden p-5">
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm mb-5 border border-gray-100">
-                    <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
-                    <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
-                    <div class="relative w-full flex justify-center h-48">
-                        <canvas id="rankingChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
-                    <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
-                    <div id="ranking" class="space-y-2">
-                        <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
-                    </div>
-                </div>
             </div>
 
             <div id="screen-test" class="screen hidden p-5 space-y-8">
@@ -785,9 +787,6 @@
             <div onclick="switchScreen('fundamentacion')" class="nav-item" id="nav-fundamentacion">
                 <span class="nav-icon">🧬</span> Ciencia
             </div>
-            <div onclick="switchScreen('ranking')" class="nav-item" id="nav-ranking">
-                <span class="nav-icon">🏆</span> Rank
-            </div>
             <div onclick="switchScreen('test')" class="nav-item" id="nav-test">
                 <span class="nav-icon">📝</span> Test
             </div>
@@ -988,7 +987,7 @@
             `).join("");
 
             document.getElementById("resultado").innerHTML = `
-            <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-xl mt-6 animate-fadeIn">
+            <div class="bg-white border border-gray-100 rounded-[1.5rem] p-6 shadow-xl mt-6 animate-fadeIn relative z-10">
                 <h3 class="font-black text-gray-800 text-center mb-4 text-lg">Tu Índice IRMA</h3>
                 
                 <div class="flex items-center justify-center mb-6">
@@ -1009,7 +1008,7 @@
             </div>`;
         }
 
-        function alerta(msg){ document.getElementById("resultado").innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm">⚠️ ${msg}</div>`; }
+        function alerta(msg){ document.getElementById("resultado").innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded-xl text-sm font-bold shadow-sm relative z-10">⚠️ ${msg}</div>`; }
 
         let userProgress = JSON.parse(localStorage.getItem("arqProgress")) || { totalPoints: 0, level: "Básico" };
         let nivelAnteriorGlobal = userProgress.level;
@@ -1110,7 +1109,7 @@
             document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); document.getElementById("screen-" + screen)?.classList.remove("hidden");
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); document.getElementById("nav-" + screen)?.classList.add("active");
             if (screen === "territorio") setTimeout(initMap, 200);
-            if (screen === "fundamentacion") window.scrollTo(0,0);
+            if (screen === "fundamentacion" || screen === "test") window.scrollTo(0,0);
         }
 
         async function buscarHospitalCercano() {
@@ -1195,14 +1194,31 @@
         function guardarContactosConAviso(context) {
             guardarContactos(context);
             mostrarToast("Números guardados correctamente", "💾");
+            cargarContactos(); 
         }
 
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
-            if(guardados) {
+            if(guardados && (guardados.c1Tel || guardados.c2Tel)) {
+                // Rellenar los campos de texto
                 document.querySelectorAll('input[id$="-c1-tel"]').forEach(el => el.value = guardados.c1Tel || "");
                 document.querySelectorAll('input[id$="-c2-tel"]').forEach(el => el.value = guardados.c2Tel || "");
+                
+                // Ocultar recuadros de configuración si ya hay números guardados
+                let homeConfig = document.getElementById('home-config-contactos');
+                if (homeConfig) homeConfig.classList.add('hidden');
+                
+                let testConfig = document.getElementById('test-config-contactos');
+                if (testConfig) testConfig.classList.add('hidden');
+                
+                // Mostrar el enlace de "Editar números de confianza"
+                document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
             }
+        }
+
+        function mostrarConfigContactos(context) {
+            const configBox = document.getElementById(context + '-config-contactos');
+            if (configBox) configBox.classList.remove('hidden');
         }
 
         async function notificarContacto(context, num) {
@@ -1273,10 +1289,11 @@
                                         <span>💬</span> S.O.S Familiar 2
                                     </button>
                                 </div>
+                                <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
                         </div>
 
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
                                 <input type="tel" id="test-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
