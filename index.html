@@ -212,32 +212,33 @@
                         <p class="text-xs text-white/90 leading-relaxed font-medium mb-4 relative z-10">
                             Tu último test indica un riesgo ALTO. Las señales de alerta incluyen mareos, visión borrosa, mucha sed y fatiga extrema. Acude a un médico.
                         </p>
-                        
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica</p>
-                            <button onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                                Buscar Hospital Cerca
-                            </button>
-                        </div>
-
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🆘</span> Números de confianza</p>
+                      <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica y S.O.S</p>
                             <div class="space-y-2">
-                                <div class="flex gap-1.5">
-                                    <input type="tel" id="home-c1-tel" placeholder="Tel. Familiar 1" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold" onchange="guardarContactos('home')">
-                                    <button onclick="notificarContacto('home', 1)" class="bg-[#25D366] text-white px-3 rounded-lg text-xs font-black shadow-sm hover:bg-[#1ebe57] flex-shrink-0 flex items-center gap-1">
-                                        <span>💬</span> Enviar GPS
+                                <button onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                    Buscar Hospital Cerca
+                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="notificarContacto('home', 1)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                        <span>💬</span> S.O.S Familiar 1
                                     </button>
-                                </div>
-                                <div class="flex gap-1.5">
-                                    <input type="tel" id="home-c2-tel" placeholder="Tel. Familiar 2" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold" onchange="guardarContactos('home')">
-                                    <button onclick="notificarContacto('home', 2)" class="bg-[#25D366] text-white px-3 rounded-lg text-xs font-black shadow-sm hover:bg-[#1ebe57] flex-shrink-0 flex items-center gap-1">
-                                        <span>💬</span> Enviar GPS
+                                    <button onclick="notificarContacto('home', 2)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                        <span>💬</span> S.O.S Familiar 2
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
+
+                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
+                            <div class="space-y-2">
+                                <input type="tel" id="home-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
+                                <input type="tel" id="home-c2-tel" placeholder="Tel. Familiar 2 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
+                                <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                                    <span>💾</span> Guardar Números
+                                </button>
+                            </div>
+                        </div>
                     <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1 hover:shadow-md">
                         <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12">💡</div>
                         <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2"><span>💡</span> Dato Metabólico</h3>
@@ -1254,27 +1255,32 @@
                         <h4 class="font-black text-white flex items-center gap-2 mb-2 text-lg relative z-10"><span>⚠️</span> Señales de alerta</h4>
                         <p class="text-xs text-white/90 mb-3 font-medium relative z-10">Consulta a un médico si tienes: mareos frecuentes, visión borrosa, mucha sed o fatiga extrema.</p>
                         
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica</p>
-                            <button type="button" onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                                Buscar Hospital Cerca
-                            </button>
+                       <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica y S.O.S</p>
+                            <div class="space-y-2">
+                                <button type="button" onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                    Buscar Hospital Cerca
+                                </button>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="notificarContacto('test', 1)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                        <span>💬</span> S.O.S Familiar 1
+                                    </button>
+                                    <button type="button" onclick="notificarContacto('test', 2)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                        <span>💬</span> S.O.S Familiar 2
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🆘</span> Números de confianza</p>
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
-                                <div class="flex gap-1.5">
-                                    <input type="tel" id="test-c1-tel" placeholder="Tel. Familiar 1" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold" onchange="guardarContactos('test')">
-                                    <button type="button" onclick="notificarContacto('test', 1)" class="bg-[#25D366] text-white px-3 rounded-lg text-xs font-black shadow-sm hover:bg-[#1ebe57] flex-shrink-0 flex items-center gap-1">
-                                        <span>💬</span> Enviar GPS
-                                    </button>
-                                </div>
-                                <div class="flex gap-1.5">
-                                    <input type="tel" id="test-c2-tel" placeholder="Tel. Familiar 2" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold" onchange="guardarContactos('test')">
-                                    <button type="button" onclick="notificarContacto('test', 2)" class="bg-[#25D366] text-white px-3 rounded-lg text-xs font-black shadow-sm hover:bg-[#1ebe57] flex-shrink-0 flex items-center gap-1">
-                                        <span>💬</span> Enviar GPS
-                                    </button>
+                                <input type="tel" id="test-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
+                                <input type="tel" id="test-c2-tel" placeholder="Tel. Familiar 2 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
+                                <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                                    <span>💾</span> Guardar Números
+                                </button>
+                          
                                 </div>
                             </div>
                         </div>
