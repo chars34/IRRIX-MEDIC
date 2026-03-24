@@ -1767,4 +1767,136 @@
                     fitSelectedRoutes: true, 
                     show: false,
                     createMarker: function(i, wp) {
-                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px
+                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'📍':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
+                        .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
+                    }
+                });
+                
+                // Si el servidor llega a fallar, dibuja una línea recta automáticamente
+                routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
+                routingControl.addTo(map); 
+                cumplirRetosRuta();
+                
+            } catch (error) { 
+                dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
+            }
+        }
+
+        function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
+            if (routingControl) map.removeControl(routingControl);
+            window.rutaEmergencia = L.polyline([[lat1, lon1], [lat2, lon2]], { color: '#059669', weight: 6, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
+            window.markerEmergencia = L.marker([lat2, lon2], { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669;">🎯</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).addTo(map).bindPopup(`<b>${nombre}</b>`).openPopup();
+            map.fitBounds(window.rutaEmergencia.getBounds(), {padding: [50, 50]}); cumplirRetosRuta();
+        }
+
+        async function initMap(){
+            if(map){ map.invalidateSize(); return; } map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
+
+            try {
+                if(!geoDataCache) { const geoRes = await fetch("./puebla_municipios.json"); geoDataCache = await geoRes.json(); }
+                const ranking = await cargarIARRI(); const rankingMap = {}; ranking.forEach(m=>{ rankingMap[normalizarNombre(m.municipio)] = m; });
+
+                capaMunicipios = L.geoJSON(geoDataCache,{
+                    style:function(feature){
+                        const nombre = normalizarNombre(feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE);
+                        let m = rankingMap[nombre]; if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 }; return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.3 };
+                    },
+                    onEachFeature:function(feature,layer){
+                        const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE;
+                        const m = rankingMap[normalizarNombre(nombreOriginal)];
+                        if(m){ 
+                            let nivel = nivelIARRI(m.iarri); let color = colorIARRI(m.iarri);
+                            layer.bindPopup(`
+                                <div style="text-align: center; font-family: sans-serif; min-width: 120px;">
+                                    <b style="font-size: 14px; color: #1f2937; display: block; margin-bottom: 2px;">${nombreOriginal}</b>
+                                    <span style="font-size: 10px; color: #9ca3af; font-weight: bold;">IARRI: ${m.iarri.toFixed(3)}</span>
+                                    <div style="margin-top: 8px; padding: 4px; border-radius: 6px; background-color: ${color}15; color: ${color}; font-size: 11px; font-weight: 800; text-transform: uppercase; border: 1px solid ${color}40;">
+                                        Riesgo ${nivel}
+                                    </div>
+                                </div>
+                            `); 
+                            layer.on("click",()=>registrarVisita(nombreOriginal)); 
+                        }
+                    }
+                }).addTo(map);
+
+                map.fitBounds(capaMunicipios.getBounds()); await cargarNegocios(); await cargarCiclovias(); agregarLeyenda(); escucharReportesEnVivo(); if(fotosActivas) map.addLayer(capas['fotos']);
+            } catch (error) { console.warn("Error cargando mapa base", error); }
+        }
+
+        async function cargarRanking(){
+            try {
+                const data = await cargarIARRI(); if (!data || data.length === 0) throw new Error();
+                data.sort((a,b)=>b.iarri-a.iarri); 
+
+                let misionArq = misiones.find(m => m.id === "municipio_critico");
+                if(!misionArq){ 
+                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más bajo: Cohetzala`, puntos:200, progreso:0, objetivo:1, completado:false }); 
+                } else {
+                    misionArq.descripcion = `Analiza el más bajo: Cohetzala`;
+                }
+                renderMisiones();
+
+                generarGraficoRiesgo(data); let html="";
+                data.slice(0,10).forEach((m,i)=>{ let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`; html+=`<div class="flex justify-between border-b py-3 px-3 text-sm items-center"><span class="font-black">${medal} ${m.municipio}</span><span class="font-black">${m.iarri.toFixed(3)}</span></div>`; });
+                document.getElementById("ranking").innerHTML = html;
+            } catch(err){}
+        }
+
+        function generarGraficoRiesgo(data) {
+            const ctx = document.getElementById('rankingChart'); if(!ctx) return; let counts = {critico:0, alto:0, medio:0, bajo:0};
+            data.forEach(d => { const niv = nivelIARRI(d.iarri); if(niv==='Crítico') counts.critico++; else if(niv==='Alto') counts.alto++; else if(niv==='Medio') counts.medio++; else counts.bajo++; });
+            if(chartInstance) chartInstance.destroy(); 
+            chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Bajo', 'Medio', 'Alto', 'Crítico'], datasets: [{ data: [counts.bajo, counts.medio, counts.alto, counts.critico], backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'] }] } });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
+            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();
+            
+            cargarContactos(); 
+            
+            const savedScore = localStorage.getItem('arqTestInsulina');
+            if (savedScore && parseInt(savedScore) >= 8) {
+                const alertaHome = document.getElementById('alerta-medica-home');
+                if(alertaHome) alertaHome.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    mostrarToast("⚠️ Riesgo metabólico ALTO detectado. Revisa tus alertas.", "🚨");
+                }, 2000); 
+            }
+            const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false}).setView([19.04,-98.20],8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); setTimeout(()=>miniMap.invalidateSize(),200);
+
+            obtenerUbicacionRapida().then(async (ubicacion) => {
+                miniMap.setView([ubicacion.lat, ubicacion.lng], 11);
+                let marker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(miniMap);
+                try {
+                    if(!geoDataCache) { const res = await fetch("./puebla_municipios.json"); geoDataCache = await res.json(); }
+                    const iarriData = await cargarIARRI(); const rankingMap = {}; iarriData.forEach(m => rankingMap[normalizarNombre(m.municipio)] = m);
+                    L.geoJSON(geoDataCache, { style: function(feature) { const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE; const nombre = normalizarNombre(nombreOriginal); let m = rankingMap[nombre]; if(!m) return { color:"#cbd5e1", weight:1, fillOpacity:0.1 }; return { color:"#64748b", weight:1, fillColor: colorIARRI(m.iarri), fillOpacity: 0.5 }; } }).addTo(miniMap);
+
+                    const pt = turf.point([ubicacion.lng, ubicacion.lat]);
+                    let municipioEncontrado = "Desconocido"; let riesgoEncontrado = "No evaluado"; let colorRiesgo = "gray";
+                    if (geoDataCache && geoDataCache.features) { for(let feature of geoDataCache.features) { if(turf.booleanPointInPolygon(pt, feature)) { const nombreOriginal = feature.properties.NOMGEO || feature.properties.NOM_MUN || feature.properties.NOMBRE; municipioEncontrado = nombreOriginal; const nombre = normalizarNombre(nombreOriginal); let m = rankingMap[nombre]; if(!m){ for(let key in rankingMap){ if(key.includes(nombre) || nombre.includes(key)){ m = rankingMap[key]; break; } } } if(m) { riesgoEncontrado = nivelIARRI(m.iarri); colorRiesgo = colorIARRI(m.iarri); } break; } } }
+                    marker.bindPopup(`<div class="text-center font-sans p-1"><b class="text-gray-800 text-sm font-black">📍 Tu ubicación</b><br><span class="text-[11px] text-gray-500 font-medium">${municipioEncontrado}</span><br><span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-gray-50 border border-gray-100 shadow-sm inline-block mt-1.5" style="color: ${colorRiesgo}">Riesgo: ${riesgoEncontrado}</span></div>`).openPopup();
+                } catch(error) { marker.bindPopup("📍 Tu ubicación").openPopup(); }
+            }).catch(e => { L.marker([19.04,-98.20]).addTo(miniMap).bindPopup("📍 Activa tu GPS para ver tu zona").openPopup(); });
+
+            const inputMunicipio = document.getElementById('municipio');
+            if (inputMunicipio) {
+                inputMunicipio.addEventListener('input', (e) => {
+                    const nombre = e.target.value.trim(); const badgeContainer = document.getElementById('badge-municipio');
+                    if (!datosIARRICache || !badgeContainer) return; const municipioInfo = datosIARRICache.find(d => d.municipio === nombre);
+                    if (municipioInfo) { const nivel = nivelIARRI(municipioInfo.iarri); const color = colorIARRI(municipioInfo.iarri); badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm" style="background-color: ${color}20; color: ${color}; border-color: ${color}40;">● Riesgo de Zona: ${nivel}</span>`; } else { badgeContainer.innerHTML = ''; }
+                });
+            }
+
+            document.querySelectorAll('.filtro-cb').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => { if(!map) return; let cat = e.target.value; if(e.target.checked) map.addLayer(capas[cat]); else map.removeLayer(capas[cat]); });
+            });
+        });
+    </script>
+</body>
+</html>
