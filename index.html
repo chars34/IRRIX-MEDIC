@@ -94,6 +94,9 @@
         
         .leaflet-routing-container { display: none !important; }
 
+        /* Estilos checkbox test */
+        .test-cb { transition: all 0.2s; }
+        .test-cb:checked { transform: scale(1.1); }
     </style>
 </head>
 <body class="text-gray-800 relative">
@@ -246,7 +249,7 @@
                 </div>
             </div>
 
-            <div id="screen-territorio" class="screen hidden p-5 flex flex-col h-full">
+            <div id="screen-territorio" class="screen hidden p-5 flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Análisis Territorial</h2>
                     <span class="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold border border-green-200 shadow-sm">Global</span>
@@ -297,6 +300,23 @@
                 <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
                     <span class="text-lg">👆</span> Explora, reporta o crea rutas.
                 </p>
+
+                <div id="ranking-container" class="mt-8 space-y-6">
+                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
+                        <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
+                        <div class="relative w-full flex justify-center h-48">
+                            <canvas id="rankingChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
+                        <div id="ranking" class="space-y-2">
+                            <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="screen-aprendizaje" class="screen hidden p-5 space-y-4">
@@ -329,11 +349,11 @@
 
                     <div class="space-y-4">
                        <div>
-    <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
-    <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
-    <datalist id="lista-municipios"></datalist>
-    <div id="badge-municipio" class="mt-2 empty:hidden transition-all duration-300"></div>
-</div>
+                            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Municipio</label>
+                            <input id="municipio" list="lista-municipios" placeholder="Ej. Puebla" class="border border-gray-200 bg-gray-50 p-3.5 w-full rounded-xl mt-1.5 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-inner" autocomplete="off">
+                            <datalist id="lista-municipios"></datalist>
+                            <div id="badge-municipio" class="mt-2 empty:hidden transition-all duration-300"></div>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -412,21 +432,75 @@
                 <div id="lista-retos" class="space-y-4"></div>
             </div>
 
-            <div id="screen-ranking" class="screen hidden p-5">
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm mb-5 border border-gray-100">
-                    <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
-                    <p class="text-[10px] text-gray-400 text-center mb-4 font-bold uppercase tracking-widest">Según el IARRI analizado</p>
-                    <div class="relative w-full flex justify-center h-48">
-                        <canvas id="rankingChart"></canvas>
-                    </div>
-                </div>
+            <div id="screen-test" class="screen hidden p-5 space-y-5">
+                <h2 class="text-2xl font-black text-gray-800 mb-2">🩺 Test de Resistencia</h2>
+                <p class="text-sm text-gray-500 font-medium mb-4">Evalúa tu riesgo de resistencia a la insulina respondiendo estas preguntas[cite: 1, 2].</p>
 
-                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
-                    <h2 class="text-lg font-black mb-5 flex items-center gap-2 text-gray-800">🏆 Top 10 Municipios</h2>
-                    <div id="ranking" class="space-y-2">
-                        <div class="text-center text-gray-400 py-6 font-medium animate-pulse">Cargando datos satelitales...</div>
+                <form id="test-insulina-form" class="space-y-6">
+                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h3 class="font-black text-purple-800 mb-4 flex items-center gap-2"><span>👤</span> Síntomas físicos [cite: 3]</h3>
+                        <div class="space-y-3">
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">1. ¿Sientes cansancio frecuente después de comer? [cite: 4]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">2. ¿Tienes antojos intensos de azúcar o carbohidratos? [cite: 5]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">3. ¿Te cuesta bajar de peso, especialmente en abdomen? [cite: 6]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">4. ¿Presentas grasa abdominal (tipo "panza")? [cite: 7]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">5. ¿Tienes piel oscura en cuello/axilas (acantosis)? [cite: 8]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                                <span class="pr-2">6. ¿Sientes hambre constante aunque hayas comido? [cite: 9]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-purple-600 rounded">
+                            </label>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h3 class="font-black text-blue-800 mb-4 flex items-center gap-2"><span>🩸</span> Indicadores metabólicos [cite: 10]</h3>
+                        <div class="space-y-3">
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
+                                <span class="pr-2">7. ¿Tienes triglicéridos altos? [cite: 11]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
+                                <span class="pr-2">8. ¿Tienes colesterol HDL bajo ("colesterol bueno")? [cite: 12]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
+                                <span class="pr-2">9. ¿Te han dicho que tienes glucosa ligeramente elevada? [cite: 13]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-blue-50 transition">
+                                <span class="pr-2">10. ¿Tienes presión arterial elevada? [cite: 14]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-blue-600 rounded">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100">
+                        <h3 class="font-black text-green-800 mb-4 flex items-center gap-2"><span>🏃</span> Estilo de vida [cite: 15]</h3>
+                        <div class="space-y-3">
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
+                                <span class="pr-2">11. ¿Haces poco o nada de ejercicio? [cite: 16]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
+                                <span class="pr-2">12. ¿Consumes bebidas azucaradas frecuentemente? [cite: 17]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
+                                <span class="pr-2">13. ¿Duermes menos de 6-7 horas regularmente? [cite: 17]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            </label>
+                            <label class="flex justify-between items-center text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition">
+                                <span class="pr-2">14. ¿Tienes estrés constante? [cite: 18]</span> <input type="checkbox" class="test-cb w-5 h-5 accent-green-600 rounded">
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="evaluarTest()" class="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:from-black hover:to-gray-800 transition transform hover:-translate-y-1">📊 Evaluar Resultados</button>
+                </form>
+
+                <div id="test-resultado" class="hidden mt-6 pb-6"></div>
             </div>
         </main>
 
@@ -446,8 +520,8 @@
             <div onclick="switchScreen('fundamentacion')" class="nav-item" id="nav-fundamentacion">
                 <span class="nav-icon">🧬</span> Ciencia
             </div>
-            <div onclick="switchScreen('ranking')" class="nav-item" id="nav-ranking">
-                <span class="nav-icon">🏆</span> Rank
+            <div onclick="switchScreen('test')" class="nav-item" id="nav-test">
+                <span class="nav-icon">📝</span> Test
             </div>
         </nav>
 
@@ -766,7 +840,45 @@
         function switchScreen(screen) {
             document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); document.getElementById("screen-" + screen)?.classList.remove("hidden");
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); document.getElementById("nav-" + screen)?.classList.add("active");
-            if (screen === "territorio") setTimeout(initMap, 200); if (screen === "ranking") cargarRanking(); if (screen === "fundamentacion") window.scrollTo(0,0);
+            if (screen === "territorio") setTimeout(initMap, 200);
+            if (screen === "fundamentacion") window.scrollTo(0,0);
+        }
+
+        function evaluarTest() {
+            const checkedBoxes = document.querySelectorAll('.test-cb:checked');
+            let score = checkedBoxes.length;
+            
+            let nivel = "", colorText = "", colorBg = "", mensaje = "";
+            
+            if (score >= 8) {
+                nivel = "Alto riesgo"; 
+                colorText = "text-red-600"; 
+                colorBg = "bg-red-100";
+                mensaje = "Se recomiendan exámenes médicos como Glucosa en ayuno, Insulina, HOMA-IR y Hemoglobina glucosilada. [cite: 22, 24, 25, 26, 27, 28]";
+            } else if (score >= 4) {
+                nivel = "Riesgo moderado"; 
+                colorText = "text-orange-500"; 
+                colorBg = "bg-orange-100";
+                mensaje = "Considera mejorar tus hábitos alimenticios y de actividad física. [cite: 21]";
+            } else {
+                nivel = "Bajo riesgo"; 
+                colorText = "text-green-600"; 
+                colorBg = "bg-green-100";
+                mensaje = "¡Excelente! Mantén tu estilo de vida saludable. [cite: 20]";
+            }
+
+            const resDiv = document.getElementById('test-resultado');
+            resDiv.innerHTML = `
+                <div class="bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-xl text-center">
+                    <div class="${colorBg} rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-inner">
+                        <span class="text-3xl font-black ${colorText}">${score}</span>
+                    </div>
+                    <h3 class="text-xl font-black ${colorText} mb-2">${nivel}</h3>
+                    <p class="text-sm text-gray-600 font-medium">${mensaje}</p>
+                </div>
+            `;
+            resDiv.classList.remove('hidden');
+            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
         function updateLevel() {
@@ -868,85 +980,36 @@
 
         function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
         
-    // 1. Función para cuando tocas la "X" (Borra y te deja cambiarla)
         function eliminarFotoSeleccionada() {
             document.getElementById('foto-input').value = "";
             document.getElementById('img-preview').src = "";
             document.getElementById('foto-preview').classList.add("hidden");
-            document.getElementById('foto-input').classList.remove("hidden"); // Vuelve a mostrar el botón de elegir foto
+            document.getElementById('foto-input').classList.remove("hidden"); 
             mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
         }
 
-        // 2. Función que detecta cuando seleccionaste una foto nueva
         document.getElementById('foto-input').addEventListener('change', function(e) {
             if(e.target.files && e.target.files[0]) {
                 const reader = new FileReader(); 
                 reader.onload = function(ev) { 
                     document.getElementById('img-preview').src = ev.target.result; 
                     document.getElementById('foto-preview').classList.remove("hidden"); 
-                    document.getElementById('foto-input').classList.add("hidden"); // Oculta el botón para que se vea limpio
+                    document.getElementById('foto-input').classList.add("hidden"); 
                 }
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
 
-        // 3. Función para subir el reporte a la base de datos
-        function guardarReporteFoto() {
-            const desc = document.getElementById('foto-desc').value || "Sin descripción"; 
-            const file = document.getElementById('foto-input').files[0];
-            if(!file) { mostrarToast("Debes seleccionar una foto primero", "⚠️"); return; }
-            if(!auth.currentUser) { mostrarToast("Debes iniciar sesión para reportar", "🔒"); return; }
-            
-            cerrarModalFoto(); 
-            mostrarToast("Procesando imagen...", "⏳"); 
-            const imgDataRaw = document.getElementById('img-preview').src;
-            
-            comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
-                try {
-                    const ubicacion = await obtenerUbicacionRapida();
-                    await db.collection("reportes_ciudadanos").add({ 
-                        lat: ubicacion.lat, lng: ubicacion.lng, imgData: imgComprimida, desc: desc, 
-                        usuario: auth.currentUser.displayName || "Explorador", uid: auth.currentUser.uid, 
-                        fecha: firebase.firestore.FieldValue.serverTimestamp() 
-                    });
-                    
-                    if(navigator.onLine) { mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); } 
-                    else { mostrarToast("Guardado localmente. Se subirá al tener internet. +80 pts", "💾"); }
-                    
-                    addPoints(80); 
-                    if(map) map.setView([ubicacion.lat, ubicacion.lng], 15);
-                    
-                    // ¡Éxito! Limpiamos todo para el próximo reporte
-                    document.getElementById('foto-input').value = "";
-                    document.getElementById('img-preview').src = "";
-                    document.getElementById('foto-preview').classList.add("hidden");
-                    document.getElementById('foto-input').classList.remove("hidden"); // Restauramos el botón
-                    document.getElementById('foto-desc').value = ""; 
-                    
-                } catch(e) { 
-                    console.error("Error al subir:", e); 
-                    mostrarToast("Error guardando reporte.", "❌"); 
-                }
-            });
-        }
         function cerrarModalFoto() { 
             document.getElementById('modal-foto').style.opacity = '0'; 
             setTimeout(() => { 
                 document.getElementById('modal-foto').classList.add('hidden'); 
-                // AHORA LIMPIA SILENCIOSAMENTE SIN MOSTRAR LA ALERTA DE "DESCARTADA"
                 document.getElementById('foto-input').value = "";
                 document.getElementById('img-preview').src = "";
                 document.getElementById('foto-preview').classList.add("hidden");
                 document.getElementById('foto-desc').value = ""; 
             }, 300); 
         }
-
-        document.getElementById('foto-input').addEventListener('change', function(e) {
-            if(e.target.files && e.target.files[0]) {
-                const reader = new FileReader(); reader.onload = function(ev) { document.getElementById('img-preview').src = ev.target.result; document.getElementById('foto-preview').classList.remove("hidden"); }
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
 
         function comprimirImagen(dataUrl, maxWidth, callback) {
             const img = new Image(); img.src = dataUrl;
@@ -968,6 +1031,12 @@
                     await db.collection("reportes_ciudadanos").add({ lat: ubicacion.lat, lng: ubicacion.lng, imgData: imgComprimida, desc: desc, usuario: auth.currentUser.displayName || "Explorador", uid: auth.currentUser.uid, fecha: firebase.firestore.FieldValue.serverTimestamp() });
                     if(navigator.onLine) { mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); } else { mostrarToast("Guardado localmente. Se subirá al tener internet. +80 pts", "💾"); }
                     addPoints(80); if(map) map.setView([ubicacion.lat, ubicacion.lng], 15);
+                    
+                    document.getElementById('foto-input').value = "";
+                    document.getElementById('img-preview').src = "";
+                    document.getElementById('foto-preview').classList.add("hidden");
+                    document.getElementById('foto-input').classList.remove("hidden");
+                    document.getElementById('foto-desc').value = "";
                 } catch(e) { console.error("Error al subir:", e); mostrarToast("Error guardando reporte.", "❌"); }
             });
         }
@@ -1089,33 +1158,24 @@
             renderMisiones();
         }
 
-      function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
-    if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-    try {
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
-            language: 'es', 
-            
-            // 🔥 AQUÍ ESTÁ EL CAMBIO: Servidor dedicado a peatones (routed-foot)
-            router: L.Routing.osrmv1({ 
-                serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
-                profile: 'foot' 
-            }),
-            
-            lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, // Agregué un dashArray para que parezca de pasos
-            addWaypoints: false, 
-            draggableWaypoints: false, 
-            fitSelectedRoutes: true, 
-            show: false,
-            createMarker: function(i, wp) {
-                return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
-            }
-        });
-        routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-        routingControl.addTo(map); cumplirRetosRuta();
-    } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
-}
+        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+            if (routingControl) map.removeControl(routingControl); if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
+            try {
+                routingControl = L.Routing.control({
+                    waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
+                    language: 'es', 
+                    router: L.Routing.osrmv1({ serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'foot' }),
+                    lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] },
+                    addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+                    createMarker: function(i, wp) {
+                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'🚶':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
+                        .bindPopup(i===0 ? "Tu ubicación" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
+                    }
+                });
+                routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
+                routingControl.addTo(map); cumplirRetosRuta();
+            } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
+        }
 
         function dibujarRutaManual(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl);
@@ -1188,7 +1248,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
-            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos();
+            cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();
             
             const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); setTimeout(()=>miniMap.invalidateSize(),200);
