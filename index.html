@@ -1339,7 +1339,15 @@ function guardarNumeros() {
                                 <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
                         </div>
-
+<div class="flex gap-2 mb-4 w-full">
+  <button onclick="llamarSOS(1)" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full flex items-center justify-center gap-2 transition">
+    📞 S.O.S <span id="txt-btn-1">1</span>
+  </button>
+  
+  <button onclick="llamarSOS(2)" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full flex items-center justify-center gap-2 transition">
+    📞 S.O.S <span id="txt-btn-2">2</span>
+  </button>
+</div>
                         <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
