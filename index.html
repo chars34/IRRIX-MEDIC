@@ -220,11 +220,9 @@
                                     Buscar Hospital Cerca
                                 </button>
                                 <div class="flex gap-2">
-                                    <button onclick="notificarContacto('home', 1)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> S.O.S Familiar 1
-                                    </button>
+                                  
                                     <button onclick="notificarContacto('home', 2)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> S.O.S Familiar 2
+                                        <span>💬</span> S.O.S Familiar 
                                     </button>
                                 </div>
                                 <button type="button" onclick="mostrarConfigContactos('home')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
@@ -1232,10 +1230,7 @@
 
                 // 4. Mostrar los números en los botones verdes para que siempre los veas
                 if (guardados.c1Tel) {
-                    document.querySelectorAll("button[onclick*=\"notificarContacto('home', 1)\"], button[onclick*=\"notificarContacto('test', 1)\"]").forEach(btn => {
-                        btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c1Tel}`;
-                    });
-                }
+              
                 if (guardados.c2Tel) {
                     document.querySelectorAll("button[onclick*=\"notificarContacto('home', 2)\"], button[onclick*=\"notificarContacto('test', 2)\"]").forEach(btn => {
                         btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c2Tel}`;
@@ -1311,11 +1306,10 @@
                                 </button>
                                 <div class="flex gap-2">
                                     <button type="button" onclick="notificarContacto('test', 1)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> S.O.S Familiar 1
+                                        <span>💬</span> S.O.S Familiar 
                                     </button>
-                                    <button type="button" onclick="notificarContacto('test', 2)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> S.O.S Familiar 2
-                                    </button>
+                                  
+                                 
                                 </div>
                                 <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
