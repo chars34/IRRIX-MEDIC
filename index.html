@@ -220,38 +220,28 @@
                                     Buscar Hospital Cerca
                                 </button>
                                 <div class="flex gap-2">
-                                  
-                                    <button onclick="notificarContacto('home', 2)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                    <button onclick="notificarContacto('home')" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
                                         <span>💬</span> S.O.S Familiar 
                                     </button>
                                 </div>
-                                <button type="button" onclick="mostrarConfigContactos('home')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
+                                <button type="button" onclick="mostrarConfigContactos('home')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar número de confianza</button>
                             </div>
                         </div>
 
                         <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
                             <div class="space-y-2">
                                <input 
                                   type="tel" 
-                                  id="home-c1-tel" 
-                                  placeholder="Tel. Familiar 1 (10 dígitos)" 
+                                  id="home-c-tel" 
+                                  placeholder="Tel. Familiar (10 dígitos)" 
                                   maxlength="10" 
                                   pattern="[0-9]{10}"
                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
                                   class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold mb-2"
                                 >
-                                <input 
-                                  type="tel" 
-                                  id="home-c2-tel" 
-                                  placeholder="Tel. Familiar 2 (10 dígitos)" 
-                                  maxlength="10" 
-                                  pattern="[0-9]{10}"
-                                  oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-                                  class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold mb-2"
-                                > 
                                 <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Números
+                                    <span>💾</span> Guardar Número
                                 </button>
                             </div>
                         </div>
@@ -1189,34 +1179,29 @@
             }
         }
 
-        // --- LÓGICA DE CONTACTOS DE EMERGENCIA ---
+        // --- LÓGICA DE CONTACTOS DE EMERGENCIA (AHORA SOLO 1 NÚMERO) ---
         function guardarContactos(context) {
-            let c1 = document.getElementById(context + '-c1-tel');
-            let c2 = document.getElementById(context + '-c2-tel');
+            let c = document.getElementById(context + '-c-tel');
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {cTel: ""};
             
-            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {c1Tel: "", c2Tel: ""};
-            
-            if (c1 != null) guardados.c1Tel = c1.value.trim();
-            if (c2 != null) guardados.c2Tel = c2.value.trim();
+            if (c != null) guardados.cTel = c.value.trim();
             
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
             
-            document.querySelectorAll('input[id$="-c1-tel"]').forEach(el => el.value = guardados.c1Tel);
-            document.querySelectorAll('input[id$="-c2-tel"]').forEach(el => el.value = guardados.c2Tel);
+            document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel);
         }
 
         function guardarContactosConAviso(context) {
             guardarContactos(context);
-            mostrarToast("Números guardados correctamente", "💾");
+            mostrarToast("Número guardado correctamente", "💾");
             cargarContactos(); 
         }
 
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
-            if(guardados && (guardados.c1Tel || guardados.c2Tel)) {
+            if(guardados && guardados.cTel) {
                 // 1. Rellenar los campos de texto
-                document.querySelectorAll('input[id$="-c1-tel"]').forEach(el => el.value = guardados.c1Tel || "");
-                document.querySelectorAll('input[id$="-c2-tel"]').forEach(el => el.value = guardados.c2Tel || "");
+                document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel || "");
                 
                 // 2. Ocultar recuadros de configuración
                 let homeConfig = document.getElementById('home-config-contactos');
@@ -1228,14 +1213,10 @@
                 // 3. Mostrar el enlace de "Editar"
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
 
-                // 4. Mostrar los números en los botones verdes para que siempre los veas
-                if (guardados.c1Tel) {
-              
-                if (guardados.c2Tel) {
-                    document.querySelectorAll("button[onclick*=\"notificarContacto('home', 2)\"], button[onclick*=\"notificarContacto('test', 2)\"]").forEach(btn => {
-                        btn.innerHTML = `<span>💬</span> S.O.S ${guardados.c2Tel}`;
-                    });
-                }
+                // 4. Mostrar el número en los botones verdes para que siempre lo veas
+                document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
+                    btn.innerHTML = `<span>💬</span> S.O.S ${guardados.cTel}`;
+                });
             }
         }
 
@@ -1244,10 +1225,10 @@
             if (configBox) configBox.classList.remove('hidden');
         }
 
-        async function notificarContacto(context, num) {
+        async function notificarContacto(context) {
             guardarContactos(context);
-            let telOriginal = document.getElementById(context + '-c' + num + '-tel').value;
-            let telLimpio = telOriginal.replace(/\D/g,'');
+            let telOriginal = document.getElementById(context + '-c-tel').value;
+            let telLimpio = telOriginal.replace(/\\D/g,'');
             
             if(!telLimpio || telLimpio.length < 10) {
                 mostrarToast("Ingresa un número válido de 10 dígitos.", "⚠️");
@@ -1259,7 +1240,8 @@
             
             try {
                 const pos = await obtenerUbicacionRapida();
-                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${pos.lat},${pos.lng}`);
+                // Corregida la URL de Google Maps para que funcione en WhatsApp
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
                 window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
             } catch(e) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
@@ -1305,23 +1287,20 @@
                                     Buscar Hospital Cerca
                                 </button>
                                 <div class="flex gap-2">
-                                    <button type="button" onclick="notificarContacto('test', 1)" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                    <button type="button" onclick="notificarContacto('test')" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
                                         <span>💬</span> S.O.S Familiar 
                                     </button>
-                                  
-                                 
                                 </div>
-                                <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
+                                <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar número de confianza</button>
                             </div>
                         </div>
 
                         <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
                             <div class="space-y-2">
-                                <input type="tel" id="test-c1-tel" placeholder="Tel. Familiar 1 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
-                                <input type="tel" id="test-c2-tel" placeholder="Tel. Familiar 2 (10 dígitos)" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold">
+                                <input type="tel" id="test-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
                                 <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Números
+                                    <span>💾</span> Guardar Número
                                 </button>
                             </div>
                         </div>
@@ -1606,7 +1585,7 @@
                             }
 
                             // Mensaje de WhatsApp codificado con la latitud y longitud del hospital (formato correcto de Google Maps)
-                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${lat},${lng}`);
+                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);
                             
                             let popupHtml = `
                             <div class="min-w-[220px] font-sans">
