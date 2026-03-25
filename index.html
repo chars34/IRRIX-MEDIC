@@ -351,10 +351,7 @@
 
                     <div id="map" class="h-full w-full rounded-[1.2rem] z-0"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-4 text-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center gap-2 font-medium">
-                    <span class="text-lg">👆</span> Explora, reporta o crea rutas.
-                </p>
-
+              
                 <div id="ranking-container" class="mt-8 space-y-6">
                     <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
                         <h2 class="text-base font-black text-gray-800 mb-1 text-center">📊 Distribución de Riesgo</h2>
@@ -1643,7 +1640,7 @@
         let routingControl = null; window.markersParquesBuscados = null; let modoRutaActivo = false;
 
         async function localizarUsuario() {
-            if (!map) return; mostrarToast("Activando GPS rápido...", "🛰️");
+            if (!map) return; mostrarToast("Activando GPS ...", "🛰️");
             try { const ubicacion = await obtenerUbicacionRapida(); map.setView([ubicacion.lat, ubicacion.lng], 14); L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>").openPopup(); } 
             catch (e) { mostrarToast("Activa tu GPS", "❌"); }
         }
