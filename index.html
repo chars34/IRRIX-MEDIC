@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARQ Metabólica MX</title>
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
@@ -27,7 +23,6 @@
     </script>
 
     <style>
-        /* --- ESTILOS EXCLUSIVOS PARA POPUPS DE HOSPITALES --- */
         .hospital-popup .leaflet-popup-content-wrapper { 
             border-radius: 1.25rem !important; 
             box-shadow: 0 10px 25px rgba(220, 38, 38, 0.2) !important; 
@@ -39,7 +34,7 @@
         .hospital-popup .leaflet-popup-tip { 
             background: white; 
         }
-        /* ---------------------------------------------------- */
+        
         .hidden { display: none !important; }
         #login-screen { background-color: #064e3b; display: flex; }
         #splash-screen { background-color: #064e3b; }
@@ -107,7 +102,6 @@
         
         .leaflet-routing-container { display: none !important; }
 
-        /* Estilos checkbox test */
         .test-cb { transition: all 0.2s; }
         .test-cb:checked { transform: scale(1.1); }
     </style>
@@ -821,25 +815,42 @@
 
         window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
         window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
-async function obtenerUbicacionUltraRapida() {
-    const opciones = {
-        enableHighAccuracy: false, // Rapidez sobre precisión extrema
-        timeout: 3000,             // Máximo 3 segundos de espera
-        maximumAge: 60000          // Reutiliza la ubicación si tiene menos de 1 min
-    };
 
-    if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
-        return await window.Capacitor.Plugins.Geolocation.getCurrentPosition(opciones);
-    } else {
-        return new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-                pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                err => reject(err),
-                opciones
-            );
-        });
-    }
-}
+        async function obtenerUbicacionRapida() {
+            const opciones = { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 };
+            if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
+                try {
+                    const check = await window.Capacitor.Plugins.Geolocation.checkPermissions();
+                    if (check.location !== 'granted') { await window.Capacitor.Plugins.Geolocation.requestPermissions(); }
+                    const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition(opciones);
+                    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                } catch (e) { throw e; }
+            } else {
+                return new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }), 
+                        err => reject(err), 
+                        opciones
+                    );
+                });
+            }
+        }
+
+        async function obtenerUbicacionUltraRapida() {
+            const opciones = { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 };
+            if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
+                return await window.Capacitor.Plugins.Geolocation.getCurrentPosition(opciones);
+            } else {
+                return new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                        err => reject(err),
+                        opciones
+                    );
+                });
+            }
+        }
+
         async function iniciarSesionGoogle() {
             try {
                 if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
@@ -1115,54 +1126,33 @@ async function obtenerUbicacionUltraRapida() {
 
         async function buscarHospitalCercano() {
             if (!map) return;
-            
-            // 1. Activar capa de hospitales y marcar el checkbox visualmente
             map.addLayer(capas['hospital']);
             const cbHospital = document.querySelector('input[value="hospital"]');
             if (cbHospital) cbHospital.checked = true;
-            
-            // 2. Cambiar a pantalla de mapa
             switchScreen('territorio');
             mostrarToast("Calculando distancias a hospitales...", "⏳");
 
             try {
-                // 3. Obtener ubicación exacta del usuario
                 const ubicacion = await obtenerUbicacionRapida();
                 const userLatLng = L.latLng(ubicacion.lat, ubicacion.lng);
-                
-                // Marcar al usuario en el mapa
                 L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>");
-
-                // 4. Obtener todos los hospitales cargados y calcular su distancia
                 const hospitales = capas['hospital'].getLayers();
                 if (hospitales.length === 0) {
                     mostrarToast("No hay hospitales cargados en el mapa aún.", "⚠️");
                     map.setView(userLatLng, 14);
                     return;
                 }
-
-                // Calcular distancia del usuario a cada hospital
                 const hospitalesConDistancia = hospitales.map(marker => {
                     return {
                         marker: marker,
-                        distancia: userLatLng.distanceTo(marker.getLatLng()) // distancia en metros
+                        distancia: userLatLng.distanceTo(marker.getLatLng()) 
                     };
                 });
-
-                // Ordenar del más cercano al más lejano
                 hospitalesConDistancia.sort((a, b) => a.distancia - b.distancia);
-
-                // Tomar los 5 hospitales más cercanos para enmarcarlos en la pantalla
                 const masCercanos = hospitalesConDistancia.slice(0, 5);
-
-                // 5. Ajustar la cámara del mapa para mostrar al usuario Y a los 5 hospitales
                 let bounds = L.latLngBounds([userLatLng]);
                 masCercanos.forEach(h => bounds.extend(h.marker.getLatLng()));
-                
-                // Animación suave de la cámara
                 map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16, animate: true });
-
-                // Abrir el popup del hospital ABSOLUTAMENTE más cercano después de mover la cámara
                 setTimeout(() => {
                     masCercanos[0].marker.openPopup();
                     let distKm = (masCercanos[0].distancia / 1000).toFixed(1);
@@ -1170,21 +1160,16 @@ async function obtenerUbicacionUltraRapida() {
                 }, 800);
 
             } catch (e) {
-                // Si falla el GPS, hacemos el fallback básico
                 mostrarToast("Activa tu GPS para encontrar hospitales cercanos.", "❌");
                 localizarUsuario(); 
             }
         }
 
-        // --- LÓGICA DE CONTACTOS DE EMERGENCIA (AHORA SOLO 1 NÚMERO) ---
         function guardarContactos(context) {
             let c = document.getElementById(context + '-c-tel');
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {cTel: ""};
-            
             if (c != null) guardados.cTel = c.value.trim();
-            
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
-            
             document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel);
         }
 
@@ -1197,20 +1182,12 @@ async function obtenerUbicacionUltraRapida() {
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
             if(guardados && guardados.cTel) {
-                // 1. Rellenar los campos de texto
                 document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel || "");
-                
-                // 2. Ocultar recuadros de configuración
                 let homeConfig = document.getElementById('home-config-contactos');
                 if (homeConfig) homeConfig.classList.add('hidden');
-                
                 let testConfig = document.getElementById('test-config-contactos');
                 if (testConfig) testConfig.classList.add('hidden');
-                
-                // 3. Mostrar el enlace de "Editar"
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
-
-                // 4. Mostrar el número en los botones verdes para que siempre lo veas
                 document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
                     btn.innerHTML = `<span>💬</span> S.O.S `;
                 });
@@ -1237,26 +1214,20 @@ async function obtenerUbicacionUltraRapida() {
             
             try {
                 const pos = await obtenerUbicacionRapida();
-                // Corregida la URL de Google Maps para que funcione en WhatsApp
                 const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
                 window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
             } catch(e) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
             }
         }
-        // -----------------------------------------
 
         function evaluarTest() {
             const checkedBoxes = document.querySelectorAll('.test-cb:checked');
             let score = checkedBoxes.length;
-            
-            // GUARDAR EL RESULTADO EN MEMORIA
             localStorage.setItem('arqTestInsulina', score);
             
             let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
             let extraHTML = ""; 
-            
-            // Referencia a la alerta de la pantalla de inicio
             const alertaHome = document.getElementById('alerta-medica-home');
             
             if (score >= 8) {
@@ -1266,11 +1237,7 @@ async function obtenerUbicacionUltraRapida() {
                 gradient = "from-red-500 to-rose-600";
                 icon = "🚨";
                 mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
-                
-                // Activar la alerta en la pantalla principal
                 if(alertaHome) alertaHome.classList.remove('hidden');
-                
-                // Integrar opciones de emergencia DENTRO de la alerta del test
                 extraHTML = `
                     <div class="mt-5 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 shadow-xl relative overflow-hidden text-left">
                         <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
@@ -1310,7 +1277,7 @@ async function obtenerUbicacionUltraRapida() {
                 gradient = "from-orange-400 to-amber-500";
                 icon = "⚠️";
                 mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
-                if(alertaHome) alertaHome.classList.add('hidden'); // Ocultar alerta si bajó su riesgo
+                if(alertaHome) alertaHome.classList.add('hidden'); 
             } else {
                 nivel = "Bajo Riesgo"; 
                 colorText = "text-green-700"; 
@@ -1318,7 +1285,7 @@ async function obtenerUbicacionUltraRapida() {
                 gradient = "from-green-400 to-emerald-500";
                 icon = "🌟";
                 mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
-                if(alertaHome) alertaHome.classList.add('hidden'); // Ocultar alerta
+                if(alertaHome) alertaHome.classList.add('hidden'); 
             }
 
             const resDiv = document.getElementById('test-resultado');
@@ -1344,8 +1311,6 @@ async function obtenerUbicacionUltraRapida() {
                 </div>
             `;
             resDiv.classList.remove('hidden');
-            
-            // Cargar los números si ya se habían guardado antes
             cargarContactos();
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
@@ -1546,7 +1511,6 @@ async function obtenerUbicacionUltraRapida() {
                     let catName = "";
                     let emoji = "";
 
-                    // Clasificación
                     if(c.startsWith("621") || c.startsWith("622")) { cat = "hospital"; catName = "Asistencia Médica"; emoji = "🏥"; }
                     else if(c.startsWith("46411")) { cat = "pharmacy"; catName = "Farmacia"; emoji = "💊"; }
                     else if(c.startsWith("462")) { cat = "supermarket"; catName = "Supermercado"; emoji = "🛒"; }
@@ -1555,7 +1519,6 @@ async function obtenerUbicacionUltraRapida() {
                     else if(c.startsWith("722")) { cat = "restaurant"; catName = "Restaurante"; emoji = "🍽️"; }
                     
                     if(cat) { 
-                        // Marcadores más estéticos (círculo blanco con borde de color)
                         let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
                         const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
                         
@@ -1563,7 +1526,6 @@ async function obtenerUbicacionUltraRapida() {
                         let popupHtml = "";
 
                         if (cat === "hospital") {
-                            // --- DISEÑO PREMIUM SOLO PARA HOSPITALES (CON EMOJI) ---
                             const hospitalIcon = L.divIcon({
                                 html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>',
                                 className: 'bg-transparent border-none',
@@ -1581,7 +1543,6 @@ async function obtenerUbicacionUltraRapida() {
                                 btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`;
                             }
 
-                            // Mensaje de WhatsApp codificado con la latitud y longitud del hospital (formato correcto de Google Maps)
                             let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);
                             
                             let popupHtml = `
@@ -1610,7 +1571,6 @@ async function obtenerUbicacionUltraRapida() {
                             capas[cat].addLayer(marker);
 
                         } else {
-                            // --- DISEÑO NORMAL PARA LOS DEMÁS ---
                             const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); 
                             marker.bindPopup(`<b>${nombreLugar}</b>`); 
                             capas[cat].addLayer(marker); 
@@ -1644,97 +1604,56 @@ async function obtenerUbicacionUltraRapida() {
             try { const ubicacion = await obtenerUbicacionRapida(); map.setView([ubicacion.lat, ubicacion.lng], 14); L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>").openPopup(); } 
             catch (e) { mostrarToast("Activa tu GPS", "❌"); }
         }
-async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
-    if(!navigator.onLine) { mostrarToast("Sin conexión a internet", "📡"); return; }
-    
-    try {
-        // Limpieza inmediata de capas anteriores
-        if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-        window.markersParquesBuscados = L.layerGroup().addTo(map);
 
-        mostrarToast("Buscando áreas verdes...", "🛰️");
-        
-        const radioBusqueda = 10000; // 10 km
-        
-        // OPTIMIZACIÓN 1: Query más ligera pidiendo solo 'center' y reduciendo el timeout
-        const overpassQuery = `[out:json][timeout:15];
-            (
-              nwr["leisure"~"park|garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-              nwr["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario});
-            );
-            out center;`;
-
-        const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`);
-        if (!response.ok) throw new Error("Error en API");
-        
-        const data = await response.json();
-        const puntoUsuario = turf.point([lngUsuario, latUsuario]);
-        let parquesEncontrados = [];
-
-        // OPTIMIZACIÓN 2: Procesamiento en un solo paso
-        if (data.elements && data.elements.length > 0) {
-            data.elements.forEach(el => {
-                const lat = el.lat || (el.center && el.center.lat);
-                const lng = el.lon || (el.center && el.center.lon);
-                
-                if (lat && lng) {
-                    const nombre = el.tags.name || (el.tags.leisure === "park" ? "Parque Público" : "Área Verde");
-                    const puntoParque = turf.point([lng, lat]);
-                    const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-                    
-                    // Solo parques a más de 15 metros (evitar la posición actual)
-                    if (distancia > 0.015) {
-                        parquesEncontrados.push({ lat, lng, distancia, nombre });
-                    }
+        async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
+            if(!navigator.onLine) { mostrarToast("Sin conexión a internet", "📡"); return; }
+            try {
+                if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
+                window.markersParquesBuscados = L.layerGroup().addTo(map);
+                mostrarToast("Buscando áreas verdes...", "🛰️");
+                const radioBusqueda = 10000; 
+                const overpassQuery = `[out:json][timeout:15];(nwr["leisure"~"park|garden"](around:${radioBusqueda},${latUsuario},${lngUsuario});nwr["landuse"="recreation_ground"](around:${radioBusqueda},${latUsuario},${lngUsuario}););out center;`;
+                const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`);
+                if (!response.ok) throw new Error("Error en API");
+                const data = await response.json();
+                const puntoUsuario = turf.point([lngUsuario, latUsuario]);
+                let parquesEncontrados = [];
+                if (data.elements && data.elements.length > 0) {
+                    data.elements.forEach(el => {
+                        const lat = el.lat || (el.center && el.center.lat);
+                        const lng = el.lon || (el.center && el.center.lon);
+                        if (lat && lng) {
+                            const nombre = el.tags.name || (el.tags.leisure === "park" ? "Parque Público" : "Área Verde");
+                            const puntoParque = turf.point([lng, lat]);
+                            const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
+                            if (distancia > 0.015) {
+                                parquesEncontrados.push({ lat, lng, distancia, nombre });
+                            }
+                        }
+                    });
                 }
-            });
+                if (parquesEncontrados.length > 0) {
+                    const topParques = parquesEncontrados.sort((a, b) => a.distancia - b.distancia).filter((v, i, a) => a.findIndex(t => t.nombre === v.nombre) === i).slice(0, 10); 
+                    let bounds = [[latUsuario, lngUsuario]]; 
+                    topParques.forEach(parque => {
+                        bounds.push([parque.lat, parque.lng]);
+                        const marker = L.marker([parque.lat, parque.lng], { icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color:white;">🌳</div>`, className: '', iconSize: [32,32], iconAnchor: [16, 32] }) });
+                        const nombreLimpio = parque.nombre.replace(/['"]/g, "");
+                        const metros = (parque.distancia * 1000).toFixed(0);
+                        marker.bindPopup(`<div class="text-center p-1"><b class="text-green-900 block">${parque.nombre}</b><span class="text-xs font-bold text-emerald-700">🚶 A ${metros} m</span><br><button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="bg-green-600 text-white px-3 py-2 rounded-lg mt-2 text-xs font-bold w-full">Trazar Ruta</button></div>`);
+                        window.markersParquesBuscados.addLayer(marker);
+                    });
+                    map.fitBounds(bounds, {padding: [50, 50], animate: true});
+                    mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
+                } else { 
+                    mostrarToast("No hay parques cerca (10km)", "⚠️"); 
+                }
+            } catch (err) { 
+                console.error(err);
+                mostrarToast("Error al buscar", "❌"); 
+            }
         }
 
-        if (parquesEncontrados.length > 0) {
-            // OPTIMIZACIÓN 3: Filtro de duplicados más rápido usando un Map
-            const topParques = parquesEncontrados
-                .sort((a, b) => a.distancia - b.distancia)
-                .filter((v, i, a) => a.findIndex(t => t.nombre === v.nombre) === i)
-                .slice(0, 10); // Limitamos a 10 para máxima velocidad de renderizado
-
-            let bounds = [[latUsuario, lngUsuario]]; 
-            
-            topParques.forEach(parque => {
-                bounds.push([parque.lat, parque.lng]);
-                
-                const marker = L.marker([parque.lat, parque.lng], { 
-                    icon: L.divIcon({ 
-                        html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color:white;">🌳</div>`, 
-                        className: '', iconSize: [32,32], iconAnchor: [16, 32] 
-                    }) 
-                });
-
-                const nombreLimpio = parque.nombre.replace(/['"]/g, "");
-                const metros = (parque.distancia * 1000).toFixed(0);
-
-                marker.bindPopup(`
-                    <div class="text-center p-1">
-                        <b class="text-green-900 block">${parque.nombre}</b>
-                        <span class="text-xs font-bold text-emerald-700">🚶 A ${metros} m</span><br>
-                        <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" 
-                                class="bg-green-600 text-white px-3 py-2 rounded-lg mt-2 text-xs font-bold w-full">
-                            Trazar Ruta
-                        </button>
-                    </div>
-                `);
-                window.markersParquesBuscados.addLayer(marker);
-            });
-
-            map.fitBounds(bounds, {padding: [50, 50], animate: true});
-            mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
-        } else { 
-            mostrarToast("No hay parques cerca (10km)", "⚠️"); 
-        }
-    } catch (err) { 
-        console.error(err);
-        mostrarToast("Error al buscar", "❌"); 
-    }
-}
         async function activarRutaSaludable() {
             if (!map) return; const btnRuta = document.getElementById('btn-ruta-saludable');
             if (modoRutaActivo || routingControl || window.rutaEmergencia || window.markersParquesBuscados) {
@@ -1752,11 +1671,8 @@ async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
         window.iniciarRutaSeleccionada = async function(latU, lngU, latD, lngD, nombreDestino) {
             map.closePopup(); 
             if (window.markersParquesBuscados) map.removeLayer(window.markersParquesBuscados);
-            
             mostrarToast("Obteniendo tu ubicación exacta...", "🛰️"); 
-            
             try {
-                // Forzamos a obtener tu GPS en tiempo real
                 const miUbicacion = await obtenerUbicacionRapida();
                 mostrarToast("Trazando ruta peatonal...", "🚶");
                 trazarRuta(miUbicacion.lat, miUbicacion.lng, latD, lngD, nombreDestino);
@@ -1776,12 +1692,10 @@ async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
             if (routingControl) map.removeControl(routingControl); 
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); 
             if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
-            
             try {
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
                     language: 'es', 
-                    // Obliga a usar el ruteador peatonal siempre
                     router: L.Routing.osrmv1({ 
                         serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
                         profile: 'foot' 
@@ -1796,37 +1710,33 @@ async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
                         .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
                     }
                 });
-                
-                // Si el servidor llega a fallar, dibuja una línea recta automáticamente
                 routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
                 routingControl.addTo(map); 
                 cumplirRetosRuta();
-                
             } catch (error) { 
                 dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
             }
         }
 
-     function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
-    if (routingControl) map.removeControl(routingControl);
-
-    routingControl = L.Routing.control({
-        waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
-            profile: 'foot',
-            suppressPointTiming: true // Optimiza la velocidad de respuesta
-        }),
-        fitSelectedRoutes: true,
-        show: false, // No mostrar el panel de texto (ahorra recursos de UI)
-        addWaypoints: false,
-        lineOptions: {
-            styles: [{ color: '#16a34a', weight: 6, opacity: 0.8, dashArray: '5, 10' }],
-            extendToWaypoints: true,
-            missingRouteTolerance: 100
+        function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
+            if (routingControl) map.removeControl(routingControl);
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
+                    profile: 'foot',
+                    suppressPointTiming: true 
+                }),
+                fitSelectedRoutes: true,
+                show: false, 
+                addWaypoints: false,
+                lineOptions: {
+                    styles: [{ color: '#16a34a', weight: 6, opacity: 0.8, dashArray: '5, 10' }],
+                    extendToWaypoints: true,
+                    missingRouteTolerance: 100
+                }
+            }).addTo(map);
         }
-    }).addTo(map);
-}
 
         async function initMap(){
             if(map){ map.invalidateSize(); return; } map = L.map("map",{preferCanvas:true}).setView([19.04,-98.20],8);
