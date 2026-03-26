@@ -686,7 +686,7 @@
         </h3>
         <div class="space-y-3">
             <div class="bg-white p-4 rounded-2xl border-2 border-gray-100 shadow-sm">
-                <p class="text-sm font-bold text-gray-600 mb-3">11. ¿Haces poco o nada de ejercicio?</p>
+                <p class="text-sm font-bold text-gray-600 mb-3">11. ¿Haces ejercicio frecuentemente?</p>
                 <div class="flex gap-3">
                     <label class="flex-1 cursor-pointer"><input type="radio" name="q11" value="si" class="peer sr-only test-radio-si"><div class="text-center py-2 rounded-xl border-2 border-gray-100 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 font-bold text-gray-400 transition-all">Sí</div></label>
                     <label class="flex-1 cursor-pointer"><input type="radio" name="q11" value="no" class="peer sr-only test-radio-no"><div class="text-center py-2 rounded-xl border-2 border-gray-100 peer-checked:border-gray-400 peer-checked:bg-gray-50 peer-checked:text-gray-700 font-bold text-gray-400 transition-all">No</div></label>
@@ -1657,8 +1657,7 @@ function evaluarTest() {
             const retoParque = misiones.find(x => x.id === "parque"); if(retoParque && !retoParque.completado) { retoParque.progreso = 1; }
             renderMisiones();
         }
-
-        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl); 
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); 
             if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
@@ -1680,6 +1679,25 @@ function evaluarTest() {
                         .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
                     }
                 });
+
+                // --- NUEVA FUNCIONALIDAD: ESTIMADOR DE CALORÍAS Y PASOS ---
+                routingControl.on('routesfound', function(e) {
+                    const rutas = e.routes;
+                    const resumen = rutas[0].summary;
+                    // OSRM devuelve la distancia en metros
+                    const distanciaMetros = resumen.totalDistance;
+                    
+                    // Cálculos estimados (Longitud de paso promedio 0.75m, Calorías aprox 0.05 kcal por paso)
+                    const pasosEstimados = Math.round(distanciaMetros / 0.75);
+                    const caloriasEstimadas = Math.round(pasosEstimados * 0.05);
+                    
+                    mostrarToast(`Ruta de ${(distanciaMetros/1000).toFixed(1)} km. Quemarás aprox. ${caloriasEstimadas} kcal en ${pasosEstimados} pasos.`, "🔥");
+                    
+                    // Disparamos la integración del pedómetro
+                    iniciarRastreoPedometro(pasosEstimados, nombre);
+                });
+                // ---------------------------------------------------------
+
                 routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
                 routingControl.addTo(map); 
                 cumplirRetosRuta();
@@ -1687,7 +1705,45 @@ function evaluarTest() {
                 dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
             }
         }
-
+// --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
+        let pedometroActivo = false;
+        async function iniciarRastreoPedometro(metaPasos, destino) {
+            if (pedometroActivo) return;
+            pedometroActivo = true;
+            
+            // Verifica si estamos en entorno nativo de Capacitor y si existe el plugin
+            if (window.Capacitor && window.Capacitor.Plugins.Pedometer) {
+                try {
+                    // Nota: Asume el uso de un plugin como @capacitor-community/pedometer
+                    await window.Capacitor.Plugins.Pedometer.start();
+                    mostrarToast(`¡Pedómetro activado! Meta: ${metaPasos} pasos.`, "👟");
+                    
+                    // Listener simulado conceptualmente (ajustar según la doc del plugin exacto que instales)
+                    window.addEventListener('stepEvent', (event) => {
+                        if (event.steps >= metaPasos) {
+                            mostrarToast(`¡Llegaste a ${destino}! Validado por tus pasos. +50pts extras`, "🏆");
+                            addPoints(50);
+                            window.Capacitor.Plugins.Pedometer.stop();
+                            pedometroActivo = false;
+                        }
+                    });
+                } catch (e) {
+                    console.warn("Error iniciando pedómetro:", e);
+                    pedometroActivo = false;
+                }
+            } else {
+                // Modo desarrollo/web: Simula que el usuario caminó la ruta después de unos segundos
+                console.log(`Entorno web: Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
+                setTimeout(() => {
+                    if(pedometroActivo) {
+                        mostrarToast(`(Simulador) ¡Ruta a ${destino} completada! +50pts de quema metabólica`, "💪");
+                        addPoints(50);
+                        pedometroActivo = false;
+                    }
+                }, 12000); // Se dispara a los 12 segundos para pruebas
+            }
+        }
+        // -----------------------------------------------------------------
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
