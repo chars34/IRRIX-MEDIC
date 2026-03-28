@@ -130,13 +130,31 @@
                 </button>
             </div>
             <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
-            <div class="flex gap-3">
-                <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-                <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
-            </div>
+           <div class="flex flex-col gap-2">
+    <!-- Botón visible de eliminar (Solo se muestra cuando hay foto) -->
+    <button type="button" id="btn-eliminar-foto-texto" onclick="eliminarFotoSeleccionada()" class="hidden w-full bg-red-50 text-red-600 py-2.5 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition flex items-center justify-center gap-2">
+        <span>🗑️</span> Eliminar esta foto
+    </button>
+    
+    <div class="flex gap-3 mt-1">
+        <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
+        <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
+    </div>
+</div>
         </div>
     </div>
-
+    
+<div id="modal-leaderboard" class="fixed inset-0 bg-black/70 z-[9999] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
+        <button onclick="cerrarLeaderboard()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-xl transition transform hover:scale-110">✕</button>
+        <h2 class="text-xl font-black text-gray-800 mb-1 flex items-center gap-2"><span>🏆</span> Mejores Tiempos</h2>
+        <p id="leaderboard-park-name" class="text-xs text-green-600 font-bold uppercase tracking-widest mb-4">Cargando...</p>
+        
+        <div id="leaderboard-list" class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            <!-- La lista se inyectará aquí con JavaScript -->
+        </div>
+    </div>
+</div>
     <div id="splash-screen" class="fixed inset-0 bg-gradient-to-br from-green-800 to-emerald-900 z-[99999] hidden flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
         <h1 class="text-white text-3xl font-black tracking-widest text-shadow-md">IARRI-MX</h1>
@@ -868,7 +886,74 @@
             const modal = document.getElementById('modal-levelup'); const content = document.getElementById('modal-levelup-content');
             modal.style.opacity = '0'; content.style.transform = 'scale(0.9) rotate(-2deg)'; setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
+// Abrir Leaderboard y consultar a Firebase
+function mostrarLeaderboard(nombreParque) {
+    const modal = document.getElementById('modal-leaderboard');
+    document.getElementById('leaderboard-park-name').innerText = nombreParque;
+    const lista = document.getElementById('leaderboard-list');
+    lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
 
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.style.opacity = '1', 10);
+
+    // Consulta a Firestore (ordenamos por menor tiempo)
+    db.collection("records_parques")
+      .where("parque", "==", nombreParque)
+      .orderBy("tiempo_minutos", "asc")
+      .limit(10)
+      .get()
+      .then((querySnapshot) => {
+          if(querySnapshot.empty) {
+              lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
+              return;
+          }
+          let html = "";
+          let rank = 1;
+          querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
+              html += `
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${medalla}</span>
+                        <div>
+                            <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
+                            <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
+                    </div>
+                </div>`;
+              rank++;
+          });
+          lista.innerHTML = html;
+      }).catch(err => {
+          console.error("Error cargando leaderboard", err);
+          lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Hubo un error al cargar los datos.</p>';
+      });
+}
+
+function cerrarLeaderboard() {
+    const modal = document.getElementById('modal-leaderboard');
+    modal.style.opacity = '0';
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+// Guardar el récord al terminar la ruta
+async function guardarRecordParque(destino, pasos, tiempoMinutos) {
+    if(!auth.currentUser || !navigator.onLine) return; 
+    try {
+        await db.collection("records_parques").add({
+            parque: destino,
+            usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
+            uid: auth.currentUser.uid,
+            pasos: pasos,
+            tiempo_minutos: tiempoMinutos,
+            fecha: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch(e) { console.error("Error al guardar récord:", e); }
+}
         function verificarRacha() {
             const hoy = new Date().toDateString(); let rachaData = JSON.parse(localStorage.getItem("arqRacha")) || { fecha: '', dias: 0 };
             if (rachaData.fecha !== hoy) {
@@ -1384,25 +1469,27 @@ function evaluarTest() {
 
         function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
         
-        function eliminarFotoSeleccionada() {
-            document.getElementById('foto-input').value = "";
-            document.getElementById('img-preview').src = "";
-            document.getElementById('foto-preview').classList.add("hidden");
-            document.getElementById('foto-input').classList.remove("hidden"); 
-            mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
-        }
+       function eliminarFotoSeleccionada() {
+    document.getElementById('foto-input').value = "";
+    document.getElementById('img-preview').src = "";
+    document.getElementById('foto-preview').classList.add("hidden");
+    document.getElementById('foto-input').classList.remove("hidden"); 
+    document.getElementById('btn-eliminar-foto-texto').classList.add("hidden"); // Ocultar botón extra
+    mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
+}
 
-        document.getElementById('foto-input').addEventListener('change', function(e) {
-            if(e.target.files && e.target.files[0]) {
-                const reader = new FileReader(); 
-                reader.onload = function(ev) { 
-                    document.getElementById('img-preview').src = ev.target.result; 
-                    document.getElementById('foto-preview').classList.remove("hidden"); 
-                    document.getElementById('foto-input').classList.add("hidden"); 
-                }
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
+document.getElementById('foto-input').addEventListener('change', function(e) {
+    if(e.target.files && e.target.files[0]) {
+        const reader = new FileReader(); 
+        reader.onload = function(ev) { 
+            document.getElementById('img-preview').src = ev.target.result; 
+            document.getElementById('foto-preview').classList.remove("hidden"); 
+            document.getElementById('foto-input').classList.add("hidden"); 
+            document.getElementById('btn-eliminar-foto-texto').classList.remove("hidden"); // Mostrar botón extra
+        }
+        reader.readAsDataURL(e.target.files[0]);
+    }
+});
 
         function cerrarModalFoto() { 
             document.getElementById('modal-foto').style.opacity = '0'; 
@@ -1610,9 +1697,20 @@ function evaluarTest() {
                         const marker = L.marker([parque.lat, parque.lng], { icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color:white;">🌳</div>`, className: '', iconSize: [32,32], iconAnchor: [16, 32] }) });
                         const nombreLimpio = parque.nombre.replace(/['"]/g, "");
                         const metros = (parque.distancia * 1000).toFixed(0);
-                        marker.bindPopup(`<div class="text-center p-1"><b class="text-green-900 block">${parque.nombre}</b><span class="text-xs font-bold text-emerald-700">🚶 A ${metros} m</span><br><button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="bg-green-600 text-white px-3 py-2 rounded-lg mt-2 text-xs font-bold w-full">Trazar Ruta</button></div>`);
-                        window.markersParquesBuscados.addLayer(marker);
-                    });
+                       
+marker.bindPopup(`<div class="text-center p-1"><b class="text-green-900 block">${parque.nombre}</b><span class="text-xs font-bold text-emerald-700">🚶 A ${metros} m</span><br><button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="bg-green-600 text-white px-3 py-2 rounded-lg mt-2 text-xs font-bold w-full">Trazar Ruta</button></div>`);
+
+// REEMPLÁZALO POR ESTO:
+marker.bindPopup(`
+    <div class="text-center p-1 font-sans">
+        <b class="text-green-900 block mb-1 text-sm">${parque.nombre}</b>
+        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">🚶 A ${metros} m</span>
+        <div class="flex gap-2 mt-3">
+            <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="flex-1 bg-green-600 text-white px-2 py-2 rounded-lg text-[11px] font-bold shadow-md hover:bg-green-700 transition flex items-center justify-center gap-1"><span class="text-sm">📍</span> Ir allá</button>
+            <button onclick="mostrarLeaderboard('${nombreLimpio}')" class="flex-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-2 rounded-lg text-[11px] font-bold shadow-sm hover:bg-blue-100 transition flex items-center justify-center gap-1"><span class="text-sm">🏆</span> Récords</button>
+        </div>
+    </div>
+`);
                     map.fitBounds(bounds, {padding: [50, 50], animate: true});
                     mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
                 } else { 
@@ -1735,12 +1833,18 @@ function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
                 // Modo desarrollo/web: Simula que el usuario caminó la ruta después de unos segundos
                 console.log(`Entorno web: Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
                 setTimeout(() => {
-                    if(pedometroActivo) {
-                        mostrarToast(`(Simulador) ¡Ruta a ${destino} completada! +50pts de quema metabólica`, "💪");
-                        addPoints(50);
-                        pedometroActivo = false;
-                    }
-                }, 12000); // Se dispara a los 12 segundos para pruebas
+    if(pedometroActivo) {
+        // Cálculo simulado de tiempo: Asumimos un ritmo de ~100 pasos por minuto (Caminata a buen ritmo)
+        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
+        
+        mostrarToast(`¡Llegaste a ${destino} en ${minutosSimulados} minutos! Récord guardado.`, "🏆");
+        addPoints(50);
+        pedometroActivo = false;
+        
+        // Disparar guardado en Firebase
+        guardarRecordParque(destino, metaPasos, minutosSimulados);
+    }
+}, 12000);
             }
         }
         // -----------------------------------------------------------------
