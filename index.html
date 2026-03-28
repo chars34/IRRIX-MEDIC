@@ -131,30 +131,28 @@
             </div>
             <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
            <div class="flex flex-col gap-2">
-    <!-- Botón visible de eliminar (Solo se muestra cuando hay foto) -->
-    <button type="button" id="btn-eliminar-foto-texto" onclick="eliminarFotoSeleccionada()" class="hidden w-full bg-red-50 text-red-600 py-2.5 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition flex items-center justify-center gap-2">
-        <span>🗑️</span> Eliminar esta foto
-    </button>
-    
-    <div class="flex gap-3 mt-1">
-        <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-        <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
-    </div>
-</div>
+                <button type="button" id="btn-eliminar-foto-texto" onclick="eliminarFotoSeleccionada()" class="hidden w-full bg-red-50 text-red-600 py-2.5 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition flex items-center justify-center gap-2">
+                    <span>🗑️</span> Eliminar esta foto
+                </button>
+                <div class="flex gap-3 mt-1">
+                    <button onclick="cerrarModalFoto()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
+                    <button onclick="guardarReporteFoto()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg transition">Subir Reporte</button>
+                </div>
+            </div>
         </div>
     </div>
     
-<div id="modal-leaderboard" class="fixed inset-0 bg-black/70 z-[9999] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
-        <button onclick="cerrarLeaderboard()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-xl transition transform hover:scale-110">✕</button>
-        <h2 class="text-xl font-black text-gray-800 mb-1 flex items-center gap-2"><span>🏆</span> Mejores Tiempos</h2>
-        <p id="leaderboard-park-name" class="text-xs text-green-600 font-bold uppercase tracking-widest mb-4">Cargando...</p>
-        
-        <div id="leaderboard-list" class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-            <!-- La lista se inyectará aquí con JavaScript -->
+    <div id="modal-leaderboard" class="fixed inset-0 bg-black/70 z-[9999] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
+            <button onclick="cerrarLeaderboard()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-xl transition transform hover:scale-110">✕</button>
+            <h2 class="text-xl font-black text-gray-800 mb-1 flex items-center gap-2"><span>🏆</span> Mejores Tiempos</h2>
+            <p id="leaderboard-park-name" class="text-xs text-green-600 font-bold uppercase tracking-widest mb-4">Cargando...</p>
+            <div id="leaderboard-list" class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                <!-- La lista se inyectará aquí con JavaScript -->
+            </div>
         </div>
     </div>
-</div>
+
     <div id="splash-screen" class="fixed inset-0 bg-gradient-to-br from-green-800 to-emerald-900 z-[99999] hidden flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl animate-pulse">AM</div>
         <h1 class="text-white text-3xl font-black tracking-widest text-shadow-md">IARRI-MX</h1>
@@ -1701,7 +1699,6 @@
                         const nombreLimpio = parque.nombre.replace(/['"]/g, "");
                         const metros = (parque.distancia * 1000).toFixed(0);
                         
-                        // CORRECCIÓN: Se inyecta correctamente el código HTML de tu popup en lugar de las instrucciones de texto
                         marker.bindPopup(`
                             <div class="text-center p-1 font-sans">
                                 <b class="text-green-900 block mb-1 text-sm">${parque.nombre}</b>
@@ -1713,7 +1710,6 @@
                             </div>
                         `);
                         
-                        // CORRECCIÓN: Volvemos a colocar esta línea vital para que el ícono se pinte en el mapa
                         window.markersParquesBuscados.addLayer(marker);
                     });
                     
@@ -1812,7 +1808,77 @@
         }
 
         // --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
-       iniciarRastreoPedometro
+        let pedometroActivo = false;
+
+        function iniciarRastreoPedometro(metaPasos, destino) {
+            if (pedometroActivo) return;
+            
+            // Verificamos de forma segura si el plugin nativo existe (Solo existirá en el celular físico)
+            if (typeof pedometer !== "undefined") {
+                
+                pedometer.isStepCountingAvailable(function(disponible) {
+                    if (disponible) {
+                        pedometroActivo = true;
+                        const tiempoInicio = new Date().getTime();
+                        let pasosIniciales = 0;
+                        let primerLectura = true;
+
+                        mostrarToast(`¡Ruta iniciada! Camina ${metaPasos} pasos hacia ${destino}.`, "👟");
+
+                        // Iniciar la lectura de pasos real
+                        pedometer.startUpdates(function(datos) {
+                            if (primerLectura) {
+                                pasosIniciales = datos.numberOfSteps;
+                                primerLectura = false;
+                            }
+
+                            let pasosDadosEnRuta = datos.numberOfSteps - pasosIniciales;
+
+                            // ¿Llegó a la meta?
+                            if (pasosDadosEnRuta >= metaPasos) {
+                                pedometer.stopUpdates();
+                                pedometroActivo = false;
+
+                                // Calcular minutos reales
+                                const tiempoFin = new Date().getTime();
+                                let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000);
+                                if (minutosReales < 1) minutosReales = 1;
+
+                                mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆");
+                                addPoints(50);
+                                
+                                // Guardar en Firebase
+                                guardarRecordParque(destino, pasosDadosEnRuta, minutosReales);
+                            }
+                        }, function(error) {
+                            console.error("Error leyendo pasos:", error);
+                            mostrarToast("Error al leer el sensor de pasos.", "❌");
+                            pedometroActivo = false;
+                        });
+                    } else {
+                        mostrarToast("Tu dispositivo físico no soporta el conteo de pasos.", "⚠️");
+                    }
+                }, function(error) {
+                    console.error("Error verificando sensor:", error);
+                });
+
+            } else {
+                // MODO NAVEGADOR WEB (Para que no marque error en tu PC)
+                console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
+                pedometroActivo = true;
+                
+                setTimeout(() => {
+                    if(pedometroActivo) {
+                        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
+                        mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆");
+                        addPoints(50);
+                        pedometroActivo = false;
+                        guardarRecordParque(destino, metaPasos, minutosSimulados);
+                    }
+                }, 12000); // Se simula que llega después de 12 segundos
+            }
+        }
+        // -----------------------------------------------------------------
 
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
