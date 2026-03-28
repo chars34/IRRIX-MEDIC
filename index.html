@@ -1812,52 +1812,7 @@
         }
 
         // --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
-        let pedometroActivo = false;
-        async function iniciarRastreoPedometro(metaPasos, destino) {
-            if (pedometroActivo) return;
-            pedometroActivo = true;
-            
-            // Verifica si estamos en entorno nativo de Capacitor y si existe el plugin
-            if (window.Capacitor && window.Capacitor.Plugins.Pedometer) {
-                try {
-                    // Nota: Asume el uso de un plugin como @capacitor-community/pedometer
-                    await window.Capacitor.Plugins.Pedometer.start();
-                    mostrarToast(`¡Pedómetro activado! Meta: ${metaPasos} pasos.`, "👟");
-                    
-                    // Listener simulado conceptualmente (ajustar según la doc del plugin exacto que instales)
-                    window.addEventListener('stepEvent', (event) => {
-                        if (event.steps >= metaPasos) {
-                            mostrarToast(`¡Llegaste a ${destino}! Validado por tus pasos. +50pts extras`, "🏆");
-                            addPoints(50);
-                            window.Capacitor.Plugins.Pedometer.stop();
-                            pedometroActivo = false;
-                        }
-                    });
-                } catch (e) {
-                    console.warn("Error iniciando pedómetro:", e);
-                    pedometroActivo = false;
-                }
-            } else {
-                // Modo desarrollo/web: Simula que el usuario caminó la ruta después de unos segundos
-                console.log(`Entorno web: Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
-                
-                // CORRECCIÓN: Se limpió el texto suelto de las instrucciones anteriores y se estructuró correctamente.
-                setTimeout(() => {
-                    if(pedometroActivo) {
-                        // Cálculo simulado de tiempo: Asumimos un ritmo de ~100 pasos por minuto (Caminata a buen ritmo)
-                        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
-                        
-                        mostrarToast(`¡Llegaste a ${destino} en ${minutosSimulados} minutos! Récord guardado.`, "🏆");
-                        addPoints(50);
-                        pedometroActivo = false;
-                        
-                        // Disparar guardado en Firebase
-                        guardarRecordParque(destino, metaPasos, minutosSimulados);
-                    }
-                }, 12000);
-            }
-        }
-        // -----------------------------------------------------------------
+       iniciarRastreoPedometro
 
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
