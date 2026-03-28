@@ -802,7 +802,30 @@
 
         window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
         window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
+// NUEVA FUNCIÓN: Eliminar reporte de la base de datos
+async function eliminarReporteMap(idReporte) {
+    // Pedimos confirmación para evitar borrados por error al hacer clic
+    if(!confirm("¿Seguro que deseas eliminar este reporte permanentemente?")) return;
+    
+    mostrarToast("Borrando de la nube...", "⏳");
+    
+    try {
+        // Le decimos a Supabase que borre la fila que coincida con este ID
+        const { error } = await supabaseClient
+            .from('reportes_ciudadanos')
+            .delete()
+            .eq('id', idReporte);
 
+        if (error) throw error;
+        
+        mostrarToast("¡Reporte eliminado!", "🗑️");
+        map.closePopup(); // Cerramos el globito blanco del mapa
+        escucharReportesEnVivo(); // Recargamos los pines para que la camarita desaparezca visualmente
+    } catch(e) {
+        console.error("Error al borrar:", e);
+        mostrarToast("Hubo un error al eliminar", "❌");
+    }
+}
         async function obtenerUbicacionRapida() {
             const opciones = { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 };
             if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
@@ -1546,56 +1569,55 @@
             }
         }
 
-    // NUEVA VERSIÓN: Conectada a Supabase
-async function escucharReportesEnVivo() {
+function escucharReportesEnVivo() {
     const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
     
-    // 1. Cargar las fotos que ya existen al abrir la app
-    try {
-        const { data, error } = await supabaseClient
-            .from('reportes_ciudadanos')
-            .select('*')
-            .order('fecha', { ascending: false })
-            .limit(50);
-            
-        if (data) {
-            capas['fotos'].clearLayers();
-            data.forEach((foto) => {
-                if(foto.lat && foto.lng) {
-                    const marker = L.marker([foto.lat, foto.lng], {icon: iconFoto}).bindPopup(`
-                        <div class="text-center font-sans p-2">
-                            <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
-                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Por: ${foto.usuario}</span>
-                            <img src="${foto.img_data}" class="w-full h-28 object-cover rounded-xl mt-1 mb-2 shadow-sm border border-gray-100">
-                            <p class="text-xs text-gray-600 italic font-medium">"${foto.descripcion}"</p>
-                        </div>
-                    `);
-                    capas['fotos'].addLayer(marker);
-                }
-            });
-        }
-    } catch(e) {
-        console.error("Error cargando fotos de Supabase:", e);
-    }
-
-    // 2. Escuchar en tiempo real cuando alguien (o tú) suba una foto nueva
+    // 1. Cargamos las fotos de Supabase
     supabaseClient
-      .channel('public:reportes_ciudadanos')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reportes_ciudadanos' }, payload => {
-          const foto = payload.new;
-          if(foto.lat && foto.lng) {
-              const marker = L.marker([foto.lat, foto.lng], {icon: iconFoto}).bindPopup(`
-                  <div class="text-center font-sans p-2">
-                      <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
-                      <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Por: ${foto.usuario}</span>
-                      <img src="${foto.img_data}" class="w-full h-28 object-cover rounded-xl mt-1 mb-2 shadow-sm border border-gray-100">
-                      <p class="text-xs text-gray-600 italic font-medium">"${foto.descripcion}"</p>
-                  </div>
-              `);
-              capas['fotos'].addLayer(marker);
-          }
-      })
-      .subscribe();
+        .from('reportes_ciudadanos')
+        .select('*')
+        .order('fecha', { ascending: false })
+        .then(({ data, error }) => {
+            if (data) {
+                capas['fotos'].clearLayers();
+                data.forEach((foto) => {
+                    if(foto.lat && foto.lng) {
+                        
+                        // Validamos si el usuario actual de Google es el dueño de la foto
+                        const currentUser = firebase.auth().currentUser;
+                        // Mostrar el botón si el usuario es el dueño, O si es un reporte viejo anónimo
+                        const esDueno = currentUser && (currentUser.uid === foto.uid || foto.uid === 'user-anonimo');
+                        
+                        let btnBorrar = "";
+                        if(esDueno) {
+                            // Este es el botón que inyectamos. Le pasamos el foto.id de Supabase
+                            btnBorrar = `<button onclick="eliminarReporteMap('${foto.id}')" class="mt-2 w-full bg-red-50 text-red-600 border border-red-200 font-bold py-1.5 rounded-lg text-[11px] hover:bg-red-100 transition shadow-sm">🗑️ Borrar mi reporte</button>`;
+                        }
+
+                        const marker = L.marker([foto.lat, foto.lng], {icon: iconFoto}).bindPopup(`
+                            <div class="text-center font-sans p-2 min-w-[160px]">
+                                <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Por: ${foto.usuario}</span>
+                                <img src="${foto.img_data}" class="w-full h-28 object-cover rounded-xl mt-1 mb-2 shadow-sm border border-gray-100">
+                                <p class="text-xs text-gray-600 italic font-medium">"${foto.descripcion}"</p>
+                                ${btnBorrar}
+                            </div>
+                        `);
+                        capas['fotos'].addLayer(marker);
+                    }
+                });
+            }
+        });
+
+    // 2. Escuchar cambios en tiempo real (evitar suscripciones duplicadas)
+    if(!window.suscripcionSupabase) {
+        window.suscripcionSupabase = supabaseClient
+            .channel('realtime_fotos')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'reportes_ciudadanos' }, payload => {
+                escucharReportesEnVivo(); // Si alguien borra o sube una foto, recargamos el mapa automáticamente
+            })
+            .subscribe();
+    }
 }
 
         async function cargarNegocios(){
