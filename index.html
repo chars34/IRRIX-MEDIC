@@ -767,6 +767,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     <script>
@@ -779,10 +780,14 @@
           appId: "1:863715352747:web:6e64eaca117320843717ee",
           measurementId: "G-M46CV52N5Y"
         };
+        
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+      //  const auth = firebase.auth();
+        //const db = firebase.firestore();
 const storage = firebase.storage();
+        const supabaseUrl = 'https://ucoogrhoaytylmylzqso.supabase.co';
+const supabaseKey = 'sb_publishable_540j0j9Z03YPFEj7E5dzsg_7IFyQX-U';
+const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
         db.enablePersistence().catch((err) => { console.warn("Error habilitando persistencia offline de Firebase:", err); });
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1509,54 +1514,36 @@ const storage = firebase.storage();
                 const scale = Math.min(maxWidth / img.width, 1); const canvas = document.createElement('canvas'); canvas.width = img.width * scale; canvas.height = img.height * scale;
                 const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6));
             };
-        }
-function guardarReporteFoto() {
-    const desc = document.getElementById('foto-desc').value || "Sin descripción"; 
-    const file = document.getElementById('foto-input').files[0];
-    
-    if(!file) { mostrarToast("Debes seleccionar una foto primero", "⚠️"); return; }
-    if(!auth.currentUser) { mostrarToast("Debes iniciar sesión para reportar", "🔒"); return; }
-    
-    cerrarModalFoto(); 
-    mostrarToast("Procesando imagen...", "⏳"); 
+        }async function guardarReporteFoto() {
+    const user = firebase.auth().currentUser; // Usamos el login de Google/Firebase
+    if(!user) { mostrarToast("Inicia sesión primero", "🔒"); return; }
+
+    const desc = document.getElementById('foto-desc').value || "Sin descripción";
     const imgDataRaw = document.getElementById('img-preview').src;
-    
-    // Comprimimos la imagen al máximo para que quepa en Firestore sin problemas
+
+    mostrarToast("Guardando en Supabase...", "⏳");
+
     comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
         try {
             const ubicacion = await obtenerUbicacionRapida();
             
-            // Guardamos la imagen comprimida DIRECTO en Firestore (Sin que te cobre Google)
-            await db.collection("reportes_ciudadanos").add({ 
-                lat: ubicacion.lat, 
-                lng: ubicacion.lng, 
-                imgData: imgComprimida, 
-                desc: desc, 
-                usuario: auth.currentUser.displayName || "Explorador", 
-                uid: auth.currentUser.uid, 
-                fecha: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            
-            if(navigator.onLine) { 
-                mostrarToast("¡Reporte público guardado! +80 pts", "🌍"); 
-            } else { 
-                mostrarToast("Guardado localmente. Se subirá al tener internet. +80 pts", "💾"); 
-            }
-            
-            addPoints(80); 
-            if(map) map.setView([ubicacion.lat, ubicacion.lng], 15);
-            
-            // Limpiar formulario
-            document.getElementById('foto-input').value = "";
-            document.getElementById('img-preview').src = "";
-            document.getElementById('foto-preview').classList.add("hidden");
-            document.getElementById('foto-input').classList.remove("hidden");
-            document.getElementById('foto-desc').value = "";
-            document.getElementById('btn-eliminar-foto-texto').classList.add("hidden");
+            // Aquí está el cambio clave: Usar Supabase en lugar de Firebase
+            const { error } = await supabase
+                .from('reportes_ciudadanos')
+                .insert([{
+                    lat: ubicacion.lat,
+                    lng: ubicacion.lng,
+                    img_data: imgComprimida,
+                    descripcion: desc,
+                    usuario: user.displayName, // Nombre de su cuenta Google
+                    uid: user.uid
+                }]);
 
-        } catch(e) { 
-            console.error("Error al subir:", e); 
-            mostrarToast("Error guardando reporte.", "❌"); 
+            if (error) throw error;
+            mostrarToast("¡Reporte guardado con éxito!", "🌍");
+        } catch(e) {
+            console.error(e);
+            mostrarToast("Error al conectar con Supabase", "❌");
         }
     });
 }
