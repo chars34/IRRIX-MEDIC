@@ -122,15 +122,19 @@
         <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
             <p class="text-xs text-gray-500 mb-4">Sube fotos de parques, calles o zonas de riesgo.</p>
+            
             <input type="file" id="foto-input" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition cursor-pointer">
-           <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner relative">
+           
+            <div id="foto-preview" class="hidden mb-4 rounded-xl overflow-hidden h-32 bg-gray-100 flex items-center justify-center shadow-inner relative">
                 <img id="img-preview" class="w-full h-full object-cover">
                 <button type="button" onclick="eliminarFotoSeleccionada()" class="absolute top-2 right-2 bg-white/90 backdrop-blur text-red-600 w-8 h-8 rounded-full flex items-center justify-center shadow-md font-black hover:bg-red-50 transition transform hover:scale-110" title="Eliminar foto">
                     ✕
                 </button>
             </div>
+            
             <textarea id="foto-desc" placeholder="Describe el área (ej. Falta iluminación, parque descuidado)..." class="w-full p-4 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm resize-none h-20 transition"></textarea>
-           <div class="flex flex-col gap-2">
+           
+            <div class="flex flex-col gap-2">
                 <button type="button" id="btn-eliminar-foto-texto" onclick="eliminarFotoSeleccionada()" class="hidden w-full bg-red-50 text-red-600 py-2.5 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition flex items-center justify-center gap-2">
                     <span>🗑️</span> Eliminar esta foto
                 </button>
@@ -782,12 +786,14 @@
         };
         
         firebase.initializeApp(firebaseConfig);
-      //  const auth = firebase.auth();
-        //const db = firebase.firestore();
-const storage = firebase.storage();
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
         const supabaseUrl = 'https://ucoogrhoaytylmylzqso.supabase.co';
-const supabaseKey = 'sb_publishable_540j0j9Z03YPFEj7E5dzsg_7IFyQX-U';
-const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseKey = 'sb_publishable_540j0j9Z03YPFEj7E5dzsg_7IFyQX-U';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
         db.enablePersistence().catch((err) => { console.warn("Error habilitando persistencia offline de Firebase:", err); });
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -888,75 +894,6 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
         function cerrarModalNivel() {
             const modal = document.getElementById('modal-levelup'); const content = document.getElementById('modal-levelup-content');
             modal.style.opacity = '0'; content.style.transform = 'scale(0.9) rotate(-2deg)'; setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        // Abrir Leaderboard y consultar a Firebase
-        function mostrarLeaderboard(nombreParque) {
-            const modal = document.getElementById('modal-leaderboard');
-            document.getElementById('leaderboard-park-name').innerText = nombreParque;
-            const lista = document.getElementById('leaderboard-list');
-            lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
-
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.style.opacity = '1', 10);
-
-            // Consulta a Firestore (ordenamos por menor tiempo)
-            db.collection("records_parques")
-            .where("parque", "==", nombreParque)
-            .orderBy("tiempo_minutos", "asc")
-            .limit(10)
-            .get()
-            .then((querySnapshot) => {
-                if(querySnapshot.empty) {
-                    lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
-                    return;
-                }
-                let html = "";
-                let rank = 1;
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
-                    html += `
-                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">${medalla}</span>
-                                <div>
-                                    <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
-                                    <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
-                            </div>
-                        </div>`;
-                    rank++;
-                });
-                lista.innerHTML = html;
-            }).catch(err => {
-                console.error("Error cargando leaderboard", err);
-                lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Hubo un error al cargar los datos.</p>';
-            });
-        }
-
-        function cerrarLeaderboard() {
-            const modal = document.getElementById('modal-leaderboard');
-            modal.style.opacity = '0';
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        // Guardar el récord al terminar la ruta
-        async function guardarRecordParque(destino, pasos, tiempoMinutos) {
-            if(!auth.currentUser || !navigator.onLine) return; 
-            try {
-                await db.collection("records_parques").add({
-                    parque: destino,
-                    usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
-                    uid: auth.currentUser.uid,
-                    pasos: pasos,
-                    tiempo_minutos: tiempoMinutos,
-                    fecha: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch(e) { console.error("Error al guardar récord:", e); }
         }
 
         function verificarRacha() {
@@ -1272,19 +1209,13 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
         }
 
         function evaluarTest() {
-            // 1. Verificar cuántas preguntas en total han sido respondidas (ya sea Sí o No)
             const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
-            
-            // Si no ha respondido las 14 preguntas, detenemos y mostramos un aviso
             if (preguntasRespondidas < 14) {
                 mostrarToast("Por favor, responde todas las preguntas (" + preguntasRespondidas + "/14)", "⚠️");
                 return; 
             }
-
-            // 2. Contar únicamente las respuestas que fueron "Sí"
             const respuestasSi = document.querySelectorAll('.test-radio-si:checked');
             let score = respuestasSi.length;
-            
             localStorage.setItem('arqTestInsulina', score);
             
             let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
@@ -1292,11 +1223,7 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
             const alertaHome = document.getElementById('alerta-medica-home');
             
             if (score >= 8) {
-                nivel = "Alto Riesgo"; 
-                colorText = "text-red-700"; 
-                colorBg = "bg-red-50";
-                gradient = "from-red-500 to-rose-600";
-                icon = "🚨";
+                nivel = "Alto Riesgo"; colorText = "text-red-700"; colorBg = "bg-red-50"; gradient = "from-red-500 to-rose-600"; icon = "🚨";
                 mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
                 if(alertaHome) alertaHome.classList.remove('hidden');
                 extraHTML = `
@@ -1332,19 +1259,11 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
                     </div>
                 `;
             } else if (score >= 4) {
-                nivel = "Riesgo Moderado"; 
-                colorText = "text-orange-700"; 
-                colorBg = "bg-orange-50";
-                gradient = "from-orange-400 to-amber-500";
-                icon = "⚠️";
+                nivel = "Riesgo Moderado"; colorText = "text-orange-700"; colorBg = "bg-orange-50"; gradient = "from-orange-400 to-amber-500"; icon = "⚠️";
                 mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
                 if(alertaHome) alertaHome.classList.add('hidden'); 
             } else {
-                nivel = "Bajo Riesgo"; 
-                colorText = "text-green-700"; 
-                colorBg = "bg-green-50";
-                gradient = "from-green-400 to-emerald-500";
-                icon = "🌟";
+                nivel = "Bajo Riesgo"; colorText = "text-green-700"; colorBg = "bg-green-50"; gradient = "from-green-400 to-emerald-500"; icon = "🌟";
                 mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
                 if(alertaHome) alertaHome.classList.add('hidden'); 
             }
@@ -1480,7 +1399,7 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
             document.getElementById('img-preview').src = "";
             document.getElementById('foto-preview').classList.add("hidden");
             document.getElementById('foto-input').classList.remove("hidden"); 
-            document.getElementById('btn-eliminar-foto-texto').classList.add("hidden"); // Ocultar botón extra
+            document.getElementById('btn-eliminar-foto-texto').classList.add("hidden");
             mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
         }
 
@@ -1491,7 +1410,7 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
                     document.getElementById('img-preview').src = ev.target.result; 
                     document.getElementById('foto-preview').classList.remove("hidden"); 
                     document.getElementById('foto-input').classList.add("hidden"); 
-                    document.getElementById('btn-eliminar-foto-texto').classList.remove("hidden"); // Mostrar botón extra
+                    document.getElementById('btn-eliminar-foto-texto').classList.remove("hidden"); 
                 }
                 reader.readAsDataURL(e.target.files[0]);
             }
@@ -1501,9 +1420,7 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
             document.getElementById('modal-foto').style.opacity = '0'; 
             setTimeout(() => { 
                 document.getElementById('modal-foto').classList.add('hidden'); 
-                document.getElementById('foto-input').value = "";
-                document.getElementById('img-preview').src = "";
-                document.getElementById('foto-preview').classList.add("hidden");
+                eliminarFotoSeleccionada(); 
                 document.getElementById('foto-desc').value = ""; 
             }, 300); 
         }
@@ -1514,109 +1431,116 @@ const supabase = lib.supabase.createClient(supabaseUrl, supabaseKey);
                 const scale = Math.min(maxWidth / img.width, 1); const canvas = document.createElement('canvas'); canvas.width = img.width * scale; canvas.height = img.height * scale;
                 const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6));
             };
-        }async function guardarReporteFoto() {
-    const user = firebase.auth().currentUser; // Usamos el login de Google/Firebase
-    if(!user) { mostrarToast("Inicia sesión primero", "🔒"); return; }
-
-    const desc = document.getElementById('foto-desc').value || "Sin descripción";
-    const imgDataRaw = document.getElementById('img-preview').src;
-
-    mostrarToast("Guardando en Supabase...", "⏳");
-
-    comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
-        try {
-            const ubicacion = await obtenerUbicacionRapida();
-            
-            // Aquí está el cambio clave: Usar Supabase en lugar de Firebase
-            const { error } = await supabase
-                .from('reportes_ciudadanos')
-                .insert([{
-                    lat: ubicacion.lat,
-                    lng: ubicacion.lng,
-                    img_data: imgComprimida,
-                    descripcion: desc,
-                    usuario: user.displayName, // Nombre de su cuenta Google
-                    uid: user.uid
-                }]);
-
-            if (error) throw error;
-            mostrarToast("¡Reporte guardado con éxito!", "🌍");
-        } catch(e) {
-            console.error(e);
-            mostrarToast("Error al conectar con Supabase", "❌");
         }
-    });
-}
-function mostrarLeaderboard(nombreParque) {
-    const modal = document.getElementById('modal-leaderboard');
-    document.getElementById('leaderboard-park-name').innerText = nombreParque;
-    const lista = document.getElementById('leaderboard-list');
-    lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
 
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.style.opacity = '1', 10);
+        async function guardarReporteFoto() {
+            const user = auth.currentUser; 
+            if(!user) { mostrarToast("Inicia sesión primero", "🔒"); return; }
 
-    // Consulta a Firestore: Traemos los 10 mejores tiempos (de menor a mayor)
-    db.collection("records_parques")
-      .where("parque", "==", nombreParque)
-      .orderBy("tiempo_minutos", "asc")
-      .limit(10)
-      .get()
-      .then((querySnapshot) => {
-          if(querySnapshot.empty) {
-              lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
-              return;
-          }
-          let html = "";
-          let rank = 1;
-          querySnapshot.forEach((doc) => {
-              const data = doc.data();
-              let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
-              html += `
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">${medalla}</span>
-                        <div>
-                            <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
-                            <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
-                    </div>
-                </div>`;
-              rank++;
-          });
-          lista.innerHTML = html;
-      }).catch(err => {
-          console.error("Error cargando leaderboard", err);
-          lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Falta crear el Índice en Firebase. Revisa la consola.</p>';
-      });
-}
+            const desc = document.getElementById('foto-desc').value || "Sin descripción";
+            
+            if(document.getElementById('foto-preview').classList.contains('hidden')) { 
+                mostrarToast("Selecciona una foto", "⚠️"); 
+                return; 
+            }
 
-function cerrarLeaderboard() {
-    const modal = document.getElementById('modal-leaderboard');
-    modal.style.opacity = '0';
-    setTimeout(() => modal.classList.add('hidden'), 300);
-}
+            const imgDataRaw = document.getElementById('img-preview').src;
+            cerrarModalFoto();
+            mostrarToast("Guardando en Supabase...", "⏳");
 
-// 2. Guardar el récord cuando el usuario llega al parque
-async function guardarRecordParque(destino, pasos, tiempoMinutos) {
-    if(!auth.currentUser || !navigator.onLine) return; 
-    try {
-        await db.collection("records_parques").add({
-            parque: destino,
-            usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
-            uid: auth.currentUser.uid,
-            pasos: pasos,
-            tiempo_minutos: tiempoMinutos,
-            fecha: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log("Récord guardado exitosamente en Firebase");
-    } catch(e) { 
-        console.error("Error al guardar récord:", e); 
-    }
-}
+            comprimirImagen(imgDataRaw, 600, async (imgComprimida) => {
+                try {
+                    const ubicacion = await obtenerUbicacionRapida();
+                    
+                    const { error } = await supabaseClient
+                        .from('reportes_ciudadanos')
+                        .insert([{
+                            lat: ubicacion.lat,
+                            lng: ubicacion.lng,
+                            img_data: imgComprimida,
+                            descripcion: desc,
+                            usuario: user.displayName, 
+                            uid: user.uid
+                        }]);
+
+                    if (error) throw error;
+                    mostrarToast("¡Reporte guardado con éxito!", "🌍");
+                } catch(e) {
+                    console.error(e);
+                    mostrarToast("Error al conectar con Supabase", "❌");
+                }
+            });
+        }
+
+        function mostrarLeaderboard(nombreParque) {
+            const modal = document.getElementById('modal-leaderboard');
+            document.getElementById('leaderboard-park-name').innerText = nombreParque;
+            const lista = document.getElementById('leaderboard-list');
+            lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
+
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.style.opacity = '1', 10);
+
+            db.collection("records_parques")
+              .where("parque", "==", nombreParque)
+              .orderBy("tiempo_minutos", "asc")
+              .limit(10)
+              .get()
+              .then((querySnapshot) => {
+                  if(querySnapshot.empty) {
+                      lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
+                      return;
+                  }
+                  let html = "";
+                  let rank = 1;
+                  querySnapshot.forEach((doc) => {
+                      const data = doc.data();
+                      let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
+                      html += `
+                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">${medalla}</span>
+                                <div>
+                                    <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
+                                    <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
+                            </div>
+                        </div>`;
+                      rank++;
+                  });
+                  lista.innerHTML = html;
+              }).catch(err => {
+                  console.error("Error cargando leaderboard", err);
+                  lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Falta crear el Índice en Firebase. Revisa la consola.</p>';
+              });
+        }
+
+        function cerrarLeaderboard() {
+            const modal = document.getElementById('modal-leaderboard');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function guardarRecordParque(destino, pasos, tiempoMinutos) {
+            if(!auth.currentUser || !navigator.onLine) return; 
+            try {
+                await db.collection("records_parques").add({
+                    parque: destino,
+                    usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
+                    uid: auth.currentUser.uid,
+                    pasos: pasos,
+                    tiempo_minutos: tiempoMinutos,
+                    fecha: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Récord guardado exitosamente en Firebase");
+            } catch(e) { 
+                console.error("Error al guardar récord:", e); 
+            }
+        }
+
         function escucharReportesEnVivo() {
             const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
             db.collection("reportes_ciudadanos").orderBy("fecha", "desc").limit(50).onSnapshot((snapshot) => {
@@ -1649,9 +1573,7 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                     if(isNaN(lat) || isNaN(lng)) continue; 
                     
                     let c = (n.codigo_scian || n.codigo_act || "").toString(); 
-                    let cat = null;
-                    let catName = "";
-                    let emoji = "";
+                    let cat = null; let catName = ""; let emoji = "";
 
                     if(c.startsWith("621") || c.startsWith("622")) { cat = "hospital"; catName = "Asistencia Médica"; emoji = "🏥"; }
                     else if(c.startsWith("46411")) { cat = "pharmacy"; catName = "Farmacia"; emoji = "💊"; }
@@ -1668,54 +1590,21 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                         let popupHtml = "";
 
                         if (cat === "hospital") {
-                            const hospitalIcon = L.divIcon({
-                                html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>',
-                                className: 'bg-transparent border-none',
-                                iconSize: [36, 36],
-                                iconAnchor: [18, 18]
-                            });
+                            const hospitalIcon = L.divIcon({ html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [18, 18] });
                             const marker = L.marker([lat, lng], { icon: hospitalIcon });
-
                             let tel = n.telefono || n.numero_telefono || null;
                             let btnLlamar = "";
                             
-                            if (tel && tel.trim() !== "") {
-                                btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llamar</a>`;
-                            } else {
-                                btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`;
-                            }
+                            if (tel && tel.trim() !== "") { btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llamar</a>`; } 
+                            else { btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`; }
 
                             let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);
                             
-                            let popupHtml = `
-                            <div class="min-w-[220px] font-sans">
-                                <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3">
-                                    <div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div>
-                                    <div class="flex-1">
-                                        <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
-                                        <span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex gap-2 mb-2">
-                                    ${btnLlamar}
-                                    <button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5">
-                                        <span class="text-sm">📍</span> Ir allá
-                                    </button>
-                                </div>
-                                
-                                <a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2">
-                                    <span class="text-sm">💬</span> Enviar ubicación a familiar
-                                </a>
-                            </div>`;
+                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
                             
-                            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); 
-                            capas[cat].addLayer(marker);
-
+                            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); capas[cat].addLayer(marker);
                         } else {
-                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); 
-                            marker.bindPopup(`<b>${nombreLugar}</b>`); 
-                            capas[cat].addLayer(marker); 
+                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLugar}</b>`); capas[cat].addLayer(marker); 
                         }
                     }
                 }
@@ -1762,15 +1651,11 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                 let parquesEncontrados = [];
                 if (data.elements && data.elements.length > 0) {
                     data.elements.forEach(el => {
-                        const lat = el.lat || (el.center && el.center.lat);
-                        const lng = el.lon || (el.center && el.center.lon);
+                        const lat = el.lat || (el.center && el.center.lat); const lng = el.lon || (el.center && el.center.lon);
                         if (lat && lng) {
                             const nombre = el.tags.name || (el.tags.leisure === "park" ? "Parque Público" : "Área Verde");
-                            const puntoParque = turf.point([lng, lat]);
-                            const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
-                            if (distancia > 0.015) {
-                                parquesEncontrados.push({ lat, lng, distancia, nombre });
-                            }
+                            const puntoParque = turf.point([lng, lat]); const distancia = turf.distance(puntoUsuario, puntoParque, {units: 'kilometers'});
+                            if (distancia > 0.015) { parquesEncontrados.push({ lat, lng, distancia, nombre }); }
                         }
                     });
                 }
@@ -1780,8 +1665,7 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                     topParques.forEach(parque => {
                         bounds.push([parque.lat, parque.lng]);
                         const marker = L.marker([parque.lat, parque.lng], { icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color:white;">🌳</div>`, className: '', iconSize: [32,32], iconAnchor: [16, 32] }) });
-                        const nombreLimpio = parque.nombre.replace(/['"]/g, "");
-                        const metros = (parque.distancia * 1000).toFixed(0);
+                        const nombreLimpio = parque.nombre.replace(/['"]/g, ""); const metros = (parque.distancia * 1000).toFixed(0);
                         
                         marker.bindPopup(`
                             <div class="text-center p-1 font-sans">
@@ -1793,19 +1677,11 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                                 </div>
                             </div>
                         `);
-                        
                         window.markersParquesBuscados.addLayer(marker);
                     });
-                    
-                    map.fitBounds(bounds, {padding: [50, 50], animate: true});
-                    mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
-                } else { 
-                    mostrarToast("No hay parques cerca (10km)", "⚠️"); 
-                }
-            } catch (err) { 
-                console.error(err);
-                mostrarToast("Error al buscar", "❌"); 
-            }
+                    map.fitBounds(bounds, {padding: [50, 50], animate: true}); mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
+                } else { mostrarToast("No hay parques cerca (10km)", "⚠️"); }
+            } catch (err) { console.error(err); mostrarToast("Error al buscar", "❌"); }
         }
 
         async function activarRutaSaludable() {
@@ -1850,137 +1726,64 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                 routingControl = L.Routing.control({
                     waypoints: [L.latLng(lat1, lon1), L.latLng(lat2, lon2)], 
                     language: 'es', 
-                    router: L.Routing.osrmv1({ 
-                        serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', 
-                        profile: 'foot' 
-                    }),
+                    router: L.Routing.osrmv1({ serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'foot' }),
                     lineOptions: { styles: [{color: '#059669', weight: 6, opacity: 0.9, dashArray: '5, 10'}] }, 
-                    addWaypoints: false, 
-                    draggableWaypoints: false, 
-                    fitSelectedRoutes: true, 
-                    show: false,
-                    createMarker: function(i, wp) {
-                        return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'📍':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) })
-                        .bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`);
-                    }
+                    addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+                    createMarker: function(i, wp) { return L.marker(wp.latLng, { icon: L.divIcon({ html: `<div style="font-size:22px; background:white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:3px solid #059669; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${i===0?'📍':'🎯'}</div>`, className: '', iconSize: [34,34], iconAnchor: [17, 34] }) }).bindPopup(i===0 ? "Tu ubicación exacta" : `<div class="font-sans text-center p-1"><span class="text-[10px] text-gray-400 uppercase font-black">Destino Peatonal</span><br><b class="text-green-800">${nombre}</b></div>`); }
                 });
 
-                // --- NUEVA FUNCIONALIDAD: ESTIMADOR DE CALORÍAS Y PASOS ---
                 routingControl.on('routesfound', function(e) {
-                    const rutas = e.routes;
-                    const resumen = rutas[0].summary;
-                    // OSRM devuelve la distancia en metros
-                    const distanciaMetros = resumen.totalDistance;
-                    
-                    // Cálculos estimados (Longitud de paso promedio 0.75m, Calorías aprox 0.05 kcal por paso)
-                    const pasosEstimados = Math.round(distanciaMetros / 0.75);
-                    const caloriasEstimadas = Math.round(pasosEstimados * 0.05);
-                    
+                    const rutas = e.routes; const resumen = rutas[0].summary; const distanciaMetros = resumen.totalDistance;
+                    const pasosEstimados = Math.round(distanciaMetros / 0.75); const caloriasEstimadas = Math.round(pasosEstimados * 0.05);
                     mostrarToast(`Ruta de ${(distanciaMetros/1000).toFixed(1)} km. Quemarás aprox. ${caloriasEstimadas} kcal en ${pasosEstimados} pasos.`, "🔥");
-                    
-                    // Disparamos la integración del pedómetro
                     iniciarRastreoPedometro(pasosEstimados, nombre);
                 });
-                // ---------------------------------------------------------
 
                 routingControl.on('routingerror', function(e) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); });
-                routingControl.addTo(map); 
-                cumplirRetosRuta();
-            } catch (error) { 
-                dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
-            }
+                routingControl.addTo(map); cumplirRetosRuta();
+            } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
         }
 
-        // --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
         let pedometroActivo = false;
 
         function iniciarRastreoPedometro(metaPasos, destino) {
             if (pedometroActivo) return;
-            
-            // Verificamos de forma segura si el plugin nativo existe (Solo existirá en el celular físico)
             if (typeof pedometer !== "undefined") {
-                
                 pedometer.isStepCountingAvailable(function(disponible) {
                     if (disponible) {
-                        pedometroActivo = true;
-                        const tiempoInicio = new Date().getTime();
-                        let pasosIniciales = 0;
-                        let primerLectura = true;
-
+                        pedometroActivo = true; const tiempoInicio = new Date().getTime(); let pasosIniciales = 0; let primerLectura = true;
                         mostrarToast(`¡Ruta iniciada! Camina ${metaPasos} pasos hacia ${destino}.`, "👟");
 
-                        // Iniciar la lectura de pasos real
                         pedometer.startUpdates(function(datos) {
-                            if (primerLectura) {
-                                pasosIniciales = datos.numberOfSteps;
-                                primerLectura = false;
-                            }
-
+                            if (primerLectura) { pasosIniciales = datos.numberOfSteps; primerLectura = false; }
                             let pasosDadosEnRuta = datos.numberOfSteps - pasosIniciales;
-
-                            // ¿Llegó a la meta?
                             if (pasosDadosEnRuta >= metaPasos) {
-                                pedometer.stopUpdates();
-                                pedometroActivo = false;
-
-                                // Calcular minutos reales
-                                const tiempoFin = new Date().getTime();
-                                let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000);
-                                if (minutosReales < 1) minutosReales = 1;
-
-                                mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆");
-                                addPoints(50);
-                                
-                                // Guardar en Firebase
+                                pedometer.stopUpdates(); pedometroActivo = false;
+                                const tiempoFin = new Date().getTime(); let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000); if (minutosReales < 1) minutosReales = 1;
+                                mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆"); addPoints(50);
                                 guardarRecordParque(destino, pasosDadosEnRuta, minutosReales);
                             }
-                        }, function(error) {
-                            console.error("Error leyendo pasos:", error);
-                            mostrarToast("Error al leer el sensor de pasos.", "❌");
-                            pedometroActivo = false;
-                        });
-                    } else {
-                        mostrarToast("Tu dispositivo físico no soporta el conteo de pasos.", "⚠️");
-                    }
-                }, function(error) {
-                    console.error("Error verificando sensor:", error);
-                });
-
+                        }, function(error) { console.error("Error leyendo pasos:", error); mostrarToast("Error al leer el sensor de pasos.", "❌"); pedometroActivo = false; });
+                    } else { mostrarToast("Tu dispositivo físico no soporta el conteo de pasos.", "⚠️"); }
+                }, function(error) { console.error("Error verificando sensor:", error); });
             } else {
-                // MODO NAVEGADOR WEB (Para que no marque error en tu PC)
-                console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
-                pedometroActivo = true;
-                
+                console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`); pedometroActivo = true;
                 setTimeout(() => {
                     if(pedometroActivo) {
                         let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
-                        mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆");
-                        addPoints(50);
-                        pedometroActivo = false;
+                        mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆"); addPoints(50); pedometroActivo = false;
                         guardarRecordParque(destino, metaPasos, minutosSimulados);
                     }
-                }, 12000); // Se simula que llega después de 12 segundos
+                }, 12000);
             }
         }
-        // -----------------------------------------------------------------
 
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
-                waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)],
-                router: L.Routing.osrmv1({
-                    serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1',
-                    profile: 'foot',
-                    suppressPointTiming: true 
-                }),
-                fitSelectedRoutes: true,
-                show: false, 
-                addWaypoints: false,
-                lineOptions: {
-                    styles: [{ color: '#16a34a', weight: 6, opacity: 0.8, dashArray: '5, 10' }],
-                    extendToWaypoints: true,
-                    missingRouteTolerance: 100
-                }
+                waypoints: [L.latLng(lat1, lng1), L.latLng(lat2, lng2)], router: L.Routing.osrmv1({ serviceUrl: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'foot', suppressPointTiming: true }),
+                fitSelectedRoutes: true, show: false, addWaypoints: false,
+                lineOptions: { styles: [{ color: '#16a34a', weight: 6, opacity: 0.8, dashArray: '5, 10' }], extendToWaypoints: true, missingRouteTolerance: 100 }
             }).addTo(map);
         }
 
@@ -2006,9 +1809,7 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                                 <div style="text-align: center; font-family: sans-serif; min-width: 120px;">
                                     <b style="font-size: 14px; color: #1f2937; display: block; margin-bottom: 2px;">${nombreOriginal}</b>
                                     <span style="font-size: 10px; color: #9ca3af; font-weight: bold;">IARRI: ${m.iarri.toFixed(3)}</span>
-                                    <div style="margin-top: 8px; padding: 4px; border-radius: 6px; background-color: ${color}15; color: ${color}; font-size: 11px; font-weight: 800; text-transform: uppercase; border: 1px solid ${color}40;">
-                                        Riesgo ${nivel}
-                                    </div>
+                                    <div style="margin-top: 8px; padding: 4px; border-radius: 6px; background-color: ${color}15; color: ${color}; font-size: 11px; font-weight: 800; text-transform: uppercase; border: 1px solid ${color}40;">Riesgo ${nivel}</div>
                                 </div>
                             `); 
                             layer.on("click",()=>registrarVisita(nombreOriginal)); 
@@ -2026,11 +1827,7 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                 data.sort((a,b)=>b.iarri-a.iarri); 
 
                 let misionArq = misiones.find(m => m.id === "municipio_critico");
-                if(!misionArq){ 
-                    misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más bajo: Cohetzala`, puntos:200, progreso:0, objetivo:1, completado:false }); 
-                } else {
-                    misionArq.descripcion = `Analiza el más bajo: Cohetzala`;
-                }
+                if(!misionArq){ misiones.push({ id:"municipio_critico", nombre:"🥇 Arquitecto", descripcion:`Analiza el más bajo: Cohetzala`, puntos:200, progreso:0, objetivo:1, completado:false }); } else { misionArq.descripcion = `Analiza el más bajo: Cohetzala`; }
                 renderMisiones();
 
                 generarGraficoRiesgo(data); let html="";
@@ -2056,10 +1853,7 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
             if (savedScore && parseInt(savedScore) >= 8) {
                 const alertaHome = document.getElementById('alerta-medica-home');
                 if(alertaHome) alertaHome.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    mostrarToast("⚠️ Riesgo metabólico ALTO detectado. Revisa tus alertas.", "🚨");
-                }, 2000); 
+                setTimeout(() => { mostrarToast("⚠️ Riesgo metabólico ALTO detectado. Revisa tus alertas.", "🚨"); }, 2000); 
             }
             const miniMap = L.map('miniMapa',{zoomControl:false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false}).setView([19.04,-98.20],8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); setTimeout(()=>miniMap.invalidateSize(),200);
