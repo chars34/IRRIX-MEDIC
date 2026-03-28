@@ -886,74 +886,76 @@
             const modal = document.getElementById('modal-levelup'); const content = document.getElementById('modal-levelup-content');
             modal.style.opacity = '0'; content.style.transform = 'scale(0.9) rotate(-2deg)'; setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
-// Abrir Leaderboard y consultar a Firebase
-function mostrarLeaderboard(nombreParque) {
-    const modal = document.getElementById('modal-leaderboard');
-    document.getElementById('leaderboard-park-name').innerText = nombreParque;
-    const lista = document.getElementById('leaderboard-list');
-    lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
 
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.style.opacity = '1', 10);
+        // Abrir Leaderboard y consultar a Firebase
+        function mostrarLeaderboard(nombreParque) {
+            const modal = document.getElementById('modal-leaderboard');
+            document.getElementById('leaderboard-park-name').innerText = nombreParque;
+            const lista = document.getElementById('leaderboard-list');
+            lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
 
-    // Consulta a Firestore (ordenamos por menor tiempo)
-    db.collection("records_parques")
-      .where("parque", "==", nombreParque)
-      .orderBy("tiempo_minutos", "asc")
-      .limit(10)
-      .get()
-      .then((querySnapshot) => {
-          if(querySnapshot.empty) {
-              lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
-              return;
-          }
-          let html = "";
-          let rank = 1;
-          querySnapshot.forEach((doc) => {
-              const data = doc.data();
-              let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
-              html += `
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">${medalla}</span>
-                        <div>
-                            <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
-                            <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
-                    </div>
-                </div>`;
-              rank++;
-          });
-          lista.innerHTML = html;
-      }).catch(err => {
-          console.error("Error cargando leaderboard", err);
-          lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Hubo un error al cargar los datos.</p>';
-      });
-}
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.style.opacity = '1', 10);
 
-function cerrarLeaderboard() {
-    const modal = document.getElementById('modal-leaderboard');
-    modal.style.opacity = '0';
-    setTimeout(() => modal.classList.add('hidden'), 300);
-}
+            // Consulta a Firestore (ordenamos por menor tiempo)
+            db.collection("records_parques")
+            .where("parque", "==", nombreParque)
+            .orderBy("tiempo_minutos", "asc")
+            .limit(10)
+            .get()
+            .then((querySnapshot) => {
+                if(querySnapshot.empty) {
+                    lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
+                    return;
+                }
+                let html = "";
+                let rank = 1;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
+                    html += `
+                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">${medalla}</span>
+                                <div>
+                                    <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
+                                    <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
+                            </div>
+                        </div>`;
+                    rank++;
+                });
+                lista.innerHTML = html;
+            }).catch(err => {
+                console.error("Error cargando leaderboard", err);
+                lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Hubo un error al cargar los datos.</p>';
+            });
+        }
 
-// Guardar el récord al terminar la ruta
-async function guardarRecordParque(destino, pasos, tiempoMinutos) {
-    if(!auth.currentUser || !navigator.onLine) return; 
-    try {
-        await db.collection("records_parques").add({
-            parque: destino,
-            usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
-            uid: auth.currentUser.uid,
-            pasos: pasos,
-            tiempo_minutos: tiempoMinutos,
-            fecha: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    } catch(e) { console.error("Error al guardar récord:", e); }
-}
+        function cerrarLeaderboard() {
+            const modal = document.getElementById('modal-leaderboard');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // Guardar el récord al terminar la ruta
+        async function guardarRecordParque(destino, pasos, tiempoMinutos) {
+            if(!auth.currentUser || !navigator.onLine) return; 
+            try {
+                await db.collection("records_parques").add({
+                    parque: destino,
+                    usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
+                    uid: auth.currentUser.uid,
+                    pasos: pasos,
+                    tiempo_minutos: tiempoMinutos,
+                    fecha: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) { console.error("Error al guardar récord:", e); }
+        }
+
         function verificarRacha() {
             const hoy = new Date().toDateString(); let rachaData = JSON.parse(localStorage.getItem("arqRacha")) || { fecha: '', dias: 0 };
             if (rachaData.fecha !== hoy) {
@@ -1265,110 +1267,111 @@ async function guardarRecordParque(destino, pasos, tiempoMinutos) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
             }
         }
-function evaluarTest() {
-    // 1. Verificar cuántas preguntas en total han sido respondidas (ya sea Sí o No)
-    const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
-    
-    // Si no ha respondido las 14 preguntas, detenemos y mostramos un aviso
-    if (preguntasRespondidas < 14) {
-        mostrarToast("Por favor, responde todas las preguntas (" + preguntasRespondidas + "/14)", "⚠️");
-        return; 
-    }
 
-    // 2. Contar únicamente las respuestas que fueron "Sí"
-    const respuestasSi = document.querySelectorAll('.test-radio-si:checked');
-    let score = respuestasSi.length;
-    
-    localStorage.setItem('arqTestInsulina', score);
-    
-    let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
-    let extraHTML = ""; 
-    const alertaHome = document.getElementById('alerta-medica-home');
-    
-    if (score >= 8) {
-        nivel = "Alto Riesgo"; 
-        colorText = "text-red-700"; 
-        colorBg = "bg-red-50";
-        gradient = "from-red-500 to-rose-600";
-        icon = "🚨";
-        mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
-        if(alertaHome) alertaHome.classList.remove('hidden');
-        extraHTML = `
-            <div class="mt-5 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 shadow-xl relative overflow-hidden text-left">
-                <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
-                <h4 class="font-black text-white flex items-center gap-2 mb-2 text-lg relative z-10"><span>⚠️</span> Señales de alerta</h4>
-                <p class="text-xs text-white/90 mb-3 font-medium relative z-10">Consulta a un médico si tienes: mareos frecuentes, visión borrosa, mucha sed o fatiga extrema.</p>
-                
-                <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
-                    <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica y S.O.S</p>
-                    <div class="space-y-2">
-                        <button type="button" onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                            Buscar Hospital Cerca
-                        </button>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="notificarContacto('test')" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                <span>💬</span> S.O.S Familiar 
-                            </button>
+        function evaluarTest() {
+            // 1. Verificar cuántas preguntas en total han sido respondidas (ya sea Sí o No)
+            const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
+            
+            // Si no ha respondido las 14 preguntas, detenemos y mostramos un aviso
+            if (preguntasRespondidas < 14) {
+                mostrarToast("Por favor, responde todas las preguntas (" + preguntasRespondidas + "/14)", "⚠️");
+                return; 
+            }
+
+            // 2. Contar únicamente las respuestas que fueron "Sí"
+            const respuestasSi = document.querySelectorAll('.test-radio-si:checked');
+            let score = respuestasSi.length;
+            
+            localStorage.setItem('arqTestInsulina', score);
+            
+            let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
+            let extraHTML = ""; 
+            const alertaHome = document.getElementById('alerta-medica-home');
+            
+            if (score >= 8) {
+                nivel = "Alto Riesgo"; 
+                colorText = "text-red-700"; 
+                colorBg = "bg-red-50";
+                gradient = "from-red-500 to-rose-600";
+                icon = "🚨";
+                mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
+                if(alertaHome) alertaHome.classList.remove('hidden');
+                extraHTML = `
+                    <div class="mt-5 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 shadow-xl relative overflow-hidden text-left">
+                        <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
+                        <h4 class="font-black text-white flex items-center gap-2 mb-2 text-lg relative z-10"><span>⚠️</span> Señales de alerta</h4>
+                        <p class="text-xs text-white/90 mb-3 font-medium relative z-10">Consulta a un médico si tienes: mareos frecuentes, visión borrosa, mucha sed o fatiga extrema.</p>
+                        
+                        <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica y S.O.S</p>
+                            <div class="space-y-2">
+                                <button type="button" onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                    Buscar Hospital Cerca
+                                </button>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="notificarContacto('test')" class="w-full bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
+                                        <span>💬</span> S.O.S Familiar 
+                                    </button>
+                                </div>
+                                <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar número de confianza</button>
+                            </div>
                         </div>
-                        <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar número de confianza</button>
-                    </div>
-                </div>
 
-                <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                    <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
-                    <div class="space-y-2">
-                        <input type="tel" id="test-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
-                        <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                            <span>💾</span> Guardar Número
+                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
+                            <div class="space-y-2">
+                                <input type="tel" id="test-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
+                                <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                                    <span>💾</span> Guardar Número
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (score >= 4) {
+                nivel = "Riesgo Moderado"; 
+                colorText = "text-orange-700"; 
+                colorBg = "bg-orange-50";
+                gradient = "from-orange-400 to-amber-500";
+                icon = "⚠️";
+                mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
+                if(alertaHome) alertaHome.classList.add('hidden'); 
+            } else {
+                nivel = "Bajo Riesgo"; 
+                colorText = "text-green-700"; 
+                colorBg = "bg-green-50";
+                gradient = "from-green-400 to-emerald-500";
+                icon = "🌟";
+                mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
+                if(alertaHome) alertaHome.classList.add('hidden'); 
+            }
+
+            const resDiv = document.getElementById('test-resultado');
+            resDiv.innerHTML = `
+                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden transform transition-all duration-500 animate-fadeIn">
+                    <div class="bg-gradient-to-br ${gradient} p-8 text-center relative overflow-hidden">
+                        <div class="absolute -top-4 -right-4 opacity-20 text-9xl transform rotate-12">${icon}</div>
+                        <div class="relative z-10 flex flex-col items-center">
+                            <p class="text-white/90 font-bold uppercase tracking-widest text-[10px] mb-3">Puntuación Total</p>
+                            <div class="bg-white rounded-full w-28 h-28 flex items-center justify-center mb-3 shadow-[0_10px_25px_rgba(0,0,0,0.2)] border-4 border-white/40">
+                                <span class="text-5xl font-black ${colorText}">${score}</span><span class="text-sm font-bold text-gray-300 ml-1 mt-3">/ 14</span>
+                            </div>
+                            <h3 class="text-3xl font-black text-white drop-shadow-md tracking-tight">${nivel}</h3>
+                        </div>
+                    </div>
+                    <div class="${colorBg} p-6">
+                        <p class="text-sm ${colorText} font-medium leading-relaxed text-center mb-2">${mensaje}</p>
+                        ${extraHTML}
+                        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-full bg-white ${colorText} font-bold py-3.5 mt-5 rounded-xl shadow-sm border border-white hover:bg-gray-50 transition transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
+                            <span>🔄</span> Revisar mis respuestas
                         </button>
                     </div>
                 </div>
-            </div>
-        `;
-    } else if (score >= 4) {
-        nivel = "Riesgo Moderado"; 
-        colorText = "text-orange-700"; 
-        colorBg = "bg-orange-50";
-        gradient = "from-orange-400 to-amber-500";
-        icon = "⚠️";
-        mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
-        if(alertaHome) alertaHome.classList.add('hidden'); 
-    } else {
-        nivel = "Bajo Riesgo"; 
-        colorText = "text-green-700"; 
-        colorBg = "bg-green-50";
-        gradient = "from-green-400 to-emerald-500";
-        icon = "🌟";
-        mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
-        if(alertaHome) alertaHome.classList.add('hidden'); 
-    }
-
-    const resDiv = document.getElementById('test-resultado');
-    resDiv.innerHTML = `
-        <div class="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden transform transition-all duration-500 animate-fadeIn">
-            <div class="bg-gradient-to-br ${gradient} p-8 text-center relative overflow-hidden">
-                <div class="absolute -top-4 -right-4 opacity-20 text-9xl transform rotate-12">${icon}</div>
-                <div class="relative z-10 flex flex-col items-center">
-                    <p class="text-white/90 font-bold uppercase tracking-widest text-[10px] mb-3">Puntuación Total</p>
-                    <div class="bg-white rounded-full w-28 h-28 flex items-center justify-center mb-3 shadow-[0_10px_25px_rgba(0,0,0,0.2)] border-4 border-white/40">
-                        <span class="text-5xl font-black ${colorText}">${score}</span><span class="text-sm font-bold text-gray-300 ml-1 mt-3">/ 14</span>
-                    </div>
-                    <h3 class="text-3xl font-black text-white drop-shadow-md tracking-tight">${nivel}</h3>
-                </div>
-            </div>
-            <div class="${colorBg} p-6">
-                <p class="text-sm ${colorText} font-medium leading-relaxed text-center mb-2">${mensaje}</p>
-                ${extraHTML}
-                <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-full bg-white ${colorText} font-bold py-3.5 mt-5 rounded-xl shadow-sm border border-white hover:bg-gray-50 transition transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
-                    <span>🔄</span> Revisar mis respuestas
-                </button>
-            </div>
-        </div>
-    `;
-    resDiv.classList.remove('hidden');
-    cargarContactos();
-    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-}
+            `;
+            resDiv.classList.remove('hidden');
+            cargarContactos();
+            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+        }
 
         function updateLevel() {
             let num = 1; let percent = 0;
@@ -1469,27 +1472,27 @@ function evaluarTest() {
 
         function abrirModalFoto() { document.getElementById('modal-foto').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-foto').style.opacity = '1', 10); }
         
-       function eliminarFotoSeleccionada() {
-    document.getElementById('foto-input').value = "";
-    document.getElementById('img-preview').src = "";
-    document.getElementById('foto-preview').classList.add("hidden");
-    document.getElementById('foto-input').classList.remove("hidden"); 
-    document.getElementById('btn-eliminar-foto-texto').classList.add("hidden"); // Ocultar botón extra
-    mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
-}
-
-document.getElementById('foto-input').addEventListener('change', function(e) {
-    if(e.target.files && e.target.files[0]) {
-        const reader = new FileReader(); 
-        reader.onload = function(ev) { 
-            document.getElementById('img-preview').src = ev.target.result; 
-            document.getElementById('foto-preview').classList.remove("hidden"); 
-            document.getElementById('foto-input').classList.add("hidden"); 
-            document.getElementById('btn-eliminar-foto-texto').classList.remove("hidden"); // Mostrar botón extra
+        function eliminarFotoSeleccionada() {
+            document.getElementById('foto-input').value = "";
+            document.getElementById('img-preview').src = "";
+            document.getElementById('foto-preview').classList.add("hidden");
+            document.getElementById('foto-input').classList.remove("hidden"); 
+            document.getElementById('btn-eliminar-foto-texto').classList.add("hidden"); // Ocultar botón extra
+            mostrarToast("Foto eliminada. Puedes elegir otra.", "🗑️");
         }
-        reader.readAsDataURL(e.target.files[0]);
-    }
-});
+
+        document.getElementById('foto-input').addEventListener('change', function(e) {
+            if(e.target.files && e.target.files[0]) {
+                const reader = new FileReader(); 
+                reader.onload = function(ev) { 
+                    document.getElementById('img-preview').src = ev.target.result; 
+                    document.getElementById('foto-preview').classList.remove("hidden"); 
+                    document.getElementById('foto-input').classList.add("hidden"); 
+                    document.getElementById('btn-eliminar-foto-texto').classList.remove("hidden"); // Mostrar botón extra
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
 
         function cerrarModalFoto() { 
             document.getElementById('modal-foto').style.opacity = '0'; 
@@ -1697,20 +1700,23 @@ document.getElementById('foto-input').addEventListener('change', function(e) {
                         const marker = L.marker([parque.lat, parque.lng], { icon: L.divIcon({ html: `<div style="font-size:16px; background:linear-gradient(135deg, #10B981, #059669); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color:white;">🌳</div>`, className: '', iconSize: [32,32], iconAnchor: [16, 32] }) });
                         const nombreLimpio = parque.nombre.replace(/['"]/g, "");
                         const metros = (parque.distancia * 1000).toFixed(0);
-                       
-marker.bindPopup(`<div class="text-center p-1"><b class="text-green-900 block">${parque.nombre}</b><span class="text-xs font-bold text-emerald-700">🚶 A ${metros} m</span><br><button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="bg-green-600 text-white px-3 py-2 rounded-lg mt-2 text-xs font-bold w-full">Trazar Ruta</button></div>`);
-
-// REEMPLÁZALO POR ESTO:
-marker.bindPopup(`
-    <div class="text-center p-1 font-sans">
-        <b class="text-green-900 block mb-1 text-sm">${parque.nombre}</b>
-        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">🚶 A ${metros} m</span>
-        <div class="flex gap-2 mt-3">
-            <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="flex-1 bg-green-600 text-white px-2 py-2 rounded-lg text-[11px] font-bold shadow-md hover:bg-green-700 transition flex items-center justify-center gap-1"><span class="text-sm">📍</span> Ir allá</button>
-            <button onclick="mostrarLeaderboard('${nombreLimpio}')" class="flex-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-2 rounded-lg text-[11px] font-bold shadow-sm hover:bg-blue-100 transition flex items-center justify-center gap-1"><span class="text-sm">🏆</span> Récords</button>
-        </div>
-    </div>
-`);
+                        
+                        // CORRECCIÓN: Se inyecta correctamente el código HTML de tu popup en lugar de las instrucciones de texto
+                        marker.bindPopup(`
+                            <div class="text-center p-1 font-sans">
+                                <b class="text-green-900 block mb-1 text-sm">${parque.nombre}</b>
+                                <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">🚶 A ${metros} m</span>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="iniciarRutaSeleccionada(${latUsuario}, ${lngUsuario}, ${parque.lat}, ${parque.lng}, '${nombreLimpio}')" class="flex-1 bg-green-600 text-white px-2 py-2 rounded-lg text-[11px] font-bold shadow-md hover:bg-green-700 transition flex items-center justify-center gap-1"><span class="text-sm">📍</span> Ir allá</button>
+                                    <button onclick="mostrarLeaderboard('${nombreLimpio}')" class="flex-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-2 rounded-lg text-[11px] font-bold shadow-sm hover:bg-blue-100 transition flex items-center justify-center gap-1"><span class="text-sm">🏆</span> Récords</button>
+                                </div>
+                            </div>
+                        `);
+                        
+                        // CORRECCIÓN: Volvemos a colocar esta línea vital para que el ícono se pinte en el mapa
+                        window.markersParquesBuscados.addLayer(marker);
+                    });
+                    
                     map.fitBounds(bounds, {padding: [50, 50], animate: true});
                     mostrarToast(`${topParques.length} zonas encontradas`, "🌳");
                 } else { 
@@ -1755,7 +1761,8 @@ marker.bindPopup(`
             const retoParque = misiones.find(x => x.id === "parque"); if(retoParque && !retoParque.completado) { retoParque.progreso = 1; }
             renderMisiones();
         }
-function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
+
+        function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             if (routingControl) map.removeControl(routingControl); 
             if (window.rutaEmergencia) map.removeLayer(window.rutaEmergencia); 
             if (window.markerEmergencia) map.removeLayer(window.markerEmergencia);
@@ -1803,7 +1810,8 @@ function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
                 dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); 
             }
         }
-// --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
+
+        // --- NUEVA FUNCIONALIDAD: INTEGRACIÓN DE PEDÓMETRO (CAPACITOR) ---
         let pedometroActivo = false;
         async function iniciarRastreoPedometro(metaPasos, destino) {
             if (pedometroActivo) return;
@@ -1832,22 +1840,25 @@ function trazarRuta(lat1, lon1, lat2, lon2, nombre) {
             } else {
                 // Modo desarrollo/web: Simula que el usuario caminó la ruta después de unos segundos
                 console.log(`Entorno web: Simulando validación de ${metaPasos} pasos hacia ${destino}.`);
+                
+                // CORRECCIÓN: Se limpió el texto suelto de las instrucciones anteriores y se estructuró correctamente.
                 setTimeout(() => {
-    if(pedometroActivo) {
-        // Cálculo simulado de tiempo: Asumimos un ritmo de ~100 pasos por minuto (Caminata a buen ritmo)
-        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
-        
-        mostrarToast(`¡Llegaste a ${destino} en ${minutosSimulados} minutos! Récord guardado.`, "🏆");
-        addPoints(50);
-        pedometroActivo = false;
-        
-        // Disparar guardado en Firebase
-        guardarRecordParque(destino, metaPasos, minutosSimulados);
-    }
-}, 12000);
+                    if(pedometroActivo) {
+                        // Cálculo simulado de tiempo: Asumimos un ritmo de ~100 pasos por minuto (Caminata a buen ritmo)
+                        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
+                        
+                        mostrarToast(`¡Llegaste a ${destino} en ${minutosSimulados} minutos! Récord guardado.`, "🏆");
+                        addPoints(50);
+                        pedometroActivo = false;
+                        
+                        // Disparar guardado en Firebase
+                        guardarRecordParque(destino, metaPasos, minutosSimulados);
+                    }
+                }, 12000);
             }
         }
         // -----------------------------------------------------------------
+
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
