@@ -802,7 +802,58 @@
 
         window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
         window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
-// NUEVA FUNCIÓN: Eliminar reporte de la base de datos
+// ☁️ FUNCIÓN 1: Descargar progreso al iniciar sesión
+async function sincronizarProgresoDescarga(user) {
+    if (!user) return;
+    try {
+        // Buscamos si el usuario ya existe en Supabase
+        const { data, error } = await supabaseClient
+            .from('usuarios_progreso')
+            .select('*')
+            .eq('uid', user.uid)
+            .single();
+
+        if (data) {
+            // ¡Ya existía! Sobrescribimos el localStorage con los puntos de la nube
+            userProgress.totalPoints = data.puntos;
+            userProgress.level = data.nivel;
+            localStorage.setItem("arqProgress", JSON.stringify(userProgress));
+            updateUI();
+            mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
+        } else {
+            // Es su primera vez en la app, creamos su registro en la nube
+            await supabaseClient
+                .from('usuarios_progreso')
+                .insert([{
+                    uid: user.uid,
+                    nombre: user.displayName,
+                    puntos: userProgress.totalPoints,
+                    nivel: userProgress.level
+                }]);
+        }
+    } catch (e) {
+        console.error("Error sincronizando progreso", e);
+    }
+}
+
+// ☁️ FUNCIÓN 2: Subir progreso cada que gana puntos
+async function sincronizarProgresoSubida() {
+    const user = firebase.auth().currentUser;
+    if (!user) return; // Si es invitado, solo se guarda local
+    
+    try {
+        await supabaseClient
+            .from('usuarios_progreso')
+            .update({ 
+                puntos: userProgress.totalPoints, 
+                nivel: userProgress.level,
+                ultima_conexion: new Date().toISOString()
+            })
+            .eq('uid', user.uid);
+    } catch(e) {
+        console.error("Error al respaldar en la nube", e);
+    }
+}
 async function eliminarReporteMap(idReporte) {
     // Pedimos confirmación para evitar borrados por error al hacer clic
     if(!confirm("¿Seguro que deseas eliminar este reporte permanentemente?")) return;
@@ -880,13 +931,17 @@ async function eliminarReporteMap(idReporte) {
             }
         }
 
-        auth.onAuthStateChanged((user) => {
+      auth.onAuthStateChanged((user) => {
             const loginScreen = document.getElementById('login-screen');
             if (user) {
                 localStorage.setItem('iarri_sesion_activa', 'true'); loginScreen.style.opacity = '0';
                 setTimeout(() => { loginScreen.classList.add('hidden'); document.documentElement.style.setProperty('--estado-login', 'none'); }, 500);
                 const nombreUsuarioEl = document.getElementById('user-name');
                 if(nombreUsuarioEl) { nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador'; }
+                
+                // ¡AQUÍ ESTÁ LA MAGIA NUEVA!
+                sincronizarProgresoDescarga(user);
+
             } else {
                 localStorage.removeItem('iarri_sesion_activa'); loginScreen.classList.remove('hidden'); document.documentElement.style.setProperty('--estado-login', 'flex');
                 setTimeout(() => loginScreen.style.opacity = '1', 50);
@@ -1336,7 +1391,15 @@ async function eliminarReporteMap(idReporte) {
         }
 
         function addPoints(points, buttonElement) {
-            userProgress.totalPoints += points; updateLevel(); localStorage.setItem("arqProgress", JSON.stringify(userProgress)); updateUI(); checkLogros();
+            userProgress.totalPoints += points; 
+            updateLevel(); 
+            localStorage.setItem("arqProgress", JSON.stringify(userProgress)); 
+            updateUI(); 
+            checkLogros();
+            
+            // Subimos la nueva cantidad a Supabase
+            sincronizarProgresoSubida();
+
             if(!buttonElement) mostrarToast(`¡Ganaste ${points} pts!`, '⭐');
             else {
                 const rect = buttonElement.getBoundingClientRect(); const floatEl = document.createElement("div"); floatEl.className = "point-float"; floatEl.innerText = "+" + points;
@@ -1359,6 +1422,26 @@ async function eliminarReporteMap(idReporte) {
         let logros = [{ id:"primeros_pasos", condicion:()=> userProgress.totalPoints >= 100 }, { id:"explorador", condicion:()=> municipiosVisitados.size >= 5 }, { id:"maestro", condicion:()=> userProgress.totalPoints >= 1000 }];
 
         function renderMisiones(){
+            // --- PEGAR JUSTO DEBAJO DE LA LECTURA DE MISIONES ---
+const retosKilometros = [
+    { id:"caminar_1km", nombre:"🥉 Reto 1K", descripcion:"Acumula 1 km caminado (1,300 pasos)", puntos:50, progreso:0, objetivo:1300, completado:false },
+    { id:"caminar_3km", nombre:"🥉 Reto 3K", descripcion:"Acumula 3 km caminados (3,900 pasos)", puntos:100, progreso:0, objetivo:3900, completado:false },
+    { id:"caminar_5km", nombre:"🥈 Reto 5K", descripcion:"Acumula 5 km caminados (6,500 pasos)", puntos:150, progreso:0, objetivo:6500, completado:false },
+    { id:"caminar_10km", nombre:"🥈 Reto 10K", descripcion:"Acumula 10 km caminados (13,000 pasos)", puntos:300, progreso:0, objetivo:13000, completado:false },
+    { id:"caminar_15km", nombre:"🥇 Reto 15K", descripcion:"Acumula 15 km caminados (19,500 pasos)", puntos:450, progreso:0, objetivo:19500, completado:false },
+    { id:"caminar_18km", nombre:"🥇 Reto 18K", descripcion:"Acumula 18 km caminados (23,400 pasos)", puntos:550, progreso:0, objetivo:23400, completado:false },
+    { id:"caminar_21km", nombre:"🏆 Medio Maratón", descripcion:"Acumula 21 km (27,300 pasos)", puntos:700, progreso:0, objetivo:27300, completado:false },
+    { id:"caminar_42km", nombre:"👑 Maratón Completo", descripcion:"Acumula 42 km (54,600 pasos)", puntos:1500, progreso:0, objetivo:54600, completado:false }
+];
+
+// Si el usuario no tiene estos retos, se los agregamos sin borrar su progreso anterior
+retosKilometros.forEach(nuevoReto => {
+    if (!misiones.find(m => m.id === nuevoReto.id)) {
+        misiones.push(nuevoReto);
+    }
+});
+localStorage.setItem('arqMisionesData', JSON.stringify(misiones));
+// ---------------------------------------------------
             const cont = document.getElementById("lista-retos"); if(!cont) return; let completadas = 0; let html="";
             misiones.forEach(m=>{
                 const progreso = Math.round((m.progreso/m.objetivo)*100); if(m.completado) completadas++;
@@ -1386,7 +1469,25 @@ async function eliminarReporteMap(idReporte) {
             cont.innerHTML = html; const stRetos = document.getElementById('stats-retos'); if(stRetos) stRetos.innerText = completadas;
             localStorage.setItem('arqMisionesData', JSON.stringify(misiones));
         }
+// NUEVA FUNCIÓN: Sumar los pasos dados a todos los retos de distancia
+function sumarPasosARetos(pasosDados) {
+    const idsDistancia = ["caminar_1km", "caminar_3km", "caminar_5km", "caminar_10km", "caminar_15km", "caminar_18km", "caminar_21km", "caminar_42km"];
+    
+    let algunRetoActualizado = false;
 
+    misiones.forEach(m => {
+        // Si es un reto de distancia y aún no se cobra
+        if (idsDistancia.includes(m.id) && !m.completado) {
+            m.progreso += pasosDados; // Le sumamos los pasos de esta caminata
+            algunRetoActualizado = true;
+        }
+    });
+
+    if (algunRetoActualizado) {
+        renderMisiones(); // Actualizamos la vista visual de las barras de progreso
+        mostrarToast(`¡Tus pasos se han sumado a los retos de distancia!`, "📈");
+    }
+}
         function accionReto(id, btn) {
             const m = misiones.find(x => x.id === id); if (!m || m.completado) return;
             if (m.progreso >= m.objetivo) { m.completado = true; addPoints(m.puntos, btn); renderMisiones(); mostrarToast("¡Puntos reclamados con éxito!", "🎉"); } 
@@ -1500,74 +1601,85 @@ async function eliminarReporteMap(idReporte) {
             });
         }
 
-        function mostrarLeaderboard(nombreParque) {
-            const modal = document.getElementById('modal-leaderboard');
-            document.getElementById('leaderboard-park-name').innerText = nombreParque;
-            const lista = document.getElementById('leaderboard-list');
-            lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
+       async function mostrarLeaderboard(nombreParque) {
+    const modal = document.getElementById('modal-leaderboard');
+    document.getElementById('leaderboard-park-name').innerText = nombreParque;
+    const lista = document.getElementById('leaderboard-list');
+    lista.innerHTML = '<p class="text-center text-gray-400 text-sm font-bold animate-pulse mt-4">Cargando récords...</p>';
 
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.style.opacity = '1', 10);
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.style.opacity = '1', 10);
 
-            db.collection("records_parques")
-              .where("parque", "==", nombreParque)
-              .orderBy("tiempo_minutos", "asc")
-              .limit(10)
-              .get()
-              .then((querySnapshot) => {
-                  if(querySnapshot.empty) {
-                      lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
-                      return;
-                  }
-                  let html = "";
-                  let rank = 1;
-                  querySnapshot.forEach((doc) => {
-                      const data = doc.data();
-                      let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
-                      html += `
-                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">${medalla}</span>
-                                <div>
-                                    <span class="font-bold text-gray-800 text-sm block">${data.usuario}</span>
-                                    <span class="text-[10px] text-gray-500 font-bold">${data.pasos} pasos</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="block font-black text-green-600 text-base">${data.tiempo_minutos} <span class="text-xs">min</span></span>
-                            </div>
-                        </div>`;
-                      rank++;
-                  });
-                  lista.innerHTML = html;
-              }).catch(err => {
-                  console.error("Error cargando leaderboard", err);
-                  lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Falta crear el Índice en Firebase. Revisa la consola.</p>';
-              });
+    try {
+        // Consulta a Supabase: Traemos los 10 mejores tiempos (ordenados de menor a mayor)
+        const { data, error } = await supabaseClient
+            .from('records_parques')
+            .select('*')
+            .eq('parque', nombreParque)
+            .order('tiempo_minutos', { ascending: true })
+            .limit(10);
+
+        if (error) throw error;
+
+        if(!data || data.length === 0) {
+            lista.innerHTML = '<div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100"><p class="text-2xl mb-2">👻</p><p class="text-sm text-gray-500 font-bold">Nadie ha conquistado este parque aún.<br>¡Sé el primero!</p></div>';
+            return;
         }
 
+        let html = "";
+        data.forEach((row, index) => {
+            let rank = index + 1;
+            let medalla = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-black text-sm ml-1">${rank}.</span>`;
+            html += `
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${medalla}</span>
+                        <div>
+                            <span class="font-bold text-gray-800 text-sm block">${row.usuario}</span>
+                            <span class="text-[10px] text-gray-500 font-bold">${row.pasos} pasos</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="block font-black text-green-600 text-base">${row.tiempo_minutos} <span class="text-xs">min</span></span>
+                    </div>
+                </div>`;
+        });
+        lista.innerHTML = html;
+
+    } catch (err) {
+        console.error("Error cargando leaderboard", err);
+        lista.innerHTML = '<p class="text-center text-red-500 text-sm font-bold mt-4">Hubo un error al cargar los datos de la nube.</p>';
+    }
+}
         function cerrarLeaderboard() {
             const modal = document.getElementById('modal-leaderboard');
             modal.style.opacity = '0';
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function guardarRecordParque(destino, pasos, tiempoMinutos) {
-            if(!auth.currentUser || !navigator.onLine) return; 
-            try {
-                await db.collection("records_parques").add({
-                    parque: destino,
-                    usuario: auth.currentUser.displayName ? auth.currentUser.displayName.split(' ')[0] : "Explorador",
-                    uid: auth.currentUser.uid,
-                    pasos: pasos,
-                    tiempo_minutos: tiempoMinutos,
-                    fecha: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log("Récord guardado exitosamente en Firebase");
-            } catch(e) { 
-                console.error("Error al guardar récord:", e); 
-            }
-        }
+     async function guardarRecordParque(destino, pasos, tiempoMinutos) {
+    const user = firebase.auth().currentUser;
+    if(!user || !navigator.onLine) return; 
+
+    try {
+        // Le decimos a Supabase que inserte el nuevo récord
+        const { error } = await supabaseClient
+            .from('records_parques')
+            .insert([{
+                parque: destino,
+                usuario: user.displayName ? user.displayName.split(' ')[0] : "Explorador",
+                uid: user.uid,
+                pasos: pasos,
+                tiempo_minutos: tiempoMinutos
+                // La fecha se pone sola en Supabase gracias a la tabla que creamos
+            }]);
+
+        if (error) throw error;
+        console.log("Récord de caminata guardado en Supabase 🏆");
+    } catch(e) { 
+        console.error("Error al guardar récord:", e); 
+    }
+}
 
 function escucharReportesEnVivo() {
     const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
@@ -1802,40 +1914,41 @@ function escucharReportesEnVivo() {
             } catch (error) { dibujarRutaManual(lat1, lon1, lat2, lon2, nombre); }
         }
 
-        let pedometroActivo = false;
+     function iniciarRastreoPedometro(metaPasos, destino) {
+    if (pedometroActivo) return;
+    if (typeof pedometer !== "undefined") {
+        pedometer.isStepCountingAvailable(function(disponible) {
+            if (disponible) {
+                pedometroActivo = true; const tiempoInicio = new Date().getTime(); let pasosIniciales = 0; let primerLectura = true;
+                mostrarToast(`¡Ruta iniciada! Camina ${metaPasos} pasos hacia ${destino}.`, "👟");
 
-        function iniciarRastreoPedometro(metaPasos, destino) {
-            if (pedometroActivo) return;
-            if (typeof pedometer !== "undefined") {
-                pedometer.isStepCountingAvailable(function(disponible) {
-                    if (disponible) {
-                        pedometroActivo = true; const tiempoInicio = new Date().getTime(); let pasosIniciales = 0; let primerLectura = true;
-                        mostrarToast(`¡Ruta iniciada! Camina ${metaPasos} pasos hacia ${destino}.`, "👟");
-
-                        pedometer.startUpdates(function(datos) {
-                            if (primerLectura) { pasosIniciales = datos.numberOfSteps; primerLectura = false; }
-                            let pasosDadosEnRuta = datos.numberOfSteps - pasosIniciales;
-                            if (pasosDadosEnRuta >= metaPasos) {
-                                pedometer.stopUpdates(); pedometroActivo = false;
-                                const tiempoFin = new Date().getTime(); let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000); if (minutosReales < 1) minutosReales = 1;
-                                mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆"); addPoints(50);
-                                guardarRecordParque(destino, pasosDadosEnRuta, minutosReales);
-                            }
-                        }, function(error) { console.error("Error leyendo pasos:", error); mostrarToast("Error al leer el sensor de pasos.", "❌"); pedometroActivo = false; });
-                    } else { mostrarToast("Tu dispositivo físico no soporta el conteo de pasos.", "⚠️"); }
-                }, function(error) { console.error("Error verificando sensor:", error); });
-            } else {
-                console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`); pedometroActivo = true;
-                setTimeout(() => {
-                    if(pedometroActivo) {
-                        let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
-                        mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆"); addPoints(50); pedometroActivo = false;
-                        guardarRecordParque(destino, metaPasos, minutosSimulados);
+                pedometer.startUpdates(function(datos) {
+                    if (primerLectura) { pasosIniciales = datos.numberOfSteps; primerLectura = false; }
+                    let pasosDadosEnRuta = datos.numberOfSteps - pasosIniciales;
+                    if (pasosDadosEnRuta >= metaPasos) {
+                        pedometer.stopUpdates(); pedometroActivo = false;
+                        const tiempoFin = new Date().getTime(); let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000); if (minutosReales < 1) minutosReales = 1;
+                        mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆"); addPoints(50);
+                        
+                        guardarRecordParque(destino, pasosDadosEnRuta, minutosReales);
+                        sumarPasosARetos(pasosDadosEnRuta); // <--- AQUI SUMAMOS LOS PASOS REALES
                     }
-                }, 12000);
+                }, function(error) { console.error("Error leyendo pasos:", error); mostrarToast("Error al leer el sensor de pasos.", "❌"); pedometroActivo = false; });
+            } else { mostrarToast("Tu dispositivo físico no soporta el conteo de pasos.", "⚠️"); }
+        }, function(error) { console.error("Error verificando sensor:", error); });
+    } else {
+        console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`); pedometroActivo = true;
+        setTimeout(() => {
+            if(pedometroActivo) {
+                let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
+                mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆"); addPoints(50); pedometroActivo = false;
+                
+                guardarRecordParque(destino, metaPasos, minutosSimulados);
+                sumarPasosARetos(metaPasos); // <--- AQUI SUMAMOS LOS PASOS SIMULADOS
             }
-        }
-
+        }, 12000);
+    }
+}
         function trazarRutaPeatonalRapida(lat1, lng1, lat2, lng2) {
             if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
