@@ -804,13 +804,15 @@
                     .select('*')
                     .eq('uid', user.uid)
                     .single();
-
-                if (data) {
-                    userProgress.totalPoints = data.puntos;
-                    userProgress.level = data.nivel;
-                    localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-                    updateUI();
-                    mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
+if (data) {
+    userProgress.totalPoints = data.puntos;
+    userProgress.level = data.nivel;
+    localStorage.setItem("arqProgress", JSON.stringify(userProgress));
+    
+    updateLevel(); // <--- ESTA LÍNEA FALTABA
+    updateUI();
+    mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
+}
                 } else {
                     await supabaseClient
                         .from('usuarios_progreso')
@@ -901,41 +903,29 @@
                 });
             }
         }
+async function iniciarSesionGoogle() {
+    const btnGoogle = document.getElementById('btn-iniciar-google');
+    const htmlOriginal = btnGoogle.innerHTML; // Guardamos el logo y texto originales
 
-        async function iniciarSesionGoogle() {
-            try {
-                if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
-                document.getElementById('btn-iniciar-google').innerHTML = "⏳ Conectando...";
-                if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    await auth.signInWithPopup(provider);
-                    mostrarToast("Sesión web iniciada", "✅");
-                } else {
-                    const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
-                    const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
-                    await auth.signInWithCredential(credential);
-                    mostrarToast("Sesión nativa iniciada", "✅");
-                }
-            } catch (error) {
-                mostrarToast("Error al iniciar sesión", "❌"); document.getElementById('btn-iniciar-google').innerHTML = "Iniciar sesión con Google";
-            }
+    try {
+        if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
+        btnGoogle.innerHTML = "⏳ Conectando..."; // Cambiamos a estado de carga
+        
+        if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+            mostrarToast("Sesión web iniciada", "✅");
+        } else {
+            const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+            const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+            await auth.signInWithCredential(credential);
+            mostrarToast("Sesión nativa iniciada", "✅");
         }
-
-        auth.onAuthStateChanged((user) => {
-            const loginScreen = document.getElementById('login-screen');
-            if (user) {
-                localStorage.setItem('iarri_sesion_activa', 'true'); loginScreen.style.opacity = '0';
-                setTimeout(() => { loginScreen.classList.add('hidden'); document.documentElement.style.setProperty('--estado-login', 'none'); }, 500);
-                const nombreUsuarioEl = document.getElementById('user-name');
-                if(nombreUsuarioEl) { nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador'; }
-                
-                sincronizarProgresoDescarga(user);
-                registrarParaNotificacionesPush();
-            } else {
-                localStorage.removeItem('iarri_sesion_activa'); loginScreen.classList.remove('hidden'); document.documentElement.style.setProperty('--estado-login', 'flex');
-                setTimeout(() => loginScreen.style.opacity = '1', 50);
-            }
-        });
+    } catch (error) {
+        mostrarToast("Error al iniciar sesión", "❌"); 
+        btnGoogle.innerHTML = htmlOriginal; // Restauramos el diseño con todo y logo
+    }
+}
 
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = "toast-msg";
@@ -1814,10 +1804,15 @@
         function escucharEmergenciasEnVivo() {
             const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
             
-            const dibujarEmergencia = (em) => {
-                if(!em.activa) return;
-                const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${em.usuario}')" class="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-red-700 shadow-md mb-2 flex justify-center items-center gap-2"><span>📍</span> Trazar ruta de rescate</button>`;
-                const btnCancelar = (firebase.auth().currentUser && firebase.auth().currentUser.uid === em.uid) 
+      const dibujarEmergencia = (em) => {
+    if(!em.activa) return;
+    // Limpiamos el nombre del usuario
+    const usuarioLimpio = em.usuario.replace(/['"]/g, "");
+    
+    // Usamos usuarioLimpio en la función del botón
+    const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${usuarioLimpio}')" class="..."><span>📍</span> Trazar ruta de rescate</button>`;
+    
+    // ...resto de tu código    const btnCancelar = (firebase.auth().currentUser && firebase.auth().currentUser.uid === em.uid) 
                     ? `<button onclick="desactivarEmergencia('${em.id}')" class="w-full bg-gray-100 text-gray-500 py-2 rounded-lg text-[10px] font-bold hover:bg-gray-200">Cancelar mi alerta falsa</button>` : "";
 
                 const marker = L.marker([em.lat, em.lng], {icon: iconSOS}).bindPopup(`
@@ -1986,8 +1981,12 @@
                         let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
                         const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
                         
-                        let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
-                        let popupHtml = "";
+                    let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
+// Agrega esta línea para limpiar el nombre:
+let nombreLimpio = nombreLugar.replace(/['"]/g, "");
+
+// ... más abajo, usa nombreLimpio en el botón onclick:
+popupHtml = `<div class="...">...<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLimpio}')" class="...">... Ir allá</button>...</div>`;
 
                         if (cat === "hospital") {
                             const hospitalIcon = L.divIcon({ html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [18, 18] });
