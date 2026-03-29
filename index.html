@@ -1194,7 +1194,8 @@ if (window.userLocationMarker) {
 }
 window.userLocationMarker = L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map);
 window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>");
-                L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>");
+
+                
                 const hospitales = capas['hospital'].getLayers();
                 if (hospitales.length === 0) {
                     mostrarToast("No hay hospitales cargados en el mapa aún.", "⚠️");
