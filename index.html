@@ -1256,7 +1256,7 @@ window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>");
     alert("Contactos guardados correctamente ✅");
 }
 
-      function cargarContactos() {
+function cargarContactos() {
     let guardados = JSON.parse(localStorage.getItem('contactosSOS')) || [];
     
     if (guardados.length > 0) {
@@ -1272,13 +1272,12 @@ window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>");
         if (tel2) tel2.value = guardados[1] || "";
         if (tel3) tel3.value = guardados[2] || "";
 
-        // Ocultar paneles de configuración
+        // Ocultar paneles y mostrar estado guardado
         let homeConfig = document.getElementById('home-config-contactos');
         if (homeConfig) homeConfig.classList.add('hidden');
         let testConfig = document.getElementById('test-config-contactos');
         if (testConfig) testConfig.classList.add('hidden');
         
-        // Cambiar botones a estado "Guardado"
         document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
         document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
             btn.innerHTML = `<span>💬</span> S.O.S `;
@@ -1297,11 +1296,11 @@ async function notificarContacto(context) {
         const inputHome = document.getElementById('home-c-tel');
         if (inputHome) telLimpio = inputHome.value.replace(/\D/g,'');
     } else if (context === 'test') {
-        const inputTest = document.getElementById('tel1'); // Toma el primer teléfono de emergencia
+        const inputTest = document.getElementById('tel1'); // Toma el primer teléfono
         if (inputTest) telLimpio = inputTest.value.replace(/\D/g,'');
     }
 
-    // Si no está en el input, intentar recuperarlo de localStorage
+    // Si no está en el input, recuperar de localStorage
     if (!telLimpio || telLimpio.length < 10) {
         let guardados = JSON.parse(localStorage.getItem("contactosSOS")) || [];
         if (guardados.length > 0 && guardados[0]) {
@@ -1326,7 +1325,6 @@ async function notificarContacto(context) {
         mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
     }
 }
-
         function evaluarTest() {
             const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
             if (preguntasRespondidas < 14) {
@@ -2041,16 +2039,16 @@ async function notificarContacto(context) {
        async function localizarUsuario() {
     if (!map) return; 
     mostrarToast("Activando GPS ...", "🛰️");
-    try { 
-        const ubicacion = await obtenerUbicacionRapida(); 
-        map.setView([ubicacion.lat, ubicacion.lng], 14); 
-        
-        if (window.userLocationMarker) {
-            map.removeLayer(window.userLocationMarker);
-        }
-        window.userLocationMarker = L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map);
-        window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>").openPopup(); 
-    } catch (e) { 
+  try { 
+    const ubicacion = await obtenerUbicacionRapida(); 
+    map.setView([ubicacion.lat, ubicacion.lng], 14); 
+
+    if (window.userLocationMarker) {
+        map.removeLayer(window.userLocationMarker);
+    }
+    window.userLocationMarker = L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map);
+    window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>").openPopup(); 
+} catch (e) { 
         mostrarToast("Activa tu GPS", "❌"); 
     }
 }
