@@ -16,11 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 
-    <script>
-        if (localStorage.getItem('iarri_sesion_activa') === 'true') {
-            document.write('<style>#login-screen { display: none !important; opacity: 0 !important; }</style>');
-        }
-    </script>
+ 
 
     <style>
         .hospital-popup .leaflet-popup-content-wrapper { 
@@ -1082,7 +1078,7 @@
         let nivelAnteriorGlobal = userProgress.level;
         let geoDataCache = null; 
         let municipiosVisitados = new Set(JSON.parse(localStorage.getItem("arqVisitados")) || []);
-        let chartInstance = null; let map = null; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
+        let chartInstance = null; let map = null;let userLocationMarker = null;let pedometroActivo = false; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
         
         function crearClusterPersonalizado(cluster, emoji) {
             let childCount = cluster.getChildCount();
@@ -1230,15 +1226,27 @@
             document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel);
         }
 
-      function guardarContactosConAviso() {
-    const tel1 = document.getElementById("tel1").value;
-    const tel2 = document.getElementById("tel2").value;
-    const tel3 = document.getElementById("tel3").value;
+     function guardarContactosConAviso(context) {
+    let contactos = [];
+    
+    if (context === 'home') {
+        const telHome = document.getElementById("home-c-tel");
+        if (telHome && telHome.value) contactos.push(telHome.value);
+    } else if (context === 'test') {
+        const tel1 = document.getElementById("tel1");
+        const tel2 = document.getElementById("tel2");
+        const tel3 = document.getElementById("tel3");
+        if (tel1 && tel1.value) contactos.push(tel1.value);
+        if (tel2 && tel2.value) contactos.push(tel2.value);
+        if (tel3 && tel3.value) contactos.push(tel3.value);
+    }
 
-    const contactos = [tel1, tel2, tel3];
+    if (contactos.length === 0) {
+        alert("Por favor, ingresa al menos un número válido ⚠️");
+        return;
+    }
 
     localStorage.setItem("contactosSOS", JSON.stringify(contactos));
-
     alert("Contactos guardados correctamente ✅");
 }
 
