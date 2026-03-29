@@ -1781,21 +1781,44 @@
             }
         }
 
-      function activarSOSGlobal() {
+   async function activarSOSGlobal() {
     const contactos = JSON.parse(localStorage.getItem("contactosSOS")) || [];
+    const numerosValidos = contactos.filter(num => num && num.length >= 10);
 
-    if (contactos.length === 0) {
-        alert("No hay contactos guardados ⚠️");
+    if (numerosValidos.length === 0) {
+        alert("No hay contactos guardados ⚠️ Configúralos primero.");
         return;
     }
 
-    const mensaje = "🚨 EMERGENCIA: Necesito ayuda. Mi ubicación: https://maps.google.com/?q=MI_UBICACION";
+    mostrarToast("Preparando alerta de emergencia...", "🚨");
 
-    contactos.forEach(numero => {
-        if (numero) {
-            window.open(`https://wa.me/52${numero}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    try {
+        const pos = await obtenerUbicacionRapida();
+        const mensaje = encodeURIComponent(`🚨 EMERGENCIA: Necesito ayuda. Mi ubicación: https://maps.google.com/?q=${pos.lat},${pos.lng}`);
+
+        // Verificamos si hay conexión a Internet
+        if (navigator.onLine) {
+            // CON INTERNET: Abre WhatsApp para elegir a los contactos y enviar
+            mostrarToast("Conexión detectada. Abriendo WhatsApp...", "💬");
+            setTimeout(() => {
+                window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+            }, 800);
+        } else {
+            // SIN INTERNET: Fuerza el envío por SMS a los 3 números guardados
+            mostrarToast("Sin conexión. Preparando SMS múltiple...", "📱");
+            
+            const listaNumeros = numerosValidos.join(',');
+            const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
+            const urlSMS = `sms:${listaNumeros}${separador}body=${mensaje}`;
+            
+            setTimeout(() => {
+                window.location.href = urlSMS;
+            }, 800);
         }
-    });
+
+    } catch(e) {
+        mostrarToast("Activa tu GPS para enviar tus coordenadas.", "❌");
+    }
 }
         function escucharEmergenciasEnVivo() {
             const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
