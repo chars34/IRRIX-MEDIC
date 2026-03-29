@@ -230,7 +230,7 @@
                             </div>
                         </div>
 
-                      <div id="home-config-contactos" class="hidden bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
+                      <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
                                <input type="tel" id="home-c-tel-1" placeholder="Contacto 1 (Principal)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-green-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
@@ -594,7 +594,7 @@
                     <h3 class="font-black text-lg text-gray-800 mb-4 flex items-center gap-2">
                         2. Cuestionario de Síntomas
                     </h3>
-                   <form id="test-insulina-form" class="space-y-6" onsubmit="return false;">
+                   <form id="test-insulina-form" class="space-y-6">
     <div>
         <h3 class="font-black text-purple-800 mb-3 flex items-center gap-2 text-sm bg-purple-100 inline-block px-4 py-2 rounded-full shadow-sm">
             <span>👤</span> Síntomas físicos
@@ -808,7 +808,6 @@
                     userProgress.totalPoints = data.puntos;
                     userProgress.level = data.nivel;
                     localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-                    updateLevel(); // SOLUCIONADO: Actualiza visualmente la barra
                     updateUI();
                     mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
                 } else {
@@ -903,13 +902,9 @@
         }
 
         async function iniciarSesionGoogle() {
-            const btnGoogle = document.getElementById('btn-iniciar-google');
-            const htmlOriginal = btnGoogle.innerHTML; // SOLUCIONADO: Guarda el botón original
-            
             try {
                 if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
-                btnGoogle.innerHTML = "⏳ Conectando...";
-                
+                document.getElementById('btn-iniciar-google').innerHTML = "⏳ Conectando...";
                 if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
                     const provider = new firebase.auth.GoogleAuthProvider();
                     await auth.signInWithPopup(provider);
@@ -921,8 +916,7 @@
                     mostrarToast("Sesión nativa iniciada", "✅");
                 }
             } catch (error) {
-                mostrarToast("Error al iniciar sesión", "❌"); 
-                btnGoogle.innerHTML = htmlOriginal; 
+                mostrarToast("Error al iniciar sesión", "❌"); document.getElementById('btn-iniciar-google').innerHTML = "Iniciar sesión con Google";
             }
         }
 
@@ -1177,20 +1171,11 @@
         }
 
         function toggleFiltros() { document.getElementById('panelFiltros').classList.toggle('active'); }
-        
-        // SOLUCIONADO: El bug de la pantalla en blanco
         function switchScreen(screen) {
-            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); 
-            document.getElementById("screen-" + screen)?.classList.remove("hidden");
-            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); 
-            document.getElementById("nav-" + screen)?.classList.add("active");
-            
-            // Restablece el scroll de la etiqueta <main> para evitar la pantalla en blanco inferior
-            const mainContainer = document.querySelector("main");
-            if(mainContainer) mainContainer.scrollTop = 0;
-            window.scrollTo(0,0);
-
+            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); document.getElementById("screen-" + screen)?.classList.remove("hidden");
+            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); document.getElementById("nav-" + screen)?.classList.add("active");
             if (screen === "territorio") setTimeout(initMap, 200);
+            if (screen === "fundamentacion" || screen === "test") window.scrollTo(0,0);
         }
 
         async function buscarHospitalCercano() {
@@ -1234,7 +1219,7 @@
             }
         }
 
-        function guardarContactos(context) {
+       function guardarContactos(context) {
             let tel1 = document.getElementById(context + '-c-tel-1')?.value.trim() || "";
             let tel2 = document.getElementById(context + '-c-tel-2')?.value.trim() || "";
             let tel3 = document.getElementById(context + '-c-tel-3')?.value.trim() || "";
@@ -1242,6 +1227,7 @@
             let guardados = { tel1, tel2, tel3 };
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
             
+            // Sincroniza los inputs en las otras pantallas
             document.querySelectorAll('input[id$="-c-tel-1"]').forEach(el => el.value = tel1);
             document.querySelectorAll('input[id$="-c-tel-2"]').forEach(el => el.value = tel2);
             document.querySelectorAll('input[id$="-c-tel-3"]').forEach(el => el.value = tel3);
@@ -1256,6 +1242,7 @@
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
             if(guardados) {
+                // Soporte para usuarios que ya tenían 1 número guardado (cTel)
                 let t1 = guardados.tel1 || guardados.cTel || "";
                 let t2 = guardados.tel2 || "";
                 let t3 = guardados.tel3 || "";
@@ -1285,6 +1272,7 @@
         async function notificarContacto(context) {
             guardarContactos(context);
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
+            // WhatsApp solo soporta 1 número directo, usamos el Principal
             let telOriginal = guardados.tel1 || guardados.cTel || "";
             let telLimpio = telOriginal.replace(/\D/g,'');
             
@@ -1298,7 +1286,55 @@
             
             try {
                 const pos = await obtenerUbicacionRapida();
-                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${pos.lat},${pos.lng}`);
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
+                window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
+            } catch(e) {
+                mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
+            }
+        }
+
+        function guardarContactosConAviso(context) {
+            guardarContactos(context);
+            mostrarToast("Número guardado correctamente", "💾");
+            cargarContactos(); 
+        }
+
+        function cargarContactos() {
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
+            if(guardados && guardados.cTel) {
+                document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel || "");
+                let homeConfig = document.getElementById('home-config-contactos');
+                if (homeConfig) homeConfig.classList.add('hidden');
+                let testConfig = document.getElementById('test-config-contactos');
+                if (testConfig) testConfig.classList.add('hidden');
+                document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
+                document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
+                    btn.innerHTML = `<span>💬</span> S.O.S `;
+                });
+            }
+        }
+
+        function mostrarConfigContactos(context) {
+            const configBox = document.getElementById(context + '-config-contactos');
+            if (configBox) configBox.classList.remove('hidden');
+        }
+
+        async function notificarContacto(context) {
+            guardarContactos(context);
+            let telOriginal = document.getElementById(context + '-c-tel').value;
+            let telLimpio = telOriginal.replace(/\D/g,'');
+            
+            if(!telLimpio || telLimpio.length < 10) {
+                mostrarToast("Ingresa un número válido de 10 dígitos.", "⚠️");
+                return;
+            }
+            if(telLimpio.length === 10) telLimpio = "52" + telLimpio; 
+
+            mostrarToast("Obteniendo tu ubicación exacta...", "🛰️");
+            
+            try {
+                const pos = await obtenerUbicacionRapida();
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
                 window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
             } catch(e) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
@@ -1347,7 +1383,7 @@
                             </div>
                         </div>
 
-                     <div id="test-config-contactos" class="hidden bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
+                     <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
                                 <input type="tel" id="test-c-tel-1" placeholder="Contacto 1 (Principal)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-red-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
@@ -1386,7 +1422,7 @@
                     <div class="${colorBg} p-6">
                         <p class="text-sm ${colorText} font-medium leading-relaxed text-center mb-2">${mensaje}</p>
                         ${extraHTML}
-                        <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-full bg-white ${colorText} font-bold py-3.5 mt-5 rounded-xl shadow-sm border border-white hover:bg-gray-50 transition transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
+                        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-full bg-white ${colorText} font-bold py-3.5 mt-5 rounded-xl shadow-sm border border-white hover:bg-gray-50 transition transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
                             <span>🔄</span> Revisar mis respuestas
                         </button>
                     </div>
@@ -1454,6 +1490,7 @@
                 }
             }
             
+            // DETECTOR LOCAL INDEPENDIENTE Y SEGURO
             if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
                 window.Capacitor.Plugins.LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
                     const data = notificationAction.notification.extra;
@@ -1551,7 +1588,7 @@
                         <div class="w-full bg-gray-100 h-2.5 rounded-full mb-4 shadow-inner">
                             <div class="${m.completado ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-blue-500'} h-2.5 rounded-full transition-all duration-500 shadow-sm" style="width:${Math.min(100, progreso)}%"></div>
                         </div>
-                        <button type="button" onclick="accionReto('${m.id}', this)" class="${estiloBoton} text-sm font-bold w-full p-3.5 rounded-xl transition transform" ${m.completado ? "disabled" : ""}>
+                        <button onclick="accionReto('${m.id}', this)" class="${estiloBoton} text-sm font-bold w-full p-3.5 rounded-xl transition transform" ${m.completado ? "disabled" : ""}>
                             ${textoBoton}
                         </button>
                     </div>
@@ -1816,9 +1853,7 @@
             
             const dibujarEmergencia = (em) => {
                 if(!em.activa) return;
-                const usuarioLimpio = em.usuario.replace(/['"]/g, "");
-                
-                const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${usuarioLimpio}')" class="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-red-700 shadow-md mb-2 flex justify-center items-center gap-2"><span>📍</span> Trazar ruta de rescate</button>`;
+                const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${em.usuario}')" class="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-red-700 shadow-md mb-2 flex justify-center items-center gap-2"><span>📍</span> Trazar ruta de rescate</button>`;
                 const btnCancelar = (firebase.auth().currentUser && firebase.auth().currentUser.uid === em.uid) 
                     ? `<button onclick="desactivarEmergencia('${em.id}')" class="w-full bg-gray-100 text-gray-500 py-2 rounded-lg text-[10px] font-bold hover:bg-gray-200">Cancelar mi alerta falsa</button>` : "";
 
@@ -1897,14 +1932,16 @@
             let t2 = (guardados.tel2 || "").replace(/\D/g,'');
             let t3 = (guardados.tel3 || "").replace(/\D/g,'');
             
+            // Juntamos los números válidos separados por coma
             let numerosLista = [t1, t2, t3].filter(n => n.length >= 10);
             let numeros = numerosLista.join(',');
 
             try {
                 mostrarToast("Obteniendo GPS...", "🛰️");
                 const pos = await obtenerUbicacionRapida();
-                const mensaje = encodeURIComponent(`🚨 ¡S.O.S! Necesito ayuda urgente. Mi ubicación: https://www.google.com/maps?q=${pos.lat},${pos.lng}`);
+                const mensaje = encodeURIComponent(`🚨 ¡S.O.S! Necesito ayuda urgente. Mi ubicación: https://maps.google.com/?q=${pos.lat},${pos.lng}`);
                 
+                // iOS usa '&' para separar parámetros de SMS, Android usa '?'
                 const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
                 window.location.href = numeros ? `sms:${numeros}${separador}body=${mensaje}` : `sms:${separador}body=${mensaje}`;
             } catch(e) {
@@ -1987,7 +2024,6 @@
                         const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
                         
                         let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
-                        let nombreLimpio = nombreLugar.replace(/['"]/g, "");
                         let popupHtml = "";
 
                         if (cat === "hospital") {
@@ -1999,13 +2035,13 @@
                             if (tel && tel.trim() !== "") { btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llamar</a>`; } 
                             else { btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`; }
 
-                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLimpio}.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${lat},${lng}`);
+                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);
                             
-                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLimpio}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLimpio}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
+                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
                             
                             marker.bindPopup(popupHtml, { className: 'hospital-popup' }); capas[cat].addLayer(marker);
                         } else {
-                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLimpio}</b>`); capas[cat].addLayer(marker); 
+                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLugar}</b>`); capas[cat].addLayer(marker); 
                         }
                     }
                 }
@@ -2029,7 +2065,7 @@
             }; legend.addTo(map);
         }
 
-        let routingControl = null; window.markersParquesBuscados = null; let modoRutaActivo = false; let pedometroActivo = false;
+        let routingControl = null; window.markersParquesBuscados = null; let modoRutaActivo = false;
 
         async function localizarUsuario() {
             if (!map) return; mostrarToast("Activando GPS ...", "🛰️");
@@ -2089,8 +2125,6 @@
             if (!map) return; const btnRuta = document.getElementById('btn-ruta-saludable');
             if (modoRutaActivo || routingControl || window.rutaEmergencia || window.markersParquesBuscados) {
                 modoRutaActivo = false; 
-                pedometroActivo = false;
-                if(window.pedometerTimeout) clearTimeout(window.pedometerTimeout);
                 if (window.markersParquesBuscados) { map.removeLayer(window.markersParquesBuscados); window.markersParquesBuscados = null; }
                 if (routingControl) { map.removeControl(routingControl); routingControl = null; }
                 if (window.rutaEmergencia) { map.removeLayer(window.rutaEmergencia); window.rutaEmergencia = null; }
@@ -2146,7 +2180,6 @@
                     trazarRutaPeatonalRapida(lat1, lon1, lat2, lon2); 
                 });
                 routingControl.addTo(map); cumplirRetosRuta();
-                modoRutaActivo = true;
             } catch (error) { 
                 trazarRutaPeatonalRapida(lat1, lon1, lat2, lon2); 
             }
@@ -2163,7 +2196,7 @@
                         pedometer.startUpdates(function(datos) {
                             if (primerLectura) { pasosIniciales = datos.numberOfSteps; primerLectura = false; }
                             let pasosDadosEnRuta = datos.numberOfSteps - pasosIniciales;
-                            if (pasosDadosEnRuta >= metaPasos && pedometroActivo) {
+                            if (pasosDadosEnRuta >= metaPasos) {
                                 pedometer.stopUpdates(); pedometroActivo = false;
                                 const tiempoFin = new Date().getTime(); let minutosReales = Math.round((tiempoFin - tiempoInicio) / 60000); if (minutosReales < 1) minutosReales = 1;
                                 mostrarToast(`¡Llegaste a ${destino} en ${minutosReales} min!`, "🏆"); addPoints(50);
@@ -2176,7 +2209,7 @@
                 }, function(error) { console.error("Error verificando sensor:", error); });
             } else {
                 console.log(`Entorno web detectado. Simulando validación de ${metaPasos} pasos hacia ${destino}.`); pedometroActivo = true;
-                window.pedometerTimeout = setTimeout(() => {
+                setTimeout(() => {
                     if(pedometroActivo) {
                         let minutosSimulados = Math.max(1, Math.round(metaPasos / 100)); 
                         mostrarToast(`(Simulador PC) ¡Llegaste a ${destino} en ${minutosSimulados} min!`, "🏆"); addPoints(50); pedometroActivo = false;
@@ -2195,7 +2228,6 @@
                 fitSelectedRoutes: true, show: false, addWaypoints: false,
                 lineOptions: { styles: [{ color: '#16a34a', weight: 6, opacity: 0.8, dashArray: '5, 10' }], extendToWaypoints: true, missingRouteTolerance: 100 }
             }).addTo(map);
-            modoRutaActivo = true;
         }
 
         async function initMap(){
