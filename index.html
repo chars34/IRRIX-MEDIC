@@ -230,20 +230,17 @@
                             </div>
                         </div>
 
-                        <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
+                      <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
-                               <input 
-                                  type="tel" id="home-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}"
-                                  oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-                                  class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold mb-2"
-                                >
-                                <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Número
+                               <input type="tel" id="home-c-tel-1" placeholder="Contacto 1 (Principal)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-green-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                               <input type="tel" id="home-c-tel-2" placeholder="Contacto 2 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-green-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                               <input type="tel" id="home-c-tel-3" placeholder="Contacto 3 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-green-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                                <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-3 rounded-xl text-xs font-black shadow-md hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                                    <span>💾</span> Guardar Números
                                 </button>
                             </div>
                         </div>
-                    </div>
 
                     <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden transform transition hover:-translate-y-1 hover:shadow-md">
                         <div class="absolute -right-4 -bottom-4 text-6xl opacity-10 transform rotate-12">💡</div>
@@ -1222,12 +1219,78 @@
             }
         }
 
-        function guardarContactos(context) {
-            let c = document.getElementById(context + '-c-tel');
-            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {cTel: ""};
-            if (c != null) guardados.cTel = c.value.trim();
+       function guardarContactos(context) {
+            let tel1 = document.getElementById(context + '-c-tel-1')?.value.trim() || "";
+            let tel2 = document.getElementById(context + '-c-tel-2')?.value.trim() || "";
+            let tel3 = document.getElementById(context + '-c-tel-3')?.value.trim() || "";
+            
+            let guardados = { tel1, tel2, tel3 };
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
-            document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel);
+            
+            // Sincroniza los inputs en las otras pantallas
+            document.querySelectorAll('input[id$="-c-tel-1"]').forEach(el => el.value = tel1);
+            document.querySelectorAll('input[id$="-c-tel-2"]').forEach(el => el.value = tel2);
+            document.querySelectorAll('input[id$="-c-tel-3"]').forEach(el => el.value = tel3);
+        }
+
+        function guardarContactosConAviso(context) {
+            guardarContactos(context);
+            mostrarToast("Números guardados correctamente", "💾");
+            cargarContactos(); 
+        }
+
+        function cargarContactos() {
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
+            if(guardados) {
+                // Soporte para usuarios que ya tenían 1 número guardado (cTel)
+                let t1 = guardados.tel1 || guardados.cTel || "";
+                let t2 = guardados.tel2 || "";
+                let t3 = guardados.tel3 || "";
+
+                document.querySelectorAll('input[id$="-c-tel-1"]').forEach(el => el.value = t1);
+                document.querySelectorAll('input[id$="-c-tel-2"]').forEach(el => el.value = t2);
+                document.querySelectorAll('input[id$="-c-tel-3"]').forEach(el => el.value = t3);
+
+                if(t1) {
+                    let homeConfig = document.getElementById('home-config-contactos');
+                    if (homeConfig) homeConfig.classList.add('hidden');
+                    let testConfig = document.getElementById('test-config-contactos');
+                    if (testConfig) testConfig.classList.add('hidden');
+                    document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
+                    document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
+                        btn.innerHTML = `<span class="text-sm">💬</span> A Familiares`;
+                    });
+                }
+            }
+        }
+
+        function mostrarConfigContactos(context) {
+            const configBox = document.getElementById(context + '-config-contactos');
+            if (configBox) configBox.classList.remove('hidden');
+        }
+
+        async function notificarContacto(context) {
+            guardarContactos(context);
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
+            // WhatsApp solo soporta 1 número directo, usamos el Principal
+            let telOriginal = guardados.tel1 || guardados.cTel || "";
+            let telLimpio = telOriginal.replace(/\D/g,'');
+            
+            if(!telLimpio || telLimpio.length < 10) {
+                mostrarToast("Ingresa al menos el Contacto 1 (Principal).", "⚠️");
+                return;
+            }
+            if(telLimpio.length === 10) telLimpio = "52" + telLimpio; 
+
+            mostrarToast("Obteniendo tu ubicación exacta...", "🛰️");
+            
+            try {
+                const pos = await obtenerUbicacionRapida();
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
+                window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
+            } catch(e) {
+                mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
+            }
         }
 
         function guardarContactosConAviso(context) {
@@ -1320,12 +1383,14 @@
                             </div>
                         </div>
 
-                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
+                     <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 shadow-inner">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
                             <div class="space-y-2">
-                                <input type="tel" id="test-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
-                                <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Número
+                                <input type="tel" id="test-c-tel-1" placeholder="Contacto 1 (Principal)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-red-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                                <input type="tel" id="test-c-tel-2" placeholder="Contacto 2 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-red-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                                <input type="tel" id="test-c-tel-3" placeholder="Contacto 3 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-3 rounded-xl bg-white/95 text-red-900 w-full outline-none font-bold shadow-sm focus:ring-2 focus:ring-blue-400">
+                                <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-3 rounded-xl text-xs font-black shadow-md hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                                    <span>💾</span> Guardar Números
                                 </button>
                             </div>
                         </div>
@@ -1861,25 +1926,28 @@
             }
         }
 
-        async function lanzarSMSDeEmergencia() {
-            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
-            let telLimpio = "";
+     async function lanzarSMSDeEmergencia() {
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
+            let t1 = (guardados.tel1 || guardados.cTel || "").replace(/\D/g,'');
+            let t2 = (guardados.tel2 || "").replace(/\D/g,'');
+            let t3 = (guardados.tel3 || "").replace(/\D/g,'');
             
-            if(guardados && guardados.cTel) { telLimpio = guardados.cTel.replace(/\D/g,''); }
+            // Juntamos los números válidos separados por coma
+            let numerosLista = [t1, t2, t3].filter(n => n.length >= 10);
+            let numeros = numerosLista.join(',');
 
             try {
-                mostrarToast("Obteniendo GPS (funciona sin saldo)...", "🛰️");
+                mostrarToast("Obteniendo GPS...", "🛰️");
                 const pos = await obtenerUbicacionRapida();
-                const mensaje = encodeURIComponent(`🚨 ¡S.O.S! Necesito ayuda médica/seguridad urgente. Estoy sin internet. Mi ubicación exacta es: https://maps.google.com/?q=${pos.lat},${pos.lng}`);
-                const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
-                const urlSMS = telLimpio ? `sms:${telLimpio}${separador}body=${mensaje}` : `sms:${separador}body=${mensaje}`;
+                const mensaje = encodeURIComponent(`🚨 ¡S.O.S! Necesito ayuda urgente. Mi ubicación: https://maps.google.com/?q=${pos.lat},${pos.lng}`);
                 
-                window.location.href = urlSMS;
+                // iOS usa '&' para separar parámetros de SMS, Android usa '?'
+                const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
+                window.location.href = numeros ? `sms:${numeros}${separador}body=${mensaje}` : `sms:${separador}body=${mensaje}`;
             } catch(e) {
-                mostrarToast("Activa tu GPS para enviar tus coordenadas.", "❌");
+                mostrarToast("Activa tu GPS.", "❌");
             }
         }
-        
         async function desactivarEmergencia(id) {
             await supabaseClient.from('emergencias_activas').update({ activa: false }).eq('id', id);
             mostrarToast("Alerta S.O.S cancelada", "✅");
