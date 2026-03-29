@@ -750,7 +750,6 @@
 
     </div>
 
-    <!-- CUIDADO: Estas claves están expuestas. Configura RLS (Row Level Security) en tu panel de Supabase y Rules en Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -804,15 +803,14 @@
                     .select('*')
                     .eq('uid', user.uid)
                     .single();
-if (data) {
-    userProgress.totalPoints = data.puntos;
-    userProgress.level = data.nivel;
-    localStorage.setItem("arqProgress", JSON.stringify(userProgress));
-    
-    updateLevel(); // <--- ESTA LÍNEA FALTABA
-    updateUI();
-    mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
-}
+
+                if (data) {
+                    userProgress.totalPoints = data.puntos;
+                    userProgress.level = data.nivel;
+                    localStorage.setItem("arqProgress", JSON.stringify(userProgress));
+                    updateLevel(); // SOLUCIONADO: Actualiza visualmente la barra
+                    updateUI();
+                    mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
                 } else {
                     await supabaseClient
                         .from('usuarios_progreso')
@@ -903,29 +901,46 @@ if (data) {
                 });
             }
         }
-async function iniciarSesionGoogle() {
-    const btnGoogle = document.getElementById('btn-iniciar-google');
-    const htmlOriginal = btnGoogle.innerHTML; // Guardamos el logo y texto originales
 
-    try {
-        if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
-        btnGoogle.innerHTML = "⏳ Conectando..."; // Cambiamos a estado de carga
-        
-        if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            await auth.signInWithPopup(provider);
-            mostrarToast("Sesión web iniciada", "✅");
-        } else {
-            const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
-            const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
-            await auth.signInWithCredential(credential);
-            mostrarToast("Sesión nativa iniciada", "✅");
+        async function iniciarSesionGoogle() {
+            const btnGoogle = document.getElementById('btn-iniciar-google');
+            const htmlOriginal = btnGoogle.innerHTML; // SOLUCIONADO: Guarda el botón original
+            
+            try {
+                if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
+                btnGoogle.innerHTML = "⏳ Conectando...";
+                
+                if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    await auth.signInWithPopup(provider);
+                    mostrarToast("Sesión web iniciada", "✅");
+                } else {
+                    const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                    const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                    await auth.signInWithCredential(credential);
+                    mostrarToast("Sesión nativa iniciada", "✅");
+                }
+            } catch (error) {
+                mostrarToast("Error al iniciar sesión", "❌"); 
+                btnGoogle.innerHTML = htmlOriginal; 
+            }
         }
-    } catch (error) {
-        mostrarToast("Error al iniciar sesión", "❌"); 
-        btnGoogle.innerHTML = htmlOriginal; // Restauramos el diseño con todo y logo
-    }
-}
+
+        auth.onAuthStateChanged((user) => {
+            const loginScreen = document.getElementById('login-screen');
+            if (user) {
+                localStorage.setItem('iarri_sesion_activa', 'true'); loginScreen.style.opacity = '0';
+                setTimeout(() => { loginScreen.classList.add('hidden'); document.documentElement.style.setProperty('--estado-login', 'none'); }, 500);
+                const nombreUsuarioEl = document.getElementById('user-name');
+                if(nombreUsuarioEl) { nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador'; }
+                
+                sincronizarProgresoDescarga(user);
+                registrarParaNotificacionesPush();
+            } else {
+                localStorage.removeItem('iarri_sesion_activa'); loginScreen.classList.remove('hidden'); document.documentElement.style.setProperty('--estado-login', 'flex');
+                setTimeout(() => loginScreen.style.opacity = '1', 50);
+            }
+        });
 
         function mostrarToast(mensaje, icono = "✅") {
             const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = "toast-msg";
@@ -1162,11 +1177,20 @@ async function iniciarSesionGoogle() {
         }
 
         function toggleFiltros() { document.getElementById('panelFiltros').classList.toggle('active'); }
+        
+        // SOLUCIONADO: El bug de la pantalla en blanco
         function switchScreen(screen) {
-            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); document.getElementById("screen-" + screen)?.classList.remove("hidden");
-            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); document.getElementById("nav-" + screen)?.classList.add("active");
+            document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden")); 
+            document.getElementById("screen-" + screen)?.classList.remove("hidden");
+            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active")); 
+            document.getElementById("nav-" + screen)?.classList.add("active");
+            
+            // Restablece el scroll de la etiqueta <main> para evitar la pantalla en blanco inferior
+            const mainContainer = document.querySelector("main");
+            if(mainContainer) mainContainer.scrollTop = 0;
+            window.scrollTo(0,0);
+
             if (screen === "territorio") setTimeout(initMap, 200);
-            if (screen === "fundamentacion" || screen === "test") window.scrollTo(0,0);
         }
 
         async function buscarHospitalCercano() {
@@ -1210,10 +1234,6 @@ async function iniciarSesionGoogle() {
             }
         }
 
-        // ==========================================
-        // FUNCIONES DE CONTACTO Y S.O.S CORREGIDAS
-        // ==========================================
-
         function guardarContactos(context) {
             let tel1 = document.getElementById(context + '-c-tel-1')?.value.trim() || "";
             let tel2 = document.getElementById(context + '-c-tel-2')?.value.trim() || "";
@@ -1222,7 +1242,6 @@ async function iniciarSesionGoogle() {
             let guardados = { tel1, tel2, tel3 };
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
             
-            // Sincroniza los inputs en las otras pantallas
             document.querySelectorAll('input[id$="-c-tel-1"]').forEach(el => el.value = tel1);
             document.querySelectorAll('input[id$="-c-tel-2"]').forEach(el => el.value = tel2);
             document.querySelectorAll('input[id$="-c-tel-3"]').forEach(el => el.value = tel3);
@@ -1237,7 +1256,6 @@ async function iniciarSesionGoogle() {
         function cargarContactos() {
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
             if(guardados) {
-                // Soporte para usuarios que ya tenían 1 número guardado (cTel) antiguo
                 let t1 = guardados.tel1 || guardados.cTel || "";
                 let t2 = guardados.tel2 || "";
                 let t3 = guardados.tel3 || "";
@@ -1267,7 +1285,6 @@ async function iniciarSesionGoogle() {
         async function notificarContacto(context) {
             guardarContactos(context);
             let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
-            // WhatsApp solo soporta 1 número directo, usamos el Principal
             let telOriginal = guardados.tel1 || guardados.cTel || "";
             let telLimpio = telOriginal.replace(/\D/g,'');
             
@@ -1281,18 +1298,12 @@ async function iniciarSesionGoogle() {
             
             try {
                 const pos = await obtenerUbicacionRapida();
-                // Template literal corregido
-                const urlGoogle = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
-                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 ${urlGoogle}`);
+                const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${pos.lat},${pos.lng}`);
                 window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
             } catch(e) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
             }
         }
-
-        // ==========================================
-        // FIN DE FUNCIONES DE CONTACTO
-        // ==========================================
 
         function evaluarTest() {
             const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
@@ -1443,7 +1454,6 @@ async function iniciarSesionGoogle() {
                 }
             }
             
-            // DETECTOR LOCAL INDEPENDIENTE Y SEGURO
             if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
                 window.Capacitor.Plugins.LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
                     const data = notificationAction.notification.extra;
@@ -1804,15 +1814,12 @@ async function iniciarSesionGoogle() {
         function escucharEmergenciasEnVivo() {
             const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
             
-      const dibujarEmergencia = (em) => {
-    if(!em.activa) return;
-    // Limpiamos el nombre del usuario
-    const usuarioLimpio = em.usuario.replace(/['"]/g, "");
-    
-    // Usamos usuarioLimpio en la función del botón
-    const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${usuarioLimpio}')" class="..."><span>📍</span> Trazar ruta de rescate</button>`;
-    
-    // ...resto de tu código    const btnCancelar = (firebase.auth().currentUser && firebase.auth().currentUser.uid === em.uid) 
+            const dibujarEmergencia = (em) => {
+                if(!em.activa) return;
+                const usuarioLimpio = em.usuario.replace(/['"]/g, "");
+                
+                const btnIr = `<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${usuarioLimpio}')" class="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-red-700 shadow-md mb-2 flex justify-center items-center gap-2"><span>📍</span> Trazar ruta de rescate</button>`;
+                const btnCancelar = (firebase.auth().currentUser && firebase.auth().currentUser.uid === em.uid) 
                     ? `<button onclick="desactivarEmergencia('${em.id}')" class="w-full bg-gray-100 text-gray-500 py-2 rounded-lg text-[10px] font-bold hover:bg-gray-200">Cancelar mi alerta falsa</button>` : "";
 
                 const marker = L.marker([em.lat, em.lng], {icon: iconSOS}).bindPopup(`
@@ -1890,7 +1897,6 @@ async function iniciarSesionGoogle() {
             let t2 = (guardados.tel2 || "").replace(/\D/g,'');
             let t3 = (guardados.tel3 || "").replace(/\D/g,'');
             
-            // Juntamos los números válidos separados por coma
             let numerosLista = [t1, t2, t3].filter(n => n.length >= 10);
             let numeros = numerosLista.join(',');
 
@@ -1899,7 +1905,6 @@ async function iniciarSesionGoogle() {
                 const pos = await obtenerUbicacionRapida();
                 const mensaje = encodeURIComponent(`🚨 ¡S.O.S! Necesito ayuda urgente. Mi ubicación: https://www.google.com/maps?q=${pos.lat},${pos.lng}`);
                 
-                // iOS usa '&' para separar parámetros de SMS, Android usa '?'
                 const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
                 window.location.href = numeros ? `sms:${numeros}${separador}body=${mensaje}` : `sms:${separador}body=${mensaje}`;
             } catch(e) {
@@ -1981,12 +1986,9 @@ async function iniciarSesionGoogle() {
                         let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
                         const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
                         
-                    let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
-// Agrega esta línea para limpiar el nombre:
-let nombreLimpio = nombreLugar.replace(/['"]/g, "");
-
-// ... más abajo, usa nombreLimpio en el botón onclick:
-popupHtml = `<div class="...">...<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLimpio}')" class="...">... Ir allá</button>...</div>`;
+                        let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
+                        let nombreLimpio = nombreLugar.replace(/['"]/g, "");
+                        let popupHtml = "";
 
                         if (cat === "hospital") {
                             const hospitalIcon = L.divIcon({ html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [18, 18] });
@@ -1997,13 +1999,13 @@ popupHtml = `<div class="...">...<button onclick="iniciarRutaSeleccionada(map.ge
                             if (tel && tel.trim() !== "") { btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llamar</a>`; } 
                             else { btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`; }
 
-                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${lat},${lng}`);
+                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLimpio}.\n\nMi ubicación exacta es:\n📍 https://www.google.com/maps?q=${lat},${lng}`);
                             
-                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
+                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLimpio}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLimpio}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
                             
                             marker.bindPopup(popupHtml, { className: 'hospital-popup' }); capas[cat].addLayer(marker);
                         } else {
-                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLugar}</b>`); capas[cat].addLayer(marker); 
+                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLimpio}</b>`); capas[cat].addLayer(marker); 
                         }
                     }
                 }
