@@ -16,6 +16,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 
+    <script>
+        if (localStorage.getItem('iarri_sesion_activa') === 'true') {
+            document.write('<style>#login-screen { display: none !important; opacity: 0 !important; }</style>');
+        }
+    </script>
+
     <style>
         .hospital-popup .leaflet-popup-content-wrapper { 
             border-radius: 1.25rem !important; 
@@ -106,6 +112,7 @@
             Iniciar sesión con Google
         </button>
     </div>
+
 
     <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
@@ -199,6 +206,15 @@
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
                     
+                    <div class="relative flex justify-center items-center my-10">
+                        <div class="absolute w-28 h-28 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                        <button id="btn-sos-panico"
+                            class="relative z-10 w-28 h-28 bg-red-600 text-white rounded-full font-black text-2xl shadow-[0_0_20px_rgba(220,38,38,0.8)] transition-all duration-300 select-none flex flex-col items-center justify-center transform active:scale-90">
+                            <span class="text-4xl">🚨</span>
+                            <span class="text-lg tracking-widest mt-1">S.O.S</span>
+                        </button>
+                    </div>
+
                     <div id="alerta-medica-home" class="hidden bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 mt-4 shadow-xl relative overflow-hidden transform transition hover:-translate-y-1">
                         <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
                         <h3 class="font-black text-white mb-2 flex items-center gap-2 text-lg relative z-10"><span>⚠️</span> Alerta Metabólica</h3>
@@ -224,14 +240,16 @@
                             </div>
                         </div>
 
-                        <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 hidden">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
+                        <div id="home-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
                             <div class="space-y-2">
-                                <input type="tel" id="home-tel1" placeholder="Teléfono 1 (10 dígitos)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
-                                <input type="tel" id="home-tel2" placeholder="Teléfono 2 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
-                                <input type="tel" id="home-tel3" placeholder="Teléfono 3 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
+                               <input 
+                                  type="tel" id="home-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}"
+                                  oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                                  class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold mb-2"
+                                >
                                 <button onclick="guardarContactosConAviso('home')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Números
+                                    <span>💾</span> Guardar Número
                                 </button>
                             </div>
                         </div>
@@ -696,7 +714,7 @@
                 </div>
             </div>
             <div class="bg-white p-4 rounded-2xl border-2 border-gray-100 shadow-sm">
-                <p class="text-sm font-bold text-gray-600 mb-3">13. ¿Duermes menos de 6-7 horas regularly?</p>
+                <p class="text-sm font-bold text-gray-600 mb-3">13. ¿Duermes menos de 6-7 horas regularmente?</p>
                 <div class="flex gap-3">
                     <label class="flex-1 cursor-pointer"><input type="radio" name="q13" value="si" class="peer sr-only test-radio-si"><div class="text-center py-2 rounded-xl border-2 border-gray-100 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 font-bold text-gray-400 transition-all">Sí</div></label>
                     <label class="flex-1 cursor-pointer"><input type="radio" name="q13" value="no" class="peer sr-only test-radio-no"><div class="text-center py-2 rounded-xl border-2 border-gray-100 peer-checked:border-gray-400 peer-checked:bg-gray-50 peer-checked:text-gray-700 font-bold text-gray-400 transition-all">No</div></label>
@@ -750,7 +768,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+    
     <script>
+        // Forzamos la obtención del plugin desde el objeto global de Capacitor
+const { Emergencia } = window.Capacitor?.Plugins || {};
         const firebaseConfig = {
           apiKey: "AIzaSyA84F97BZy2e0MH3lp2xS7hz9EA5Bkz2zo",
           authDomain: "iarri-metabolica.firebaseapp.com",
@@ -895,6 +916,77 @@
                 });
             }
         }
+
+
+let timerFabSOS;
+
+function iniciarFabSOS() {
+    const fabPanico = document.getElementById('btn-fab-panico');
+    if(fabPanico) {
+        fabPanico.classList.remove('from-red-600');
+        fabPanico.classList.add('from-red-800');
+    }
+    
+    mostrarToast("Mantén presionado para enviar S.O.S...", "⚠️");
+
+    timerFabSOS = setTimeout(() => {
+        // Vibración física si el celular lo permite
+        if(navigator.vibrate) navigator.vibrate([500, 200, 500]);
+        
+        mostrarToast("¡ALERTA S.O.S ENVIADA!", "🚨");
+        
+        if(fabPanico) {
+            fabPanico.classList.remove('from-red-800');
+            fabPanico.classList.add('from-red-600');
+        }
+        
+        // Llamamos a la función que ya tienes para avisar al familiar
+        notificarContacto('home'); 
+        
+    }, 2500); // 2.5 segundos de presión
+}
+
+function cancelarFabSOS() {
+    clearTimeout(timerFabSOS);
+    const fabPanico = document.getElementById('btn-fab-panico');
+    if(fabPanico) {
+        fabPanico.classList.remove('from-red-800');
+        fabPanico.classList.add('from-red-600');
+    }
+}
+        function cancelarFabSOS() {
+            clearTimeout(timerFabSOS);
+            const fabPanico = document.getElementById('btn-fab-panico');
+            if(fabPanico) fabPanico.classList.replace('from-red-800', 'from-red-600');
+        }
+
+        const btnPanico = document.getElementById('btn-sos-panico');
+        let temporizadorSOS;
+        const tiempoRequerido = 2500; 
+
+        function iniciarPulsacion(e) {
+            btnPanico.classList.replace('bg-red-600', 'bg-red-800');
+            mostrarToast("Mantén presionado para confirmar...", "⚠️");
+
+            temporizadorSOS = setTimeout(() => {
+                if(navigator.vibrate) navigator.vibrate([500, 200, 500]); 
+                mostrarToast("¡ALERTA S.O.S ENVIADA!", "🚨");
+                btnPanico.classList.replace('bg-red-800', 'bg-red-600');
+                notificarContacto('home'); 
+            }, tiempoRequerido);
+        }
+
+        function cancelarPulsacion() {
+            clearTimeout(temporizadorSOS);
+            btnPanico.classList.replace('bg-red-800', 'bg-red-600');
+        }
+
+        btnPanico.addEventListener('touchstart', iniciarPulsacion, {passive: true});
+        btnPanico.addEventListener('touchend', cancelarPulsacion);
+        btnPanico.addEventListener('touchcancel', cancelarPulsacion); 
+        btnPanico.addEventListener('mousedown', iniciarPulsacion);
+        btnPanico.addEventListener('mouseup', cancelarPulsacion);
+        btnPanico.addEventListener('mouseleave', cancelarPulsacion);
 
         async function iniciarSesionGoogle() {
             try {
@@ -1074,7 +1166,7 @@
         let nivelAnteriorGlobal = userProgress.level;
         let geoDataCache = null; 
         let municipiosVisitados = new Set(JSON.parse(localStorage.getItem("arqVisitados")) || []);
-        let chartInstance = null; let map = null;let userLocationMarker = null;let pedometroActivo = false; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
+        let chartInstance = null; let map = null; let capaMunicipios = null; let datosIARRICache = null; let municipiosValidos = [];
         
         function crearClusterPersonalizado(cluster, emoji) {
             let childCount = cluster.getChildCount();
@@ -1184,14 +1276,7 @@
             try {
                 const ubicacion = await obtenerUbicacionRapida();
                 const userLatLng = L.latLng(ubicacion.lat, ubicacion.lng);
-                
-                // LIMPIEZA DEL MARCADOR:
-                if (window.userLocationMarker) {
-                    map.removeLayer(window.userLocationMarker);
-                }
-                window.userLocationMarker = L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map);
-                window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>");
-
+                L.circleMarker(userLatLng, { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>");
                 const hospitales = capas['hospital'].getLayers();
                 if (hospitales.length === 0) {
                     mostrarToast("No hay hospitales cargados en el mapa aún.", "⚠️");
@@ -1221,56 +1306,47 @@
             }
         }
 
-        function guardarContactosConAviso(context) {
-            let contactos = [];
+        async function guardarContactos(context) {
+            let c = document.getElementById(context + '-c-tel');
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {cTel: ""};
             
-            // Leer según el contexto (home o test)
-            let t1 = document.getElementById(context + "-tel1");
-            let t2 = document.getElementById(context + "-tel2");
-            let t3 = document.getElementById(context + "-tel3");
+            if (c != null) {
+                let telOriginal = c.value.trim();
+                guardados.cTel = telOriginal;
+                localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
+                
+                // Limpiamos el número para Android
+                let telLimpio = telOriginal.replace(/\D/g,'');
+                if(telLimpio.length === 10) telLimpio = "+52" + telLimpio; 
 
-            if (t1 && t1.value) contactos.push(t1.value);
-            if (t2 && t2.value) contactos.push(t2.value);
-            if (t3 && t3.value) contactos.push(t3.value);
-
-            if (contactos.length === 0) {
-                alert("Por favor, ingresa al menos un número válido ⚠️");
-                return;
+                // Enviamos el número a Android Nativo
+                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                    try {
+                        await Emergencia.guardarNumeroNative({ numero: telLimpio });
+                        console.log("Número guardado en Android exitosamente");
+                    } catch(e) {
+                        console.error("Error al pasar el número a Kotlin:", e);
+                    }
+                }
             }
-
-            localStorage.setItem("contactosSOS", JSON.stringify(contactos));
-            alert("Contactos guardados correctamente ✅");
             
-            // Auto-actualizar y ocultar el panel
-            cargarContactos();
+            document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel);
+        }
+
+        function guardarContactosConAviso(context) {
+            guardarContactos(context);
+            mostrarToast("Número guardado correctamente", "💾");
+            cargarContactos(); 
         }
 
         function cargarContactos() {
-            let guardados = JSON.parse(localStorage.getItem('contactosSOS')) || [];
-            
-            if (guardados.length > 0) {
-                // Rellenar Home
-                let h1 = document.getElementById('home-tel1');
-                let h2 = document.getElementById('home-tel2');
-                let h3 = document.getElementById('home-tel3');
-                if (h1) h1.value = guardados[0] || "";
-                if (h2) h2.value = guardados[1] || "";
-                if (h3) h3.value = guardados[2] || "";
-                
-                // Rellenar Test
-                let t1 = document.getElementById('test-tel1');
-                let t2 = document.getElementById('test-tel2');
-                let t3 = document.getElementById('test-tel3');
-                if (t1) t1.value = guardados[0] || "";
-                if (t2) t2.value = guardados[1] || "";
-                if (t3) t3.value = guardados[2] || "";
-
-                // Ocultar paneles y mostrar estado guardado
+            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
+            if(guardados && guardados.cTel) {
+                document.querySelectorAll('input[id$="-c-tel"]').forEach(el => el.value = guardados.cTel || "");
                 let homeConfig = document.getElementById('home-config-contactos');
                 if (homeConfig) homeConfig.classList.add('hidden');
                 let testConfig = document.getElementById('test-config-contactos');
                 if (testConfig) testConfig.classList.add('hidden');
-                
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
                 document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
                     btn.innerHTML = `<span>💬</span> S.O.S `;
@@ -1284,27 +1360,34 @@
         }
 
         async function notificarContacto(context) {
-            let telLimpio = "";
+            guardarContactos(context);
+            let telOriginal = document.getElementById(context + '-c-tel').value;
+            let telLimpio = telOriginal.replace(/\D/g,'');
             
-            // Recuperar el primer número directo de localStorage para mayor seguridad
-            let guardados = JSON.parse(localStorage.getItem("contactosSOS")) || [];
-            if (guardados.length > 0 && guardados[0]) {
-                telLimpio = guardados[0].replace(/\D/g,'');
-            }
-
-            if (!telLimpio || telLimpio.length < 10) {
-                mostrarToast("Ingresa o configura un número válido de 10 dígitos.", "⚠️");
+            if(!telLimpio || telLimpio.length < 10) {
+                mostrarToast("Ingresa un número válido de 10 dígitos.", "⚠️");
                 return;
             }
-
-            if (telLimpio.length === 10) telLimpio = "52" + telLimpio; 
+            if(telLimpio.length === 10) telLimpio = "52" + telLimpio; 
 
             mostrarToast("Obteniendo tu ubicación exacta...", "🛰️");
             
             try {
                 const pos = await obtenerUbicacionRapida();
                 const mensaje = encodeURIComponent(`🚨 ¡AYUDA! Tengo una emergencia médica y necesito asistencia.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${pos.lat},${pos.lng}`);
-                window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
+                
+                // --- AQUÍ ESTÁ LA MAGIA (NUEVA LÓGICA) ---
+                if (!navigator.onLine) {
+                    // Si NO hay internet, armamos y lanzamos un SMS tradicional
+                    mostrarToast("Sin internet. Abriendo SMS...", "📱");
+                    const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
+                    const urlSMS = `sms:${telLimpio}${separador}body=${mensaje}`;
+                    window.location.href = urlSMS;
+                } else {
+                    // Si SÍ hay internet, abrimos WhatsApp como siempre
+                    window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
+                }
+                
             } catch(e) {
                 mostrarToast("Activa tu GPS para poder enviar la ubicación.", "❌");
             }
@@ -1327,7 +1410,23 @@
             if (score >= 8) {
                 nivel = "Alto Riesgo"; colorText = "text-red-700"; colorBg = "bg-red-50"; gradient = "from-red-500 to-rose-600"; icon = "🚨";
                 mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
+                
                 if(alertaHome) alertaHome.classList.remove('hidden');
+                
+                const fabHTML = document.getElementById('fab-sos-metabolico');
+                if(fabHTML) fabHTML.classList.remove('hidden');
+                
+              // --- LLAMADA A ANDROID PARA MOSTRAR EL BOTÓN FLOTANTE ---
+if (window.Capacitor && window.Capacitor.isNativePlatform() && Emergencia) {
+    Emergencia.mostrarBotonFlotante().then(() => {
+        console.log("Servicio de botón flotante iniciado en Android");
+    }).catch(e => {
+        console.error("Error al lanzar botón:", e);
+        mostrarToast("Acepta el permiso de 'Mostrar sobre otras aplicaciones'", "⚠️");
+    });
+}
+
+                // Armamos el bloque de advertencia para la pantalla web
                 extraHTML = `
                     <div class="mt-5 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 shadow-xl relative overflow-hidden text-left">
                         <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
@@ -1352,14 +1451,12 @@
                             </div>
                         </div>
 
-                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 hidden">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar números de confianza</p>
+                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Configurar número de confianza</p>
                             <div class="space-y-2">
-                                <input type="tel" id="test-tel1" placeholder="Teléfono 1 (10 dígitos)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
-                                <input type="tel" id="test-tel2" placeholder="Teléfono 2 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
-                                <input type="tel" id="test-tel3" placeholder="Teléfono 3 (Opcional)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-green-900 w-full outline-none font-bold">
+                                <input type="tel" id="test-c-tel" placeholder="Tel. Familiar (10 dígitos)" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
                                 <button type="button" onclick="guardarContactosConAviso('test')" class="w-full bg-blue-600 text-white px-3 py-2.5 rounded-lg text-xs font-black shadow-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
-                                    <span>💾</span> Guardar Números
+                                    <span>💾</span> Guardar Número
                                 </button>
                             </div>
                         </div>
@@ -1374,7 +1471,8 @@
                 mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
                 if(alertaHome) alertaHome.classList.add('hidden'); 
             }
-
+            
+            // Al final, se inyecta el resultado en la pantalla web
             const resDiv = document.getElementById('test-resultado');
             resDiv.innerHTML = `
                 <div class="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden transform transition-all duration-500 animate-fadeIn">
@@ -1441,7 +1539,7 @@
 
                     PushNotifications.addListener('pushNotificationReceived', (notification) => {
                         mostrarToast(`🚨 ${notification.title}: ${notification.body}`, "🚑");
-                        if(navigator.vibrate) navigator.vibrate([500, 200, 500]); 
+                       if(navigator.vibrate) navigator.vibrate([500, 300, 500, 300, 500]);
                     });
 
                     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
@@ -1781,45 +1879,42 @@
             }
         }
 
-   async function activarSOSGlobal() {
-    const contactos = JSON.parse(localStorage.getItem("contactosSOS")) || [];
-    const numerosValidos = contactos.filter(num => num && num.length >= 10);
-
-    if (numerosValidos.length === 0) {
-        alert("No hay contactos guardados ⚠️ Configúralos primero.");
-        return;
-    }
-
-    mostrarToast("Preparando alerta de emergencia...", "🚨");
-
-    try {
-        const pos = await obtenerUbicacionRapida();
-        const mensaje = encodeURIComponent(`🚨 EMERGENCIA: Necesito ayuda. Mi ubicación: https://maps.google.com/?q=${pos.lat},${pos.lng}`);
-
-        // Verificamos si hay conexión a Internet
-        if (navigator.onLine) {
-            // CON INTERNET: Abre WhatsApp para elegir a los contactos y enviar
-            mostrarToast("Conexión detectada. Abriendo WhatsApp...", "💬");
-            setTimeout(() => {
-                window.open(`https://wa.me/?text=${mensaje}`, '_blank');
-            }, 800);
-        } else {
-            // SIN INTERNET: Fuerza el envío por SMS a los 3 números guardados
-            mostrarToast("Sin conexión. Preparando SMS múltiple...", "📱");
+       async function activarSOSGlobal() {
+            const user = firebase.auth().currentUser;
+            if(!user) { mostrarToast("Inicia sesión con Google para usar el S.O.S.", "🔒"); return; }
             
-            const listaNumeros = numerosValidos.join(',');
-            const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
-            const urlSMS = `sms:${listaNumeros}${separador}body=${mensaje}`;
-            
-            setTimeout(() => {
-                window.location.href = urlSMS;
-            }, 800);
+            if(!confirm("¿Activar alerta S.O.S. médica/seguridad? Esto notificará a los usuarios a menos de 3km de ti.")) return;
+
+            if (!navigator.onLine) {
+                mostrarToast("Sin conexión. Abriendo SMS de emergencia...", "📱");
+                lanzarSMSDeEmergencia();
+                return;
+            }
+
+            mostrarToast("Enviando señal de auxilio...", "📡");
+            try {
+                const pos = await obtenerUbicacionUltraRapida();
+                const { error } = await supabaseClient
+                    .from('emergencias_activas')
+                    .insert([{
+                        usuario: user.displayName || "Explorador",
+                        uid: user.uid,
+                        lat: pos.lat,
+                        lng: pos.lng,
+                        activa: true
+                    }]);
+
+                if (error) throw error;
+                mostrarToast("¡Alerta enviada! Mantén la calma.", "🚨");
+                
+                if(map) map.setView([pos.lat, pos.lng], 16);
+            } catch(e) {
+                console.error("Error SOS:", e);
+                mostrarToast("Red inestable. Intentando SMS tradicional...", "⚠️");
+                lanzarSMSDeEmergencia();
+            }
         }
 
-    } catch(e) {
-        mostrarToast("Activa tu GPS para enviar tus coordenadas.", "❌");
-    }
-}
         function escucharEmergenciasEnVivo() {
             const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
             
@@ -2037,20 +2132,9 @@
         let routingControl = null; window.markersParquesBuscados = null; let modoRutaActivo = false;
 
         async function localizarUsuario() {
-            if (!map) return; 
-            mostrarToast("Activando GPS ...", "🛰️");
-            try { 
-                const ubicacion = await obtenerUbicacionRapida(); 
-                map.setView([ubicacion.lat, ubicacion.lng], 14); 
-
-                if (window.userLocationMarker) {
-                    map.removeLayer(window.userLocationMarker);
-                }
-                window.userLocationMarker = L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map);
-                window.userLocationMarker.bindPopup("<b>¡Estás aquí!</b>").openPopup(); 
-            } catch (e) { 
-                mostrarToast("Activa tu GPS", "❌"); 
-            }
+            if (!map) return; mostrarToast("Activando GPS ...", "🛰️");
+            try { const ubicacion = await obtenerUbicacionRapida(); map.setView([ubicacion.lat, ubicacion.lng], 14); L.circleMarker([ubicacion.lat, ubicacion.lng], { radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(map).bindPopup("<b>¡Estás aquí!</b>").openPopup(); } 
+            catch (e) { mostrarToast("Activa tu GPS", "❌"); }
         }
 
         async function ejecutarLogicaRutaOverpass(latUsuario, lngUsuario) {
