@@ -2081,15 +2081,15 @@ async function cargarNegocios() {
             // Definimos las palabras clave para considerar que es hospital o consultorio
             const esMedico = 
                 nombreLugarStr.includes("hospital") ||
-                nombreLugarStr.includes("consultorio") ||
-                nombreLugarStr.includes("clínica") ||
-                nombreLugarStr.includes("clinica") ||
-                nombreLugarStr.includes("sanatorio") ||
+                nombreLugarStr.includes("consultorio Medico") ||
+                nombreLugarStr.includes("clínica Medica") ||
+                nombreLugarStr.includes("clinica medica") ||
+                nombreLugarStr.includes("sanatorio medico") ||
                 nombreLugarStr.includes("centro médico") ||
                 nombreLugarStr.includes("centro medico") ||
                 tipoActividadStr.includes("hospital") ||
                 tipoActividadStr.includes("consultorios médicos") ||
-                tipoActividadStr.includes("consultorio");
+                tipoActividadStr.includes("consultorio medico");
 
             // Si no coincide con ninguna palabra clave, saltamos al siguiente registro
             if (!esMedico) continue; 
