@@ -2062,84 +2062,56 @@ if (window.Capacitor && window.Capacitor.isNativePlatform() && Emergencia) {
                     .subscribe();
             }
         }
-
-    async function cargarNegocios(){
-            try {
-                const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json"); 
-                const data = await res.json();
-                
-                for(let n of data) {
-                    const lat = parseFloat(n.lat || n.latitud); 
-                    const lng = parseFloat(n.lng || n.longitud); 
-                    if(isNaN(lat) || isNaN(lng)) continue; 
-                    
-                    let c = (n.codigo_scian || n.codigo_act || "").toString(); 
-                    let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
-                    let tel = n.telefono || n.numero_telefono || null;
-                    
-                    // Convertimos a minúsculas para facilitar la búsqueda
-                    let textoBusqueda = (nombreLugar + " " + (n.nombre_act || "")).toLowerCase();
-                    
-                    let cat = null; let catName = ""; let emoji = "";
-
-                    // FILTRO ESTRICTO PARA SECTOR SALUD
-                    if(c.startsWith("621") || c.startsWith("622")) { 
-                        
-                        // 1. Condición: Debe tener teléfono válido (que no esté vacío o sea solo "0")
-                        let tieneTelefono = tel && tel.trim() !== "" && tel.trim() !== "0";
-
-                        // 2. Condición: Debe ser hospital, clínica o sanatorio
-                        let esEstablecimientoValido = textoBusqueda.includes("hospital") || 
-                                                      textoBusqueda.includes("clinica") || 
-                                                      textoBusqueda.includes("clínica") || 
-                                                      textoBusqueda.includes("sanatorio");
-
-                        // 3. Condición: Excluir consultorios dentales, curanderos, hueseros, etc.
-                        let noEsProhibido = !textoBusqueda.includes("dental") &&
-                                            !textoBusqueda.includes("dentista") &&
-                                            !textoBusqueda.includes("curandero") &&
-                                            !textoBusqueda.includes("huesero") &&
-                                            !textoBusqueda.includes("fisio") &&
-                                            !textoBusqueda.includes("terapia") &&
-                                            !textoBusqueda.includes("rehabilitacion");
-
-                        // Si cumple todas las reglas, lo clasificamos como hospital
-                        if (tieneTelefono && esEstablecimientoValido && noEsProhibido) {
-                            cat = "hospital"; catName = "Asistencia Médica"; emoji = "🏥"; 
-                        } else {
-                            // Si es de salud pero no cumple tus reglas, lo saltamos
-                            continue; 
-                        }
-                    }
-                    // RESTO DE TUS CATEGORÍAS (Se mantienen intactas)
-                    else if(c.startsWith("46411")) { cat = "pharmacy"; catName = "Farmacia"; emoji = "💊"; }
-                    else if(c.startsWith("462")) { cat = "supermarket"; catName = "Supermercado"; emoji = "🛒"; }
-                    else if(c.startsWith("71394")) { cat = "gym"; catName = "Gimnasio"; emoji = "🏋️"; }
-                    else if(c.startsWith("72251")) { cat = "cafe"; catName = "Cafetería"; emoji = "☕"; }
-                    else if(c.startsWith("722")) { cat = "restaurant"; catName = "Restaurante"; emoji = "🍽️"; }
-                    
-                    if(cat) { 
-                        let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
-                        
-                        if (cat === "hospital") {
-                            const hospitalIcon = L.divIcon({ html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [18, 18] });
-                            const marker = L.marker([lat, lng], { icon: hospitalIcon });
-                            
-                            // Como ya validamos que tiene teléfono en el filtro de arriba, lo inyectamos directo en el botón
-                            let btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> ${tel}</a>`;
-
-                            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);
-                            
-                            let popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex flex-col gap-2 mb-2"><div class="flex gap-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
-                            
-                            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); capas[cat].addLayer(marker);
-                        } else {
-                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLugar}</b>`); capas[cat].addLayer(marker); 
-                        }
-                    }
-                }
-            } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
+async function cargarNegocios() {
+    try {
+        // Asegúrate de subir tu nuevo 'denue_salud_limpio.json' a tu GitHub
+        // y pon aquí el enlace raw actualizado.
+        const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud_limpio.json"); 
+        const data = await res.json();
+        
+        for(let n of data) {
+            const lat = parseFloat(n.latitud); 
+            const lng = parseFloat(n.longitud); 
+            if(isNaN(lat) || isNaN(lng)) continue; 
+            
+            let nombreLugar = n.nom_estab || "Hospital";
+            let tel = n.telefono || "";
+            
+            const hospitalIcon = L.divIcon({ 
+                html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', 
+                className: 'bg-transparent border-none', 
+                iconSize: [36, 36], 
+                iconAnchor: [18, 18] 
+            });
+            
+            const marker = L.marker([lat, lng], { icon: hospitalIcon });
+            
+            let btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llama al ${tel}</a>`;
+            let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca de: ${nombreLugar}.\n\nMi ubicación:\n📍 https://maps.google.com/?q=${lat},${lng}`);
+            
+            let popupHtml = `
+            <div class="min-w-[220px] font-sans">
+                <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3">
+                    <div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div>
+                    <div class="flex-1">
+                        <b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b>
+                        <span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 mb-2">
+                    ${btnLlamar}
+                    <button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button>
+                </div>
+                <a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación</a>
+            </div>`;
+            
+            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); 
+            capas['hospital'].addLayer(marker);
         }
+    } catch (e) { 
+        console.warn("Modo offline: Negocios no cargados"); 
+    }
+}
 
         async function cargarCiclovias() {
             try {
