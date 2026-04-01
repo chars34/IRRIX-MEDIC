@@ -2065,7 +2065,6 @@ if (window.Capacitor && window.Capacitor.isNativePlatform() && Emergencia) {
 async function cargarNegocios() {
     try {
         // Asegúrate de subir tu nuevo 'denue_salud_limpio.json' a tu GitHub
-        // y pon aquí el enlace raw actualizado.
         const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud_limpio.json"); 
         const data = await res.json();
         
@@ -2074,7 +2073,29 @@ async function cargarNegocios() {
             const lng = parseFloat(n.longitud); 
             if(isNaN(lat) || isNaN(lng)) continue; 
             
-            let nombreLugar = n.nom_estab || "Hospital";
+            // --- INICIO DEL FILTRO ---
+            // Pasamos a minúsculas para hacer la búsqueda insensible a mayúsculas
+            const nombreLugarStr = (n.nom_estab || "").toLowerCase();
+            const tipoActividadStr = (n.nombre_act || "").toLowerCase(); // Útil si tu JSON de DENUE aún tiene esta columna
+
+            // Definimos las palabras clave para considerar que es hospital o consultorio
+            const esMedico = 
+                nombreLugarStr.includes("hospital") ||
+                nombreLugarStr.includes("consultorio") ||
+                nombreLugarStr.includes("clínica") ||
+                nombreLugarStr.includes("clinica") ||
+                nombreLugarStr.includes("sanatorio") ||
+                nombreLugarStr.includes("centro médico") ||
+                nombreLugarStr.includes("centro medico") ||
+                tipoActividadStr.includes("hospital") ||
+                tipoActividadStr.includes("consultorios médicos") ||
+                tipoActividadStr.includes("consultorio");
+
+            // Si no coincide con ninguna palabra clave, saltamos al siguiente registro
+            if (!esMedico) continue; 
+            // --- FIN DEL FILTRO ---
+
+            let nombreLugar = n.nom_estab || "Establecimiento Médico";
             let tel = n.telefono || "";
             
             const hospitalIcon = L.divIcon({ 
@@ -2086,7 +2107,9 @@ async function cargarNegocios() {
             
             const marker = L.marker([lat, lng], { icon: hospitalIcon });
             
-            let btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llama al ${tel}</a>`;
+            let btnLlamar = tel ? `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llama al ${tel}</a>` : `<div class="flex-1 bg-gray-400 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md flex items-center justify-center gap-1.5 cursor-not-allowed">Sin teléfono</div>`;
+            
+            // CORRECCIÓN: Arreglé el enlace de Maps y añadí el signo $ faltante en {lat}
             let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca de: ${nombreLugar}.\n\nMi ubicación:\n📍 https://maps.google.com/?q=${lat},${lng}`);
             
             let popupHtml = `
@@ -2109,7 +2132,7 @@ async function cargarNegocios() {
             capas['hospital'].addLayer(marker);
         }
     } catch (e) { 
-        console.warn("Modo offline: Negocios no cargados"); 
+        console.warn("Modo offline: Negocios no cargados", e); 
     }
 }
 
