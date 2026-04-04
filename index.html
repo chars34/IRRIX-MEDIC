@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARQ Metabólica MX</title>
+    <title>ARQ Metabólica MX - Familiar</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
@@ -102,11 +102,6 @@
     </style>
 </head>
 <body class="text-gray-800 relative">
-    
-    <div id="star-counter-badge" class="fixed top-20 right-4 z-[1000] bg-white/90 backdrop-blur-md border border-yellow-200 px-3 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer">
-        <span class="text-lg">⭐</span>
-        <span id="total-stars-count" class="text-sm font-black text-yellow-700">0</span>
-    </div>
 
     <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-green-900 to-emerald-800 z-[100000] flex-col items-center justify-center transition-opacity duration-500">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-green-800 font-black text-4xl mb-6 shadow-2xl">AM</div>
@@ -117,11 +112,12 @@
             Iniciar sesión con Google
         </button>
     </div>
-<div id="modal-verificacion-telefono" class="fixed inset-0 bg-green-900/95 z-[100005] hidden flex items-center justify-center backdrop-blur-md transition-opacity">
+    
+    <div id="modal-verificacion-telefono" class="fixed inset-0 bg-green-900/95 z-[100005] hidden flex items-center justify-center backdrop-blur-md transition-opacity">
         <div class="bg-white rounded-[2rem] p-8 max-w-[320px] w-full mx-4 shadow-2xl relative text-center">
             <div class="text-5xl mb-4">📱</div>
-            <h2 class="text-xl font-black text-gray-800 mb-2">Seguridad de Cuenta</h2>
-            <p class="text-xs text-gray-500 mb-6">Para proteger a la comunidad, verifica tu número celular. Solo se hace una vez.</p>
+            <h2 class="text-xl font-black text-gray-800 mb-2">Seguridad Familiar</h2>
+            <p class="text-xs text-gray-500 mb-6">Para proteger a tu familia, verifica tu número celular. Solo se hace una vez.</p>
 
             <div id="step-phone">
                 <div class="flex gap-2 mb-4">
@@ -130,9 +126,9 @@
                 </div>
                 <div id="recaptcha-container" class="flex justify-center mb-4 min-h-[70px]"></div>
                 
-               <button onclick="enviarCodigoSMS()" id="btn-enviar-sms" disabled class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-green-600">
-    Enviar SMS de validación
-</button>
+                <button onclick="enviarCodigoSMS()" id="btn-enviar-sms" disabled class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-green-600">
+                    Enviar SMS de validación
+                </button>
             </div>
 
             <div id="step-code" class="hidden">
@@ -148,6 +144,7 @@
             </div>
         </div>
     </div>
+    
     <div id="modal-foto" class="fixed inset-0 bg-black/70 z-[9998] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative">
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"><span>📷</span> Reportar Zona</h2>
@@ -200,24 +197,6 @@
             </div>
         </div>
     </div>
-
-    <div id="modal-calificar-helper" class="fixed inset-0 bg-black/80 z-[100000] hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity">
-        <div class="bg-white rounded-[2rem] p-6 max-w-[320px] w-full mx-4 shadow-2xl relative text-center">
-            <h2 class="text-xl font-black text-gray-800 mb-2">Evalúa tu rescate</h2>
-            <p class="text-xs text-gray-500 mb-4">¿Cómo te ayudó <span id="nombre-helper" class="font-bold text-green-600">el usuario</span>?</p>
-            
-            <div class="flex justify-center gap-2 mb-6 text-3xl cursor-pointer" id="star-rating">
-                <span class="star hover:scale-125 transition transform grayscale" onclick="setStars(1)">⭐</span>
-                <span class="star hover:scale-125 transition transform grayscale" onclick="setStars(2)">⭐</span>
-                <span class="star hover:scale-125 transition transform grayscale" onclick="setStars(3)">⭐</span>
-                <span class="star hover:scale-125 transition transform grayscale" onclick="setStars(4)">⭐</span>
-                <span class="star hover:scale-125 transition transform grayscale" onclick="setStars(5)">⭐</span>
-            </div>
-
-            <button onclick="enviarCalificacion()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-md mb-3">Enviar Calificación</button>
-            <button onclick="reportarRobo()" class="w-full bg-red-100 text-red-700 font-bold py-3 rounded-xl shadow-sm border border-red-200 flex justify-center items-center gap-2"><span>🚨</span> Me robó / Agredió</button>
-        </div>
-    </div>
     
     <div id="toast-container"></div>
 
@@ -229,24 +208,24 @@
                     <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">ARQ Metabólica MX</p>
                 </div>
                 <div class="relative">
-    <div class="h-11 w-11 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-sm border border-green-200 relative cursor-pointer transform transition hover:scale-105" onclick="toggleMenuPerfil()">
-        AM
-        <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"></div>
-    </div>
+                    <div class="h-11 w-11 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full flex items-center justify-center text-green-800 font-bold shadow-sm border border-green-200 relative cursor-pointer transform transition hover:scale-105" onclick="toggleMenuPerfil()">
+                        AM
+                        <div class="absolute -bottom-1 -right-1 bg-yellow-400 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
 
-    <div id="menu-perfil" class="hidden absolute top-14 right-0 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[1000] transform transition-all duration-200 opacity-0 scale-95 origin-top-right">
-        <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
-            <p class="text-[10px] text-green-600 font-bold uppercase tracking-widest mb-1">Usuario Activo</p>
-            <p id="user-full-name" class="text-sm font-black text-gray-800 break-words leading-tight">Explorador</p>
-        </div>
-        <button onclick="cambiarCuenta()" class="w-full text-left px-4 py-3 text-gray-700 text-sm font-bold hover:bg-gray-50 flex items-center gap-3 transition border-b border-gray-50">
-        <span class="text-lg">🔄</span> Cambiar cuenta
-    </button>
-        <button onclick="cerrarSesion()" class="w-full text-left px-4 py-3.5 text-red-600 text-sm font-bold hover:bg-red-50 flex items-center gap-3 transition">
-            <span class="text-lg">🚪</span> Cerrar Sesión
-        </button>
-    </div>
-</div>
+                    <div id="menu-perfil" class="hidden absolute top-14 right-0 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[1000] transform transition-all duration-200 opacity-0 scale-95 origin-top-right">
+                        <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
+                            <p class="text-[10px] text-green-600 font-bold uppercase tracking-widest mb-1">Usuario Activo</p>
+                            <p id="user-full-name" class="text-sm font-black text-gray-800 break-words leading-tight">Explorador</p>
+                        </div>
+                        <button onclick="cambiarCuenta()" class="w-full text-left px-4 py-3 text-gray-700 text-sm font-bold hover:bg-gray-50 flex items-center gap-3 transition border-b border-gray-50">
+                            <span class="text-lg">🔄</span> Cambiar cuenta
+                        </button>
+                        <button onclick="cerrarSesion()" class="w-full text-left px-4 py-3.5 text-red-600 text-sm font-bold hover:bg-red-50 flex items-center gap-3 transition">
+                            <span class="text-lg">🚪</span> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="mt-4 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
@@ -272,27 +251,23 @@
             <div id="screen-home" class="screen p-5 space-y-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Bienvenido, <span id="user-name" class="text-green-700">Explorador</span> <span class="text-xl">👋</span></h2>
-                    <div id="alerta-medica-home" class="hidden bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 mt-4 shadow-xl relative overflow-hidden transform transition hover:-translate-y-1">
+                    
+                    <div id="alerta-medica-home" class="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 mt-4 shadow-xl relative overflow-hidden transform transition hover:-translate-y-1">
                         <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 transform rotate-12">🚨</div>
-                        <h3 class="font-black text-white mb-2 flex items-center gap-2 text-lg relative z-10"><span>⚠️</span> Alerta Metabólica</h3>
-                        <p class="text-xs text-white/90 leading-relaxed font-medium mb-4 relative z-10">
-                            Tu último test indica un riesgo ALTO. Las señales de alerta incluyen mareos, visión borrosa, mucha sed y fatiga extrema. Acude a un médico.
-                        </p>
+                        <h3 class="font-black text-white mb-4 flex items-center gap-2 text-lg relative z-10"><span>⚠️</span> Centro de Emergencia</h3>
                         
                         <div class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 mb-3">
-                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>🏥</span> Asistencia Médica y S.O.S</p>
-                            <div class="space-y-2">
+                            <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-3 flex items-center gap-1"><span>🏥</span> Tu Red de Protección</p>
+                            <div class="space-y-3">
+                                
+                                <button onclick="notificarContacto('home')" class="w-full bg-red-600 text-white px-4 py-3.5 rounded-xl text-sm font-black shadow-[0_0_15px_rgba(220,38,38,0.5)] hover:bg-red-700 transition transform hover:scale-[1.02] flex items-center justify-center gap-2 animate-pulse">
+                                    <span>🚨</span> Activar S.O.S Familiar
+                                </button>
+                                
                                 <button onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
                                     Buscar Hospital Cerca
                                 </button>
-                                <div class="flex gap-2">
-                                    <button onclick="notificarContacto('home')" class="w-1/2 bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> A Familiares 
-                                    </button>
-                                    <button onclick="activarSOSGlobal()" class="w-1/2 bg-red-600 text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-red-700 flex items-center justify-center gap-1 transition transform hover:scale-[1.02] animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]">
-                                        <span>🚨</span> A Cercanos
-                                    </button>
-                                </div>
+                                
                                 <button type="button" onclick="mostrarConfigContactos('home')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
                         </div>
@@ -838,13 +813,7 @@
           measurementId: "G-M46CV52N5Y"
         };
         
-        let misRescatesRealizados = 999;
-        let misEstrellasTotales = 0;
-        let falsasAlarmasUsuario = 999;
-        let ratingAyudante = 5;
-        let estrellasSeleccionadas = 0; 
         let currentHelperUid = "";
-        let currentEmergenciaId = "";
         let miEmergenciaActivaId = null; 
         let perfilCargado = false;
 
@@ -857,70 +826,46 @@
         const supabaseKey = 'sb_publishable_540j0j9Z03YPFEj7E5dzsg_7IFyQX-U';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-      db.enablePersistence().catch((err) => { console.warn("Error habilitando persistencia offline de Firebase:", err); });
+        db.enablePersistence().catch((err) => { console.warn("Error habilitando persistencia offline de Firebase:", err); });
 
         window.addEventListener('offline', () => mostrarToast("Sin conexión. Los reportes se guardarán localmente.", "📡"));
-        window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
+        window.addEventListener('online', () => mostrarToast("Conexión restaurada.", "✅"));
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.Capacitor && window.Capacitor.Plugins.GoogleAuth) { window.Capacitor.Plugins.GoogleAuth.initialize(); }
+            if (window.Capacitor && window.Capacitor.Plugins.GoogleAuth) { 
+                window.Capacitor.Plugins.GoogleAuth.initialize(); 
+            }
 
-solicitarTodosLosPermisos();
             // --- DETECTOR DEL BOTÓN FÍSICO DE VOLUMEN (S.O.S SILENCIOSO) ---
             window.addEventListener('panico_volumen', () => {
                 console.log("¡Botón físico de volumen detectado!");
-                
                 if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
                 mostrarToast("S.O.S SILENCIOSO ACTIVADO", "🚨");
-                
-                activarSOSGlobal();
+                notificarContacto('volumen'); 
             });
-            // ---------------------------------------------------------------
         });
         
-        // ... (siguen las funciones de solicitarPermisosNotificacion, etc.) ...
-
-
-        window.addEventListener('online', () => mostrarToast("Conexión restaurada. Sincronizando reportes...", "✅"));
-async function cambiarCuenta() {
+        async function cambiarCuenta() {
             if (confirm("¿Deseas elegir una cuenta de Google diferente?")) {
                 try {
-                    // 1. Cerramos sesión en Firebase
                     await auth.signOut();
-                    
-                    // 2. Limpiamos rastros locales
                     localStorage.removeItem('iarri_sesion_activa');
                     localStorage.removeItem('telefono_validado');
-                    
                     mostrarToast("Cambiando de cuenta...", "🔄");
-
-                    // 3. Pequeño truco: Forzamos el selector de cuentas al recargar
-                    // Si usas el proveedor de Google, esto asegura que pida elegir cuenta
                     const provider = new firebase.auth.GoogleAuthProvider();
                     provider.setCustomParameters({ prompt: 'select_account' });
-
-                    // 4. Reiniciamos la app para volver al estado inicial de Login
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
+                    setTimeout(() => { window.location.reload(); }, 500);
                 } catch (error) {
                     console.error("Error al cambiar cuenta:", error);
                 }
             }
         }
-        async function solicitarPermisosNotificacion() {
-            try {
-                if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
-                    await window.Capacitor.Plugins.LocalNotifications.requestPermissions();
-                } else if ("Notification" in window && Notification.permission !== "granted") {
-                    await Notification.requestPermission();
-                }
-            } catch (e) { console.warn("Notificaciones bloqueadas o no soportadas"); }
-        }
 
         async function sincronizarProgresoDescarga(user) {
             if (!user) return;
             try {
+                const telLocal = localStorage.getItem('telefono_validado_numero') || "";
+
                 const { data, error } = await supabaseClient
                     .from('usuarios_progreso')
                     .select('*')
@@ -933,14 +878,22 @@ async function cambiarCuenta() {
                     localStorage.setItem("arqProgress", JSON.stringify(userProgress));
                     updateUI();
                     mostrarToast("Progreso recuperado de la nube ☁️", "🔄");
+
+                    if (data.telefono && data.telefono.length === 10) {
+                        localStorage.setItem('telefono_validado_numero', data.telefono);
+                        localStorage.setItem('telefono_validado', 'true');
+                    } else if (!data.telefono && telLocal.length === 10) {
+                         await supabaseClient.from('usuarios_progreso').update({ telefono: telLocal }).eq('uid', user.uid);
+                    }
                 } else {
                     await supabaseClient
                         .from('usuarios_progreso')
                         .insert([{
                             uid: user.uid,
-                            nombre: user.displayName,
+                            nombre: user.displayName || "Explorador",
                             puntos: userProgress.totalPoints,
-                            nivel: userProgress.level
+                            nivel: userProgress.level,
+                            telefono: telLocal
                         }]);
                 }
             } catch (e) { console.error("Error sincronizando progreso", e); }
@@ -1003,99 +956,6 @@ async function cambiarCuenta() {
             }
         }
 
-        async function obtenerUbicacionUltraRapida() {
-            const opciones = { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 };
-            if (window.Capacitor && window.Capacitor.Plugins.Geolocation) {
-                try {
-                    const check = await window.Capacitor.Plugins.Geolocation.checkPermissions();
-                    if (check.location !== 'granted') { await window.Capacitor.Plugins.Geolocation.requestPermissions(); }
-                    const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition(opciones);
-                    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                } catch (e) { throw e; }
-            } else {
-                return new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(
-                        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                        err => reject(err),
-                        opciones
-                    );
-                });
-            }
-        }
-
-        let timerFabSOS;
-        let temporizadorSOS;
-
-        function iniciarFabSOS() {
-            const fabPanico = document.getElementById('btn-fab-panico');
-            if(fabPanico) {
-                fabPanico.classList.remove('from-red-600');
-                fabPanico.classList.add('from-red-800');
-            }
-            mostrarToast("Mantén presionado para enviar S.O.S...", "⚠️");
-            timerFabSOS = setTimeout(() => {
-                if(navigator.vibrate) navigator.vibrate([500, 200, 500]);
-                mostrarToast("¡ALERTA S.O.S ENVIADA!", "🚨");
-                if(fabPanico) {
-                    fabPanico.classList.remove('from-red-800');
-                    fabPanico.classList.add('from-red-600');
-                }
-                notificarContacto('home'); 
-            }, 2500); 
-        }
-
-        function setStars(num) {
-            estrellasSeleccionadas = num;
-            const stars = document.querySelectorAll('#star-rating .star');
-            stars.forEach((s, i) => {
-                if(i < num) { 
-                    s.classList.remove('grayscale'); 
-                    s.classList.add('scale-110'); 
-                } else { 
-                    s.classList.add('grayscale'); 
-                    s.classList.remove('scale-110'); 
-                }
-            });
-        }
-
-        function cancelarFabSOS() {
-            clearTimeout(timerFabSOS);
-            const fabPanico = document.getElementById('btn-fab-panico');
-            if(fabPanico) {
-                fabPanico.classList.remove('from-red-800');
-                fabPanico.classList.add('from-red-600');
-            }
-        }
-
-        function iniciarPulsacion(e) {
-            const btnPanico = document.getElementById('btn-sos-panico');
-            if(btnPanico) btnPanico.classList.replace('bg-red-600', 'bg-red-800');
-            mostrarToast("Mantén presionado para confirmar...", "⚠️");
-
-            temporizadorSOS = setTimeout(() => {
-                if(navigator.vibrate) navigator.vibrate([500, 200, 500]); 
-                mostrarToast("¡ALERTA S.O.S ENVIADA!", "🚨");
-                if(btnPanico) btnPanico.classList.replace('bg-red-800', 'bg-red-600');
-                notificarContacto('home'); 
-            }, 2500);
-        }
-
-        function cancelarPulsacion() {
-            clearTimeout(temporizadorSOS);
-            const btnPanico = document.getElementById('btn-sos-panico');
-            if(btnPanico) btnPanico.classList.replace('bg-red-800', 'bg-red-600');
-        }
-
-        const btnPanico = document.getElementById('btn-sos-panico');
-        if(btnPanico){
-            btnPanico.addEventListener('touchstart', iniciarPulsacion, {passive: true});
-            btnPanico.addEventListener('touchend', cancelarPulsacion);
-            btnPanico.addEventListener('touchcancel', cancelarPulsacion); 
-            btnPanico.addEventListener('mousedown', iniciarPulsacion);
-            btnPanico.addEventListener('mouseup', cancelarPulsacion);
-            btnPanico.addEventListener('mouseleave', cancelarPulsacion);
-        }
-
         async function iniciarSesionGoogle() {
             try {
                 if(!navigator.onLine) { mostrarToast("Necesitas internet para iniciar sesión por primera vez", "⚠️"); return; }
@@ -1116,129 +976,30 @@ async function cambiarCuenta() {
             }
         }
 
-        function actualizarBadgeEstrellas(total) {
-            misEstrellasTotales = parseInt(total) || 0;
-            const starEl = document.getElementById('total-stars-count');
-            if(starEl) {
-                starEl.innerText = misEstrellasTotales;
-                if(misEstrellasTotales >= 15) {
-                    starEl.parentElement.classList.add('ring-2', 'ring-yellow-400', 'bg-yellow-50');
-                } else {
-                    starEl.parentElement.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-50');
-                }
-            }
-        }
-
-        function aplicarBloqueoSOSVisual() {
-            const botonesSOS = document.querySelectorAll('button[onclick*="activarSOSGlobal"]');
-            
-            // 1. Si aún no descarga los datos de la nube, lo congelamos
-            if (!perfilCargado) {
-                botonesSOS.forEach(btn => {
-                    btn.classList.add('opacity-50', 'cursor-wait', 'grayscale');
-                    btn.classList.remove('animate-pulse');
-                    btn.onclick = (e) => {
-                        e.preventDefault(); 
-                        mostrarToast("Sincronizando seguridad con la nube... ⏳", "⏳");
-                    };
-                });
-                return;
-            }
-
-            // 2. Si ya cargó y es culpable, lo bloqueamos permanentemente
-            if (falsasAlarmasUsuario >= 3) {
-                botonesSOS.forEach(btn => {
-                    btn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
-                    btn.classList.remove('animate-pulse');
-                    btn.onclick = (e) => {
-                        e.preventDefault(); 
-                        mostrarToast("Tu cuenta está bloqueada para emitir alertas.", "🚫");
-                    };
-                });
-            } else {
-                // 3. Si ya cargó y está limpio, LIBERAMOS el botón
-                botonesSOS.forEach(btn => {
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed', 'cursor-wait', 'grayscale');
-                    btn.classList.add('animate-pulse');
-                    btn.onclick = activarSOSGlobal; // Restauramos la función original
-                });
-            }
-        }
-
         auth.onAuthStateChanged(async (user) => {
             const loginScreen = document.getElementById('login-screen');
             if (user) {
                 try {
-                  // Búsqueda blindada: Buscamos por UID único o por Correo Electrónico
-                    const { data: blacklistInfo } = await supabaseClient
-                        .from('blacklist')
-                        .select('uid')
-                        .or(`uid.eq.${user.uid},email.eq."${user.email}"`)
-                        .maybeSingle();
-
-                if (blacklistInfo) {
-                        await auth.signOut();
-                        localStorage.clear();
-                        alert("ACCESO DENEGADO 🚨\n\nEsta cuenta ha sido bloqueada permanentemente por violaciones de seguridad o reportes de agresión.");
-                        window.location.reload(); 
-                        return; 
-                    } // <--- ESTA LLAVE ESTABA FALTANDO AQUÍ
-
-                    // --- NUEVO: INTERCEPTOR DE VERIFICACIÓN TELEFÓNICA ---
                     if (!user.phoneNumber && !localStorage.getItem('telefono_validado')) {
-                        console.log("Interceptor activado: Pidiendo verificación SMS...");
-                        
-                        // 1. Ocultamos la pantalla verde de login a la fuerza
-                        const loginScreen = document.getElementById('login-screen');
                         if(loginScreen) {
                             loginScreen.style.opacity = '0';
                             setTimeout(() => loginScreen.classList.add('hidden'), 300);
                         }
                         
-                        // 2. Mostramos el modal de validación telefónica
                         const modalTel = document.getElementById('modal-verificacion-telefono');
                         if(modalTel) {
                             modalTel.classList.remove('hidden');
-                            // Usamos un pequeño retraso para asegurar que se dibuje encima
                             setTimeout(() => {
                                 modalTel.classList.add('flex');
                                 modalTel.style.opacity = '1';
                             }, 350);
                         }
                         
-                        // 3. Inicializamos el anti-spam de Google
                         inicializarRecaptcha();
-                        
-                        return; // IMPORTANTE: Detenemos la carga del mapa y perfil aquí
+                        return;
                     }
-                    // ------------------------------------------------------
 
-                    const { data: repData } = await supabaseClient
-                        .from('usuarios_progreso')
-                        .select('falsas_alarmas, score_ayuda, rescates_realizados, estrellas_totales')
-                        .eq('uid', user.uid)
-                        .maybeSingle();
-                        
-                   if(repData) {
-                        falsasAlarmasUsuario = parseInt(repData.falsas_alarmas) || 0;
-                        misRescatesRealizados = parseInt(repData.rescates_realizados) || 0;
-                        misEstrellasTotales = parseInt(repData.estrellas_totales) || 0;
-
-                        // --- MURO 1: BORRAR TOKEN DEL SERVIDOR ---
-                        if (misRescatesRealizados >= 3 && misEstrellasTotales < 15) {
-                            supabaseClient.from('usuarios_progreso').update({ fcm_token: null }).eq('uid', user.uid);
-                        }
-                        
-                   } else {
-                        falsasAlarmasUsuario = 0;
-                        misRescatesRealizados = 0;
-                        misEstrellasTotales = 0;
-                   }
-
-                    perfilCargado = true; // <--- ¡AQUÍ! Ahora el mapa sabe que puede filtrar
-
-                    actualizarBadgeEstrellas(misEstrellasTotales);
-                    aplicarBloqueoSOSVisual();
+                    perfilCargado = true; 
 
                     if(!window.suscripcionMiPerfil) {
                         window.suscripcionMiPerfil = supabaseClient
@@ -1249,23 +1010,10 @@ async function cambiarCuenta() {
                                 table: 'usuarios_progreso', 
                                 filter: `uid=eq.${user.uid}` 
                             }, payload => {
-                                if(payload.new) {
-                                    falsasAlarmasUsuario = parseInt(payload.new.falsas_alarmas) || 0;
-                                    misRescatesRealizados = parseInt(payload.new.rescates_realizados) || 0;
-                                    misEstrellasTotales = parseInt(payload.new.estrellas_totales) || 0;
-                                    
-                                    // Si le bajan las estrellas en tiempo real, también le borramos el token
-                                    if (misRescatesRealizados >= 3 && misEstrellasTotales < 15) {
-                                        supabaseClient.from('usuarios_progreso').update({ fcm_token: null }).eq('uid', user.uid);
-                                    }
-
-                                    actualizarBadgeEstrellas(misEstrellasTotales);
-                                    aplicarBloqueoSOSVisual();
-                                }
                             }).subscribe();
                     }
                 } 
-                catch(e) { console.warn("Error verificando reputación:", e); }    
+                catch(e) { console.warn("Error verificando:", e); }   
 
                 localStorage.setItem('iarri_sesion_activa', 'true'); 
                 loginScreen.style.opacity = '0';
@@ -1273,44 +1021,40 @@ async function cambiarCuenta() {
                 const nombreUsuarioEl = document.getElementById('user-name');
                 if(nombreUsuarioEl) { nombreUsuarioEl.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorador'; }
                 const nombreCompletoEl = document.getElementById('user-full-name');
-if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.displayName : 'Explorador'; }
+                if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.displayName : 'Explorador'; }
                 sincronizarProgresoDescarga(user);
                 registrarParaNotificacionesPush();
+                solicitarTodosLosPermisos();
           } else {
                 localStorage.removeItem('iarri_sesion_activa'); loginScreen.classList.remove('hidden'); document.documentElement.style.setProperty('--estado-login', 'flex');
                 setTimeout(() => loginScreen.style.opacity = '1', 50);
-                
-                // Restauramos la seguridad estricta al cerrar sesión
-                misRescatesRealizados = 999; 
                 perfilCargado = false;
             }
         });
-        // --- SISTEMA DE VERIFICACIÓN SMS ---
+
         let confirmationResult = null;
 
- function inicializarRecaptcha() {
+        function inicializarRecaptcha() {
             if (!window.recaptchaVerifier) {
                 window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
                     'size': 'normal',
                     'callback': (response) => {
-                        // reCAPTCHA resuelto con éxito: Desbloqueamos el botón
                         const btn = document.getElementById('btn-enviar-sms');
                         if (btn) btn.disabled = false;
                     },
                     'expired-callback': () => {
-                        // El reCAPTCHA expiró por inactividad: Volvemos a bloquear el botón
                         const btn = document.getElementById('btn-enviar-sms');
                         if (btn) btn.disabled = true;
                         mostrarToast("El reCAPTCHA caducó, vuelve a marcarlo.", "⚠️");
                     }
                 });
 
-                // FORZAR EL RENDERIZADO VISUAL DEL RECAPTCHA
                 window.recaptchaVerifier.render().catch(error => {
                     console.error("Error al renderizar reCAPTCHA:", error);
                 });
             }
         }
+
         function enviarCodigoSMS() {
             const numeroStr = document.getElementById('input-phone').value;
             if (numeroStr.length !== 10) {
@@ -1318,7 +1062,7 @@ if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.disp
                 return;
             }
 
-            const numeroCompleto = "+52" + numeroStr; // Asumiendo México
+            const numeroCompleto = "+52" + numeroStr;
             const btn = document.getElementById('btn-enviar-sms');
             btn.innerText = "Enviando SMS...";
             btn.disabled = true;
@@ -1326,7 +1070,6 @@ if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.disp
 
             const user = firebase.auth().currentUser;
 
-            // Vinculamos el teléfono a la cuenta actual de Google
             user.linkWithPhoneNumber(numeroCompleto, window.recaptchaVerifier)
                 .then((result) => {
                     confirmationResult = result;
@@ -1351,6 +1094,8 @@ if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.disp
 
         function verificarCodigoSMS() {
             const codigo = document.getElementById('input-code').value;
+            const numeroDigitado = document.getElementById('input-phone').value.replace(/\D/g, '').slice(-10);
+
             if (codigo.length !== 6) {
                 mostrarToast("El código debe tener 6 dígitos", "⚠️");
                 return;
@@ -1363,15 +1108,35 @@ if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.disp
             const credential = firebase.auth.PhoneAuthProvider.credential(confirmationResult.verificationId, codigo);
             
             firebase.auth().currentUser.linkWithCredential(credential)
-                .then((usercred) => {
-                    mostrarToast("¡Identidad verificada exitosamente!", "✅");
-                    localStorage.setItem('telefono_validado', 'true'); // Bandera local
+                .then(async (usercred) => {
+                    mostrarToast("¡Identidad verificada!", "✅");
+                    localStorage.setItem('telefono_validado', 'true');
+                    localStorage.setItem('telefono_validado_numero', numeroDigitado);
+
+                    document.getElementById('modal-verificacion-telefono').classList.add('hidden');
+                    const user = firebase.auth().currentUser;
+                    sincronizarProgresoDescarga(user);
+                    updateUI();
+                    cargarContactos();
+                    try {
+                        const { error } = await supabaseClient
+                            .from('usuarios_progreso')
+                            .upsert({ 
+                                uid: user.uid,
+                                nombre: user.displayName || "Explorador",
+                                telefono: numeroDigitado 
+                            }, { onConflict: 'uid' });
+
+                        if (error) throw error;
+                        console.log("Teléfono sincronizado con Supabase.");
+                    } catch (dbError) {
+                        console.error("Error al guardar en Supabase:", dbError.message);
+                    }
+
+                    localStorage.setItem('telefono_validado', 'true');
+                    localStorage.setItem('telefono_validado_numero', numeroDigitado);
                     
-                    // Recargamos la página para que pase el "Interceptor" que pusimos arriba
-                    // y cargue el mapa y los datos normalmente.
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                    setTimeout(() => { window.location.reload(); }, 1000);
                     
                 }).catch((error) => {
                     console.error("Error de código:", error);
@@ -1600,47 +1365,39 @@ if(nombreCompletoEl) { nombreCompletoEl.innerText = user.displayName ? user.disp
         function normalizarNombre(nombre){ return nombre?nombre.toString().replace(/ÃƒÂƒÃ‚Â¡|Ã¡/g,"a").replace(/ÃƒÂƒÃ‚Â©|Ã©/g,"e").replace(/ÃƒÂƒÃ‚Â­|Ã­/g,"i").replace(/ÃƒÂƒÃ‚Â³|Ã³/g,"o").replace(/ÃƒÂƒÃ‚Âº|Ãº/g,"u").replace(/Ã±/g,"n").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z ]/g,"").trim().toUpperCase():""; }
         function colorIARRI(v){ if(v < 0.0124) return "#dc2626"; if(v < 0.0264) return "#f97316"; if(v < 0.0479) return "#facc15"; if(v < 0.0894) return "#86efac"; return "#16a34a"; }
         function nivelIARRI(v){ if(v < 0.0124) return "Crítico"; if(v < 0.0264) return "Alto"; if(v < 0.0479) return "Medio"; if(v < 0.0894) return "Bajo"; return "Muy Bajo"; }
-async function solicitarTodosLosPermisos() {
-            // Si el usuario está en PC (web), no lanzamos la ráfaga nativa
+        
+        async function solicitarTodosLosPermisos() {
             if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
                 console.log("Entorno web detectado. Los permisos se pedirán según se usen.");
                 return;
             }
-
-            // 1. Permiso de UBICACIÓN (GPS)
             try {
                 if (window.Capacitor.Plugins.Geolocation) {
                     const geoStatus = await window.Capacitor.Plugins.Geolocation.checkPermissions();
                     if (geoStatus.location !== 'granted') await window.Capacitor.Plugins.Geolocation.requestPermissions();
                 }
             } catch (e) { console.warn("Error solicitando GPS:", e); }
-
-            // 2. Permiso de NOTIFICACIONES PUSH
             try {
                 if (window.Capacitor.Plugins.PushNotifications) {
                     const pushStatus = await window.Capacitor.Plugins.PushNotifications.checkPermissions();
                     if (pushStatus.receive !== 'granted') await window.Capacitor.Plugins.PushNotifications.requestPermissions();
                 }
             } catch (e) { console.warn("Error solicitando Push:", e); }
-
-            // 3. Permiso de NOTIFICACIONES LOCALES
             try {
                 if (window.Capacitor.Plugins.LocalNotifications) {
                     const localStatus = await window.Capacitor.Plugins.LocalNotifications.checkPermissions();
                     if (localStatus.display !== 'granted') await window.Capacitor.Plugins.LocalNotifications.requestPermissions();
                 }
             } catch (e) { console.warn("Error solicitando Notificaciones Locales:", e); }
-
-            // 4. Permiso de CÁMARA y FOTOS
             try {
                 if (window.Capacitor.Plugins.Camera) {
                     const camStatus = await window.Capacitor.Plugins.Camera.checkPermissions();
                     if (camStatus.camera !== 'granted' || camStatus.photos !== 'granted') await window.Capacitor.Plugins.Camera.requestPermissions();
                 }
             } catch (e) { console.warn("Error solicitando Cámara:", e); }
-
             console.log("✅ Ráfaga de permisos iniciales completada de forma segura.");
         }
+
         async function cargarIARRI(){
             if(datosIARRICache) return datosIARRICache;
             try {
@@ -1697,7 +1454,6 @@ async function solicitarTodosLosPermisos() {
                     let distKm = (masCercanos[0].distancia / 1000).toFixed(1);
                     mostrarToast(`🏥 Hospital más cercano a ${distKm} km`, "🚑");
                 }, 800);
-
             } catch (e) {
                 mostrarToast("Activa tu GPS para encontrar hospitales cercanos.", "❌");
                 localizarUsuario(); 
@@ -1710,28 +1466,32 @@ async function solicitarTodosLosPermisos() {
             let t3 = document.getElementById(context + '-c-tel3');
             
             let guardados = {
-                tel1: t1 ? t1.value.replace(/\D/g,'') : "",
-                tel2: t2 ? t2.value.replace(/\D/g,'') : "",
-                tel3: t3 ? t3.value.replace(/\D/g,'') : ""
+                tel1: t1 ? t1.value.replace(/\D/g,'').slice(-10) : "",
+                tel2: t2 ? t2.value.replace(/\D/g,'').slice(-10) : "",
+                tel3: t3 ? t3.value.replace(/\D/g,'').slice(-10) : ""
             };
+
+            const listaNumeros = [guardados.tel1, guardados.tel2, guardados.tel3]
+                .filter(n => n.length === 10)
+                .join(',');
+
             localStorage.setItem('arqContactosEmergencia', JSON.stringify(guardados));
             
-            let numArr = [];
-            if(guardados.tel1.length === 10) numArr.push("+52" + guardados.tel1);
-            if(guardados.tel2.length === 10) numArr.push("+52" + guardados.tel2);
-            if(guardados.tel3.length === 10) numArr.push("+52" + guardados.tel3);
-            
-            let stringParaAndroid = numArr.join(",");
-
-            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            const user = firebase.auth().currentUser;
+            if (user) {
                 try {
-                    let PluginSOSLocal = window.Capacitor.Plugins.Emergencia || window.Capacitor.registerPlugin('Emergencia');
-                    if (PluginSOSLocal) {
-                        await PluginSOSLocal.guardarNumeroNative({ numero: stringParaAndroid });
-                    }
-                } catch(e) { console.error("Fallo al sincronizar con Kotlin:", e); }
+                    const { error } = await supabaseClient
+                        .from('usuarios_progreso')
+                        .update({ telefonos_emergencia: listaNumeros })
+                        .eq('uid', user.uid);
+
+                    if (error) throw error;
+                    console.log("Contactos actualizados en la nube ✅");
+                } catch (e) {
+                    console.error("Error al sincronizar contactos con la nube:", e.message);
+                }
             }
-            
+
             document.querySelectorAll('input[id$="-c-tel1"]').forEach(el => el.value = guardados.tel1);
             document.querySelectorAll('input[id$="-c-tel2"]').forEach(el => el.value = guardados.tel2);
             document.querySelectorAll('input[id$="-c-tel3"]').forEach(el => el.value = guardados.tel3);
@@ -1761,11 +1521,6 @@ async function solicitarTodosLosPermisos() {
                 if (testConfig) testConfig.classList.add('hidden');
                 
                 document.querySelectorAll('.btn-editar-contactos').forEach(btn => btn.classList.remove('hidden'));
-                
-                let hayVarios = (elTel2.length > 0 || elTel3.length > 0);
-                document.querySelectorAll("button[onclick*=\"notificarContacto('home')\"], button[onclick*=\"notificarContacto('test')\"]").forEach(btn => {
-                    btn.innerHTML = hayVarios ? `<span>💬</span> A Familiares ` : `<span>💬</span> A Familiar `;
-                });
             }
         }
 
@@ -1773,81 +1528,507 @@ async function solicitarTodosLosPermisos() {
             const configBox = document.getElementById(context + '-config-contactos');
             if (configBox) configBox.classList.remove('hidden');
         }
-        
-     async function notificarContacto(context) {
-            guardarContactos(context);
-            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
-            
-            let telPrincipal = "";
-            let numArrSMS = [];
-            
-            if(guardados.tel1 && guardados.tel1.length === 10) {
-                telPrincipal = "52" + guardados.tel1;
-                numArrSMS.push(guardados.tel1);
+
+        async function registrarParaNotificacionesPush() {
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                const PushNotifications = window.Capacitor.Plugins.PushNotifications;
+                if (PushNotifications) {
+                    try {
+                        let permStatus = await PushNotifications.checkPermissions();
+                        if (permStatus.receive === 'prompt') {
+                            permStatus = await PushNotifications.requestPermissions();
+                        }
+
+                        if (permStatus.receive === 'granted') {
+                            await PushNotifications.register();
+
+                            if (typeof PushNotifications.addListener === 'function') {
+                                PushNotifications.addListener('registration', async (token) => {
+                                    console.log("¡Token FCM Obtenido!: ", token.value);
+                                    const user = firebase.auth().currentUser;
+                                    if(user) {
+                                        try {
+                                            const pos = await obtenerUbicacionRapida();
+                                            await supabaseClient.from('usuarios_progreso').update({ 
+                                                fcm_token: token.value, lat_actual: pos.lat, lng_actual: pos.lng, ultima_conexion: new Date().toISOString()
+                                            }).eq('uid', user.uid);
+                                        } catch(e) {
+                                            await supabaseClient.from('usuarios_progreso').update({ 
+                                                fcm_token: token.value, ultima_conexion: new Date().toISOString()
+                                            }).eq('uid', user.uid);
+                                        }
+                                    }
+                                });
+
+                                PushNotifications.addListener('registrationError', (error) => {
+                                    console.error("Error al registrar Push:", error);
+                                });
+
+                                PushNotifications.addListener('pushNotificationReceived', (notification) => {
+                                    mostrarToast(`🚨 ${notification.title}: ${notification.body}`, "🚑");
+                                    if(navigator.vibrate) navigator.vibrate([500, 300, 500, 300, 500]);
+                                });
+
+                                PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+                                    const data = notification.notification.data;
+                                    if(data && data.lat && data.lng) {
+                                        mostrarToast("Localizando emergencia en el mapa...", "🗺️");
+                                        switchScreen('territorio'); 
+                                        setTimeout(() => {
+                                            if(map) map.setView([parseFloat(data.lat), parseFloat(data.lng)], 16);
+                                        }, 400); 
+                                    }
+                                });
+                            } else {
+                                console.warn("PushNotifications.addListener no está disponible en esta versión de Capacitor.");
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error en PushNotifications:", e);
+                    }
+                }
+
+                const LocalNotifications = window.Capacitor.Plugins.LocalNotifications;
+                if (LocalNotifications) {
+                    LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
+                        const data = notificationAction.notification.extra;
+                        if(data && data.lat && data.lng) {
+                            mostrarToast("Localizando emergencia en el mapa...", "🗺️");
+                            switchScreen('territorio'); 
+                            setTimeout(() => {
+                                if(map) map.setView([parseFloat(data.lat), parseFloat(data.lng)], 16);
+                            }, 400);
+                        }
+                    });                
+                }
+            } else {
+                console.log("Estás en Web/PC. Las notificaciones nativas se han omitido de forma segura.");
             }
-            if(guardados.tel2 && guardados.tel2.length === 10) numArrSMS.push(guardados.tel2);
-            if(guardados.tel3 && guardados.tel3.length === 10) numArrSMS.push(guardados.tel3);
-            
-            if(numArrSMS.length === 0) {
-                mostrarToast("Ingresa al menos un número válido de 10 dígitos.", "⚠️");
+        }
+
+        function limpiarNumero(num) {
+            if (!num) return "";
+            return String(num).replace(/\D/g, '').slice(-10);
+        }
+
+        let liveTrackingInterval = null; 
+        let sosTimer = null;
+        let isSOSProcessing = false;
+
+        async function notificarContacto(context) {
+            if (isSOSProcessing) return;
+
+            const guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
+            const misContactosSucios = [guardados.tel1, guardados.tel2, guardados.tel3].filter(n => n);
+            const misContactosLimpios = misContactosSucios.map(n => limpiarNumero(n)).filter(n => n.length === 10);
+
+            if (misContactosLimpios.length === 0) {
+                mostrarToast("No puedes activar S.O.S sin números de confianza.", "🚫");
                 return;
             }
 
-            mostrarToast("Abriendo alerta S.O.S...", "🚨");
-            
-            let linkMapa = "";
-            try {
-                const pos = await Promise.race([
-                    obtenerUbicacionRapida(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error("TimeoutGPS")), 2500))
-                ]);
-                linkMapa = `\n\n📍 Ubicación exacta: https://maps.google.com/?q=${pos.lat},${pos.lng}`;
-          } catch(e) {
-                linkMapa = `\n\n📍 (Ubicación exacta cargando, por favor llama a este número)`;
-                mostrarToast("GPS lento. Enviando S.O.S de todas formas.", "⚠️");
+            isSOSProcessing = true;
+            const btnSOS = document.querySelector('button[onclick*="notificarContacto"]');
+            if (btnSOS) {
+                btnSOS.disabled = true;
+                btnSOS.innerText = "⏳ Preparando Alerta...";
             }
 
-            // --- NUEVO: LINK DE DESCARGA ---
-            // Cambia "tusitio.com" por el link real de tu app o tu repositorio cuando la publiques
-            const linkDescarga = `\n\n📲 Si no tienes IARRI-MX, descárgala aquí para ayudarme más rápido:\nhttps://iarri-mx.com/descargar`;
+            mostrarToast("Protocolo S.O.S iniciado. Se enviará en 5 segundos.", "⚠️");
             
-            const textoMensaje = `🚨 ¡AYUDA S.O.S! Tengo una emergencia y necesito tu asistencia.${linkMapa}${linkDescarga}`;
-            const mensajeCodificado = encodeURIComponent(textoMensaje);
+            sosTimer = setTimeout(async () => {
+                try {
+                    const user = firebase.auth().currentUser;
+                    if (!user) throw new Error("Inicia sesión para usar S.O.S");
+
+                    const pos = await obtenerUbicacionRapida();
+                    
+                    let nivelBateria = 0;
+                    try {
+                        if (window.Capacitor && window.Capacitor.Plugins.Device) {
+                            const info = await window.Capacitor.Plugins.Device.getBatteryInfo();
+                            nivelBateria = (info.batteryLevel > 0) ? Math.round(info.batteryLevel * 100) : 0;
+                        } else if (navigator.getBattery) {
+                            const battery = await navigator.getBattery();
+                            nivelBateria = Math.round(battery.level * 100);
+                        }
+                    } catch (e) { nivelBateria = "Nivel bajo"; }
+                    
+                    const bateriaInfo = (typeof nivelBateria === 'number') ? `${nivelBateria}%` : nivelBateria;
+
+                    const savedScore = parseInt(localStorage.getItem('arqTestInsulina')) || 0;
+                    let alertaMedica = "";
+                    if (savedScore >= 8) {
+                        alertaMedica = "\n⚠️ ALERTA MÉDICA: Riesgo Metabólico Alto (Posible descompensación).";
+                    }
+
+                    const linkMapa = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
+                    const mensajeBase = `🚨 ¡AYUDA! Emergencia de ${user.displayName || 'Familiar'}.\n🔋 Batería: ${bateriaInfo}${alertaMedica}\n📍 Ubicación: ${linkMapa}`;
+
+                    lanzarSMSMúltiple(misContactosLimpios, mensajeBase);
+
+                    if (navigator.onLine) {
+                        const { data, error } = await supabaseClient.from('emergencias_activas').insert([{
+                            uid: user.uid,
+                            usuario: user.displayName || "Familiar",
+                            lat: pos.lat, lng: pos.lng,
+                            activa: true,
+                            bateria: bateriaInfo,
+                            parientes: misContactosLimpios.join(',')
+                        }]).select();
+
+                        if (error) throw error;
+
+                        if(data?.[0]) {
+                            miEmergenciaActivaId = data[0].id;
+                            escucharMiRescate(miEmergenciaActivaId);
+                            window.dibujarEmergencia(data[0]);
+
+                            if (liveTrackingInterval) clearInterval(liveTrackingInterval);
+                            
+                            liveTrackingInterval = setInterval(async () => {
+                                try {
+                                    const nuevaPos = await obtenerUbicacionRapida();
+                                    await supabaseClient.from('emergencias_activas')
+                                        .update({ lat: nuevaPos.lat, lng: nuevaPos.lng })
+                                        .eq('id', miEmergenciaActivaId);
+                                    console.log("📍 Ubicación S.O.S actualizada en vivo");
+                                } catch (err) {
+                                    console.warn("Fallo al actualizar ubicación en vivo", err);
+                                }
+                            }, 10000);
+                        }
+                    }
+
+                    mostrarToast("¡Protocolo S.O.S Ejecutado con éxito!", "✅");
+                    lanzarConfeti();
+
+                } catch (e) {
+                    console.error(e);
+                    mostrarToast("Error: " + e.message, "❌");
+                } finally {
+                    isSOSProcessing = false;
+                    if (btnSOS) {
+                        btnSOS.disabled = false;
+                        btnSOS.innerText = "🚨 Activar S.O.S Familiar";
+                    }
+                }
+            }, 5000);
+        }
+
+        function lanzarSMSMúltiple(numeros, mensaje) {
+            const listaNumeros = numeros.map(n => `+52${n}`).join(",");
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const separador = isIOS ? '&' : '?';
+            const urlSMS = `sms:${listaNumeros}${separador}body=${encodeURIComponent(mensaje)}`;
             
-            if (navigator.onLine) {
-                window.open(`https://wa.me/${telPrincipal}?text=${mensajeCodificado}`, '_blank');
-            } else {
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const separadorBody = isIOS ? '&' : '?';
-                const separadorNumeros = isIOS ? ',' : ';'; 
-                const stringSMS = numArrSMS.join(separadorNumeros);
-                
-                window.location.href = `sms:${stringSMS}${separadorBody}body=${mensajeCodificado}`;
+            const a = document.createElement('a');
+            a.href = urlSMS;
+            a.target = '_system';
+            a.click();
+        }
+
+        function cancelarSOS() {
+            if (sosTimer) {
+                clearTimeout(sosTimer);
+                sosTimer = null;
+                isSOSProcessing = false;
+                mostrarToast("S.O.S Cancelado a tiempo", "🛡️");
+                const btnSOS = document.querySelector('button[onclick*="notificarContacto"]');
+                if (btnSOS) { 
+                    btnSOS.disabled = false; 
+                    btnSOS.innerText = "🚨 Activar S.O.S Familiar"; 
+                }
             }
         }
-        async function lanzarSMSDeEmergencia() {
-            let guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia'));
-            let numArr = [];
-            if(guardados && guardados.tel1 && guardados.tel1.length === 10) numArr.push("52" + guardados.tel1);
-            if(guardados && guardados.tel2 && guardados.tel2.length === 10) numArr.push("52" + guardados.tel2);
-            if(guardados && guardados.tel3 && guardados.tel3.length === 10) numArr.push("52" + guardados.tel3);
 
+        async function cancelarMiEmergencia(idPasadoPorBoton) {
+            const idABorrar = idPasadoPorBoton || miEmergenciaActivaId;
+            if(!idABorrar) { mostrarToast("No hay alerta activa.", "⚠️"); return; }
+            if(!confirm("¿Cancelar alerta de emergencia?")) return;
+            
             try {
-                mostrarToast("Obteniendo GPS (funciona sin saldo)...", "🛰️");
-                const pos = await obtenerUbicacionRapida();
-                
-               const textoSMS = `🚨 ¡S.O.S! Necesito ayuda urgente. Estoy sin internet.\n📍 Ubicación: https://maps.google.com/?q=${pos.lat},${pos.lng}\n\n📲 Descarga la app de seguridad IARRI-MX: https://iarri-mx.com/descargar`;
-               const mensaje = encodeURIComponent(textoSMS);
-                
-                const separador = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
-                const stringSMS = numArr.join(",");
-                const urlSMS = stringSMS ? `sms:${stringSMS}${separador}body=${mensaje}` : `sms:${separador}body=${mensaje}`;
-                
-                window.location.href = urlSMS;
+                const { error } = await supabaseClient.from('emergencias_activas').delete().eq('id', idABorrar);
+                if (error) throw error;
+
+                if (liveTrackingInterval) {
+                    clearInterval(liveTrackingInterval);
+                    liveTrackingInterval = null;
+                }
+
+                mostrarToast("Alerta S.O.S Cancelada y borrada del mapa", "✅");
+                if(map) map.closePopup();
+                capas['sos'].clearLayers();
+                miEmergenciaActivaId = null;
+
+                setTimeout(() => {
+                    if(confirm("¿Deseas enviar un SMS a tus contactos para avisar que fue una falsa alarma y estás a salvo?")) {
+                        const guardados = JSON.parse(localStorage.getItem('arqContactosEmergencia')) || {};
+                        const misContactos = [guardados.tel1, guardados.tel2, guardados.tel3].map(n => limpiarNumero(n)).filter(n => n.length === 10);
+                        
+                        if (misContactos.length > 0) {
+                            const user = firebase.auth().currentUser;
+                            const nombreSeguro = user ? user.displayName : 'Tu familiar';
+                            const msgCalma = `✅ Falsa alarma. ${nombreSeguro} está a salvo y canceló el S.O.S.`;
+                            lanzarSMSMúltiple(misContactos, msgCalma);
+                        }
+                    }
+                }, 600);
+
             } catch(e) {
-                mostrarToast("Activa tu GPS para enviar tus coordenadas.", "❌");
+                console.error("Error cancelando:", e);
+                mostrarToast("Fallo al cancelar la alerta en la red.", "❌");
             }
         }
+
+        window.dibujarEmergencia = (em) => {
+            if (!perfilCargado) return; 
+            if(!em.activa) return;
+
+            const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
+            const currentUser = firebase.auth().currentUser;
+            const esMiAlerta = currentUser && currentUser.uid === em.uid;
+
+            let existe = false;
+            capas['sos'].eachLayer(function(layer) {
+                if(layer.emergenciaId === em.id) existe = true;
+            });
+            if(existe) return;
+
+            let botones = "";
+            if (esMiAlerta) {
+                botones = `<button onclick="cancelarMiEmergencia('${em.id}')" class="w-full bg-gray-800 text-white py-2 rounded-lg text-xs font-bold hover:bg-black shadow-md">Cancelar Alerta / Estoy bien</button>`;
+            } else {
+                if (em.helper_uid) {
+                    if (currentUser && em.helper_uid === currentUser.uid) {
+                        botones = `<button disabled class="w-full bg-green-600 text-white py-2 rounded-lg text-xs font-bold shadow-md mb-2">Tú vas al rescate 🏃‍♂️</button>`;
+                    } else {
+                        botones = `<button disabled class="w-full bg-gray-500 text-white py-2 rounded-lg text-xs font-bold shadow-md mb-2 opacity-80">🚑 ${em.helper_nombre} ya va en camino</button>`;
+                    }
+                } else {
+                    botones = `<button id="btn-ayudar-${em.id}" onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${em.usuario}'); registrarAyudante('${em.id}')" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-blue-700 shadow-md mb-2"><span>📍</span> Ir a ayudar</button>`;
+                }
+            }
+
+            const marker = L.marker([em.lat, em.lng], {icon: iconSOS});
+            marker.emergenciaId = em.id;
+
+            marker.bindPopup(`
+                <div class="text-center font-sans p-3 min-w-[180px]">
+                    <b class="text-red-700 text-base font-black uppercase tracking-widest">¡S.O.S. Familiar!</b><br>
+                    <span class="text-xs text-gray-700 font-medium block mt-1 mb-3"><b>${em.usuario}</b> necesita ayuda.</span>
+                    ${botones}
+                </div>
+            `);
+            capas['sos'].addLayer(marker);
+        };
+
+        function escucharEmergenciasEnVivo() {
+            setTimeout(async () => {
+                const user = firebase.auth().currentUser;
+                if(!user) return;
+
+                const miTelefonoLocal = localStorage.getItem('telefono_validado_numero'); 
+                if(!miTelefonoLocal) return; 
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('emergencias_activas')
+                        .select('*')
+                        .eq('activa', true)
+                        .ilike('parientes', `%${miTelefonoLocal}%`); 
+
+                    if (error) throw error;
+                    
+                    capas['sos'].clearLayers();
+                    if(data) data.forEach(window.dibujarEmergencia);
+                } catch (err) { console.error("Error cargando red de confianza:", err); }
+            }, 800);
+
+            if(!window.suscripcionSOS) {
+                window.suscripcionSOS = supabaseClient
+                    .channel('canal_sos_global')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'emergencias_activas' }, async (payload) => {
+                        
+                        if (!perfilCargado) await new Promise(resolve => setTimeout(resolve, 1000));
+                        const miTelefonoLocal = localStorage.getItem('telefono_validado_numero');
+                        if (!miTelefonoLocal) return;
+
+                        if (payload.eventType === 'INSERT') {
+                            const nuevaEm = payload.new;
+                            const parientesStr = nuevaEm.parientes ? String(nuevaEm.parientes) : "";
+                            const listaContactosArray = parientesStr.split(',').map(t => t.replace(/\D/g, ''));
+
+                            if (listaContactosArray.includes(miTelefonoLocal)) {
+                                window.dibujarEmergencia(nuevaEm);
+                                const currentUser = firebase.auth().currentUser;
+                                
+                                if (currentUser && currentUser.uid !== nuevaEm.uid) {
+                                    const mensajeSOS = `🚨 ¡FAMILIAR EN PELIGRO! ${nuevaEm.usuario} necesita ayuda.`;
+                                    mostrarToast(mensajeSOS, "🚑");
+                                    
+                                    if(navigator.vibrate) navigator.vibrate([1000, 500, 1000, 500, 1000]);
+                                    
+                                    if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
+                                        try {
+                                            await window.Capacitor.Plugins.LocalNotifications.schedule({
+                                                notifications: [{
+                                                    title: "🆘 ALERTA S.O.S",
+                                                    body: mensajeSOS,
+                                                    id: Math.floor(Math.random() * 100000) + 1, 
+                                                    sound: "default", 
+                                                    extra: { 
+                                                        lat: String(nuevaEm.lat), 
+                                                        lng: String(nuevaEm.lng), 
+                                                        usuario: String(nuevaEm.usuario),
+                                                        idEmergencia: String(nuevaEm.id)
+                                                    }
+                                                }]
+                                            });
+                                        } catch (err) { console.error("Error notif local:", err); }
+                                    } 
+                                    else if ("Notification" in window && Notification.permission === "granted") {
+                                        new Notification("🆘 S.O.S FAMILIAR", {
+                                            body: mensajeSOS,
+                                            icon: "https://cdn-icons-png.flaticon.com/512/1008/1008044.png" 
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        if (payload.eventType === 'UPDATE') {
+                            const emActualizada = payload.new;
+                            if (emActualizada.activa) {
+                                capas['sos'].eachLayer(function(layer) {
+                                    if(layer.emergenciaId === emActualizada.id) {
+                                        capas['sos'].removeLayer(layer);
+                                    }
+                                });
+                                window.dibujarEmergencia(emActualizada);
+                            }
+                        }
+
+                        if (payload.eventType === 'DELETE') {
+                            const idBorrado = payload.old.id;
+                            capas['sos'].eachLayer(function(layer) {
+                                if(layer.emergenciaId === idBorrado) {
+                                    capas['sos'].removeLayer(layer);
+                                    mostrarToast("La alerta fue resuelta o cancelada.", "✅");
+                                }
+                            });
+                            if(map) map.closePopup();
+                        }
+                    })
+                    .subscribe();
+            }
+        }
+
+        window.registrarAyudante = async function(idEmergencia) {
+            try {
+                const user = firebase.auth().currentUser;
+                if(!user) return;
+                
+                const popupBtn = document.getElementById(`btn-ayudar-${idEmergencia}`);
+                if(popupBtn) {
+                    popupBtn.disabled = true;
+                    popupBtn.innerText = "⏳ Verificando...";
+                }
+
+                const { data: checkData, error: errCheck } = await supabaseClient
+                    .from('emergencias_activas')
+                    .select('helper_uid, helper_nombre')
+                    .eq('id', idEmergencia)
+                    .single();
+
+                if (errCheck) throw errCheck;
+
+                if (checkData && checkData.helper_uid && checkData.helper_uid !== user.uid) {
+                    mostrarToast(`¡Llegaste tarde! ${checkData.helper_nombre} ya va en camino.`, "ℹ️");
+                    if(popupBtn) {
+                        popupBtn.innerText = `🚑 ${checkData.helper_nombre} va en camino`;
+                        popupBtn.classList.replace('bg-blue-600', 'bg-gray-500');
+                    }
+                    return; 
+                }
+
+                const nombreSeguro = user.displayName || "Un familiar";
+                const { error } = await supabaseClient.from('emergencias_activas').update({ 
+                    helper_uid: user.uid, 
+                    helper_nombre: nombreSeguro 
+                }).eq('id', idEmergencia);
+
+                if(error) throw error;
+                
+                mostrarToast("¡Rescate asignado a ti! Ve con cuidado.", "🚑");
+                
+                if(popupBtn) {
+                    popupBtn.innerText = "Tú vas al rescate 🏃‍♂️";
+                    popupBtn.classList.replace('bg-blue-600', 'bg-green-600');
+                }
+
+            } catch(err) {
+                console.error("Error al registrar ayudante:", err);
+                mostrarToast("Fallo al conectarse. Intenta de nuevo.", "⚠️");
+                const popupBtn = document.getElementById(`btn-ayudar-${idEmergencia}`);
+                if(popupBtn) {
+                    popupBtn.disabled = false;
+                    popupBtn.innerText = "📍 Ir a ayudar";
+                }
+            }
+        };
+
+        function escucharMiRescate(idEmergencia) {
+            if (window.miCanalRescate) {
+                supabaseClient.removeChannel(window.miCanalRescate);
+            }
+
+            window.miCanalRescate = supabaseClient
+                .channel(`rescate_${idEmergencia}`)
+                .on('postgres_changes', { 
+                    event: 'UPDATE', 
+                    schema: 'public', 
+                    table: 'emergencias_activas', 
+                    filter: `id=eq.${idEmergencia}` 
+                }, payload => {
+                    const em = payload.new;
+                    if (em.activa && em.helper_uid) {
+                        mostrarToast(`¡${em.helper_nombre} viene en camino a ayudarte!`, "🚑");
+                        if(navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 1000]);
+                        mostrarBotonFinalizarRescate(em.id, em.helper_uid, em.helper_nombre);
+                    }
+                })
+                .subscribe();
+        }
+
+        function mostrarBotonFinalizarRescate(idEmergencia, helperUid, helperNombre) {
+            const existente = document.getElementById('btn-finalizar-rescate');
+            if(existente) existente.remove();
+
+            const safeNombre = helperNombre ? helperNombre.replace(/'/g, "\\'") : "Un familiar";
+
+            const btnHtml = `
+                <div id="btn-finalizar-rescate" class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
+                    <div class="bg-white rounded-[2rem] p-8 shadow-2xl text-center w-full max-w-[320px] animate-fadeIn">
+                        <div class="text-5xl mb-4 animate-bounce">🚑</div>
+                        <h3 class="text-green-700 text-xl font-black mb-2">¡${safeNombre} va a ayudarte!</h3>
+                        <p class="text-gray-600 text-sm mb-6">Tu familiar va en camino a tu ubicación. ¿Aún necesitas la ayuda?</p>
+                        
+                        <div class="flex flex-col gap-3">
+                            <button onclick="document.getElementById('btn-finalizar-rescate').remove(); mostrarToast('Alerta S.O.S sigue activa en el mapa', '🚨');" class="w-full bg-red-600 text-white font-black py-4 rounded-xl text-xs uppercase shadow-lg hover:bg-red-700 transition transform hover:-translate-y-1">
+                                SÍ, AÚN OCUPO AYUDA
+                            </button>
+                            <button onclick="cancelarMiEmergencia('${idEmergencia}'); document.getElementById('btn-finalizar-rescate').remove();" class="w-full bg-gray-200 text-gray-800 font-black py-4 rounded-xl text-xs uppercase transition hover:bg-gray-300">
+                                NO, ESTOY BIEN (CANCELAR)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', btnHtml);
+        }
+
         function evaluarTest() {
             const preguntasRespondidas = document.querySelectorAll('input[type="radio"]:checked').length;
             if (preguntasRespondidas < 14) {
@@ -1861,27 +2042,12 @@ async function solicitarTodosLosPermisos() {
             let nivel = "", colorText = "", colorBg = "", mensaje = "", gradient = "", icon = "";
             let extraHTML = ""; 
             const alertaHome = document.getElementById('alerta-medica-home');
-
-            let PluginSOS = null;
-            if (window.Capacitor) {
-                PluginSOS = window.Capacitor.Plugins.Emergencia;
-                if (!PluginSOS && window.Capacitor.registerPlugin) {
-                    PluginSOS = window.Capacitor.registerPlugin('Emergencia');
-                }
-            }
             
             if (score >= 8) {
                 nivel = "Alto Riesgo"; colorText = "text-red-700"; colorBg = "bg-red-50"; gradient = "from-red-500 to-rose-600"; icon = "🚨";
                 mensaje = "Se recomiendan exámenes médicos (Glucosa en ayuno, Insulina, HOMA-IR). Visita a un profesional de la salud pronto.";
                 
                 if(alertaHome) alertaHome.classList.remove('hidden');
-                
-                const fabHTML = document.getElementById('fab-sos-metabolico');
-                if(fabHTML) fabHTML.classList.remove('hidden');
-
-                if (PluginSOS) {
-                    PluginSOS.mostrarBotonFlotante().catch(e => console.log(e));
-                }
 
                 extraHTML = `
                     <div class="mt-5 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 shadow-xl relative overflow-hidden text-left">
@@ -1895,19 +2061,14 @@ async function solicitarTodosLosPermisos() {
                                 <button type="button" onclick="buscarHospitalCercano()" class="bg-white text-red-700 px-4 py-2.5 rounded-lg font-black text-xs shadow-md w-full transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
                                     Buscar Hospital Cerca
                                 </button>
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="notificarContacto('test')" class="w-1/2 bg-[#25D366] text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-[#1ebe57] flex items-center justify-center gap-1 transition transform hover:scale-[1.02]">
-                                        <span>💬</span> A Familiares 
-                                    </button>
-                                    <button type="button" onclick="activarSOSGlobal()" class="w-1/2 bg-red-600 text-white px-3 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-red-700 flex items-center justify-center gap-1 transition transform hover:scale-[1.02] animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]">
-                                        <span>🚨</span> A Cercanos
-                                    </button>
-                                </div>
+                                <button type="button" onclick="notificarContacto('test')" class="w-full bg-red-600 text-white px-3 py-3 rounded-lg text-xs font-black shadow-sm hover:bg-red-700 flex items-center justify-center gap-1 transition transform hover:scale-[1.02] animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]">
+                                    <span>🚨</span> Activar S.O.S Familiar
+                                </button>
                                 <button type="button" onclick="mostrarConfigContactos('test')" class="btn-editar-contactos hidden text-[10px] text-white/80 underline w-full text-center mt-2 pb-1 hover:text-white transition">Editar números de confianza</button>
                             </div>
                         </div>
 
-                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10">
+                        <div id="test-config-contactos" class="bg-white/20 backdrop-blur rounded-xl p-3 border border-white/30 relative z-10 hidden">
                             <p class="text-[10px] text-white font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><span>⚙️</span> Red de Confianza (Hasta 3)</p>
                             <div class="space-y-2">
                                 <input type="tel" id="test-c-tel1" placeholder="Familiar 1 (10 dígitos)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="text-xs p-2.5 rounded-lg bg-white/90 text-red-900 w-full outline-none font-bold mb-2">
@@ -1924,12 +2085,10 @@ async function solicitarTodosLosPermisos() {
                 nivel = "Riesgo Moderado"; colorText = "text-orange-700"; colorBg = "bg-orange-50"; gradient = "from-orange-400 to-amber-500"; icon = "⚠️";
                 mensaje = "Considera mejorar tus hábitos alimenticios y aumentar tu actividad física gradualmente.";
                 if(alertaHome) alertaHome.classList.add('hidden'); 
-                if (PluginSOS && PluginSOS.ocultarBotonFlotante) PluginSOS.ocultarBotonFlotante().catch(e => console.log(e));
             } else {
                 nivel = "Bajo Riesgo"; colorText = "text-green-700"; colorBg = "bg-green-50"; gradient = "from-green-400 to-emerald-500"; icon = "🌟";
                 mensaje = "¡Excelente estado! Mantén tu estilo de vida saludable y sigue protegiendo tu metabolismo.";
                 if(alertaHome) alertaHome.classList.add('hidden'); 
-                if (PluginSOS && PluginSOS.ocultarBotonFlotante) PluginSOS.ocultarBotonFlotante().catch(e => console.log(e));
             }
             
             const resDiv = document.getElementById('test-resultado');
@@ -1957,114 +2116,6 @@ async function solicitarTodosLosPermisos() {
             resDiv.classList.remove('hidden');
             cargarContactos();
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-        }
-
-        async function registrarParaNotificacionesPush() {
-            if (window.Capacitor && window.Capacitor.Plugins.PushNotifications) {
-                const PushNotifications = window.Capacitor.Plugins.PushNotifications;
-                try {
-                    let permStatus = await PushNotifications.checkPermissions();
-                    if (permStatus.receive === 'prompt') {
-                        permStatus = await PushNotifications.requestPermissions();
-                    }
-
-                    if (permStatus.receive !== 'granted') {
-                        console.warn("El usuario denegó las notificaciones Push.");
-                        return;
-                    }
-
-                    await PushNotifications.register();
-
-                    PushNotifications.addListener('registration', async (token) => {
-                        console.log("¡Token FCM Obtenido!: ", token.value);
-                        const user = firebase.auth().currentUser;
-                        if(user) {
-                            // --- MURO 1: No registrar token en la base de datos si es mal rescatista ---
-                            const rescates = parseInt(misRescatesRealizados) || 0;
-                            const estrellas = parseInt(misEstrellasTotales) || 0;
-                            if (rescates >= 3 && estrellas < 15) {
-                                return; 
-                            }
-                            // -------------------------------------------------------------------------
-
-                            try {
-                                const pos = await obtenerUbicacionRapida();
-                                await supabaseClient.from('usuarios_progreso').update({ 
-                                    fcm_token: token.value, lat_actual: pos.lat, lng_actual: pos.lng, ultima_conexion: new Date().toISOString()
-                                }).eq('uid', user.uid);
-                            } catch(e) {
-                                await supabaseClient.from('usuarios_progreso').update({ 
-                                    fcm_token: token.value, ultima_conexion: new Date().toISOString()
-                                }).eq('uid', user.uid);
-                            }
-                        }
-                    });
-
-                    PushNotifications.addListener('registrationError', (error) => {
-                        console.error("Error al registrar Push:", error);
-                    });
-
-                    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                        const rescates = parseInt(misRescatesRealizados) || 0;
-                        const estrellas = parseInt(misEstrellasTotales) || 0;
-                        if (rescates >= 3 && estrellas < 15) {
-                            return; // No mostramos nada localmente en la pantalla
-                        }
-                        mostrarToast(`🚨 ${notification.title}: ${notification.body}`, "🚑");
-                        if(navigator.vibrate) navigator.vibrate([500, 300, 500, 300, 500]);
-                    });
-
-                    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-                        // --- MURO 2: Esperamos 1.5s a que carguen los datos al abrir la app ---
-                        setTimeout(() => {
-                            const rescates = parseInt(misRescatesRealizados) || 0;
-                            const estrellas = parseInt(misEstrellasTotales) || 0;
-                            
-                            if (rescates >= 3 && estrellas < 15) {
-                                mostrarToast("No tienes reputación suficiente para ver rescates.", "🚫");
-                                return; 
-                            }
-
-                            const data = notification.notification.data;
-                            if(data && data.lat && data.lng) {
-                                switchScreen('territorio'); 
-                                setTimeout(() => {
-                                    iniciarRutaSeleccionada(19.04, -98.20, parseFloat(data.lat), parseFloat(data.lng), "S.O.S de " + (data.usuario || "Compañero"));
-                                }, 500);
-                            }
-                        }, 1500);
-                        // ----------------------------------------------------------------------
-                    });
-
-                } catch (e) {
-                    console.error("Error en PushNotifications:", e);
-                }
-            }
-            
-            // DETECTOR LOCAL INDEPENDIENTE Y SEGURO
-            if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
-                window.Capacitor.Plugins.LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
-                    // --- MURO 3: Esperamos 1.5s a que carguen los datos para notificaciones locales ---
-                    setTimeout(() => {
-                        const rescates = parseInt(misRescatesRealizados) || 0;
-                        const estrellas = parseInt(misEstrellasTotales) || 0;
-                        
-                        if (rescates >= 3 && estrellas < 15) {
-                            mostrarToast("No tienes reputación suficiente para ver rescates.", "🚫");
-                            return; 
-                        }
-
-                        const data = notificationAction.notification.extra;
-                        if(data && data.lat && data.lng) {
-                            switchScreen('territorio'); 
-                            setTimeout(() => {
-                                iniciarRutaSeleccionada(19.04, -98.20, parseFloat(data.lat), parseFloat(data.lng), "Rescate de " + (data.usuario || "Compañero"));
-                            }, 500);
-                        }
-                    }, 1500);
-                    // --------------------------------------------------------------------------------
-                });
-            }
         }
 
         function updateLevel() {
@@ -2374,532 +2425,6 @@ async function solicitarTodosLosPermisos() {
                 console.error("Error al guardar récord:", e); 
             }
         }
-        
-       async function activarSOSGlobal() {
-            // MURO 1: ¿Ya cargó el internet?
-            if (!perfilCargado) {
-                mostrarToast("Sincronizando perfil... intenta en un segundo.", "⏳");
-                return;
-            }
-
-            // MURO 2: ¿Está baneado por falsas alarmas?
-            if (falsasAlarmasUsuario >= 3) {
-                mostrarToast("Tu cuenta está bloqueada para emitir alertas.", "🚫");
-                return;
-            }
-
-            const user = firebase.auth().currentUser;
-            if(!user) { mostrarToast("Inicia sesión con Google para usar el S.O.S.", "🔒"); return; }
-            
-            // Cambiamos la advertencia para que sea clara
-            if(!confirm("¿Activar alerta S.O.S.? Tu ubicación exacta se enviará ÚNICAMENTE a tus familiares de confianza, sin importar dónde estén.")) return;
-
-            mostrarToast("Alertando a tu familia...", "🚨");
-
-            // Si no hay internet, usamos el SMS nativo (que configuraste antes)
-            if (!navigator.onLine) {
-                mostrarToast("Sin internet. Abriendo SMS de emergencia...", "📱");
-                lanzarSMSDeEmergencia();
-                return;
-            }
-
-            // Si hay internet, disparamos la función de WhatsApp/SMS directamente
-            // Esto asegura que la distancia sea infinita y solo lo vean ellos.
-            notificarContacto('home'); 
-            
-            // Nota: Hemos eliminado el código que subía la alerta a Supabase.
-            // Así garantizamos 100% que ningún extraño cercano reciba la notificación ni te vea en el mapa.
-        }
-
-        function escucharMiRescate(idEmergencia) {
-            supabaseClient
-                .channel('canal_mi_rescate')
-                .on('postgres_changes', { 
-                    event: 'UPDATE', 
-                    schema: 'public', 
-                    table: 'emergencias_activas', 
-                    filter: `id=eq.${idEmergencia}` 
-                }, payload => {
-                    const em = payload.new;
-                    if (em.activa && em.helper_uid) {
-                        mostrarToast(`¡${em.helper_nombre} viene en camino a ayudarte!`, "🚑");
-                        if(navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 1000]);
-                        mostrarBotonFinalizarRescate(em.id, em.helper_uid, em.helper_nombre);
-                    }
-                })
-                .subscribe();
-        }
-
-        let timerLongPress;
-        let presionado = false;
-
-        function mostrarBotonFinalizarRescate(idEmergencia, helperUid, helperNombre) {
-            const existente = document.getElementById('btn-finalizar-rescate');
-            if(existente) existente.remove();
-
-            const safeNombre = helperNombre ? helperNombre.replace(/'/g, "\\'") : "Compañero";
-
-            const btnHtml = `
-                <div id="btn-finalizar-rescate" class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
-                    <div class="bg-white rounded-[2rem] p-8 shadow-2xl text-center w-full max-w-[320px]">
-                        <div class="text-5xl mb-4">🚑</div>
-                        <h3 class="text-gray-800 text-xl font-black mb-2 uppercase">¿Ayuda recibida?</h3>
-                        <p class="text-gray-500 text-sm mb-6">Mantén presionado el botón 5 segundos para finalizar la alerta.</p>
-                        
-                        <div class="relative overflow-hidden rounded-xl">
-                            <div id="progreso-hold" class="absolute inset-0 bg-green-500 origin-left scale-x-0 transition-transform duration-[5000ms] linear"></div>
-                            
-                            <button 
-                                id="boton-hold-confirm"
-                                class="relative w-full bg-gray-200 text-gray-800 font-black py-5 rounded-xl text-sm uppercase z-10 transition-colors"
-                                onmousedown="iniciarConteoHold('${idEmergencia}', '${helperUid}', '${safeNombre}')"
-                                onmouseup="cancelarConteoHold()"
-                                onmouseleave="cancelarConteoHold()"
-                                ontouchstart="iniciarConteoHold('${idEmergencia}', '${helperUid}', '${safeNombre}')"
-                                ontouchend="cancelarConteoHold()"
-                            >
-                                Ya me ayudó
-                            </button>
-                        </div>
-                        <p id="msg-hold" class="text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-widest">Presiona y mantén</p>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', btnHtml);
-        }
-
-        function iniciarConteoHold(id, uid, nombre) {
-            const barra = document.getElementById('progreso-hold');
-            const texto = document.getElementById('msg-hold');
-            const boton = document.getElementById('boton-hold-confirm');
-
-            if(!barra) return;
-
-            barra.style.transform = 'scale-x(1)';
-            texto.innerText = "¡No sueltes! ...";
-            boton.style.color = "white";
-
-            timerLongPress = setTimeout(() => {
-                if (navigator.vibrate) navigator.vibrate(200);
-                window.procesarRescate(id, uid, nombre);
-            }, 5000);
-        }
-
-        function cancelarConteoHold() {
-            clearTimeout(timerLongPress);
-            const barra = document.getElementById('progreso-hold');
-            const texto = document.getElementById('msg-hold');
-            const boton = document.getElementById('boton-hold-confirm');
-
-            if(barra) {
-                barra.style.transition = 'none';
-                barra.style.transform = 'scale-x(0)';
-                setTimeout(() => barra.style.transition = 'transform 5000ms linear', 50);
-            }
-            if(texto) texto.innerText = "Presiona y mantén";
-            if(boton) boton.style.color = "";
-        }
-
-        window.procesarRescate = function(idEmergencia, helperUid, helperNombre) {
-            const btnRescate = document.getElementById('btn-finalizar-rescate');
-            if (btnRescate) btnRescate.remove();
-
-            desactivarEmergencia(idEmergencia);
-            
-            if(helperUid && helperUid !== "undefined") {
-                currentHelperUid = helperUid;
-                currentEmergenciaId = idEmergencia;
-                
-                const nombreEl = document.getElementById('nombre-helper');
-                if(nombreEl) nombreEl.innerText = helperNombre || "tu rescatista";
-                
-                estrellasSeleccionadas = 0;
-                setStars(0);
-
-                const modal = document.getElementById('modal-calificar-helper');
-                if(modal) {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    setTimeout(() => {
-                        modal.style.opacity = '1';
-                    }, 50);
-                }
-            } else {
-                mostrarToast("Rescate finalizado. No se pudo identificar al rescatista.", "✅");
-            }
-        };
-
-        function escucharEmergenciasEnVivo() {
-            const iconSOS = L.divIcon({html: '<div class="text-5xl animate-ping drop-shadow-2xl">🚨</div>', className: 'bg-transparent', iconSize: [50, 50]});
-            
-            const dibujarEmergencia = (em) => {
-                // CANDADO: No dibujamos hasta saber quiénes somos
-                if (!perfilCargado) return; 
-
-                if(!em.activa) return;
-                const currentUser = firebase.auth().currentUser;
-                const esMiAlerta = currentUser && currentUser.uid === em.uid;
-
-                const rescates = parseInt(misRescatesRealizados) || 0;
-                const estrellas = parseInt(misEstrellasTotales) || 0;
-
-                // Si soy mal rescatista, no dibujo el botón en el mapa
-                if (!esMiAlerta && rescates >= 3 && estrellas < 15) {
-                    return; 
-                }
-
-                let botones = "";
-                if (esMiAlerta) {
-                    botones = `<button onclick="cancelarMiEmergencia('${em.id}')" class="w-full bg-gray-800 text-white py-2 rounded-lg text-xs font-bold hover:bg-black shadow-md">Cancelar / Ya no ocupo ayuda</button>`;
-                } else {
-                    botones = `
-                        <button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${em.lat}, ${em.lng}, 'S.O.S de ${em.usuario}'); registrarAyudante('${em.id}')" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-blue-700 shadow-md mb-2"><span>📍</span> Ir a ayudar</button>
-                        <button onclick="reportarFalsaAlarma('${em.uid}', '${em.id}')" class="w-full bg-orange-100 text-orange-700 py-1.5 rounded-lg text-[10px] font-bold hover:bg-orange-200 border border-orange-300">⚠️ Es una falsa alarma / Juego</button>
-                    `;
-                }
-
-                const marker = L.marker([em.lat, em.lng], {icon: iconSOS}).bindPopup(`
-                    <div class="text-center font-sans p-3 min-w-[180px]">
-                        <b class="text-red-700 text-base font-black uppercase tracking-widest">¡Emergencia Activa!</b><br>
-                        <span class="text-xs text-gray-700 font-medium block mt-1 mb-3"><b>${em.usuario}</b> requiere auxilio.</span>
-                        ${botones}
-                    </div>
-                `);
-                capas['sos'].addLayer(marker);
-            };
-
-            // 1. CARGA INICIAL: Damos un poco de tiempo antes de jalar las emergencias
-            // para asegurar que el auth de Google y el de Supabase terminaron.
-            setTimeout(() => {
-                supabaseClient.from('emergencias_activas').select('*').eq('activa', true)
-                    .then(({ data }) => {
-                        capas['sos'].clearLayers();
-                        if(data) data.forEach(dibujarEmergencia);
-                    });
-            }, 500);
-
-            // 2. ESCUCHA EN TIEMPO REAL
-            if(!window.suscripcionSOS) {
-                window.suscripcionSOS = supabaseClient
-                    .channel('canal_sos')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'emergencias_activas' }, async (payload) => {
-                        
-                        // CANDADO: Si llega un INSERT pero no hemos cargado mi perfil, esperamos 1s.
-                        if (!perfilCargado) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-
-                        const nuevaEm = payload.new;
-                        dibujarEmergencia(nuevaEm);
-                        
-                        const user = firebase.auth().currentUser;
-                        if(user && user.uid !== nuevaEm.uid) { 
-                            
-                            // Ya con datos cargados, filtramos al mal usuario
-                            const rescates = parseInt(misRescatesRealizados) || 0;
-                            const estrellas = parseInt(misEstrellasTotales) || 0;
-                            if (rescates >= 3 && estrellas < 15) {
-                                return; 
-                            }
-
-                            try {
-                                const miPos = await obtenerUbicacionRapida();
-                                const distKm = turf.distance(turf.point([miPos.lng, miPos.lat]), turf.point([nuevaEm.lng, nuevaEm.lat]), {units: 'kilometers'});
-                                
-                                if(distKm <= 3.0) {
-                                    const mensajeSOS = `${nuevaEm.usuario} necesita ayuda médica/seguridad a ${(distKm).toFixed(1)} km`;
-                                    mostrarToast(`¡S.O.S! ${mensajeSOS}`, "🚑");
-                                    if(navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 1000]); 
-                                    
-                                    if (window.Capacitor && window.Capacitor.Plugins.LocalNotifications) {
-                                     await window.Capacitor.Plugins.LocalNotifications.schedule({
-                                            notifications: [{
-                                                title: "🚨 ¡S.O.S. CERCANO!",
-                                                body: mensajeSOS,
-                                                id: new Date().getTime(),
-                                                schedule: { at: new Date(Date.now() + 1000) },
-                                                sound: "default", 
-                                                actionTypeId: "",
-                                                extra: { lat: nuevaEm.lat, lng: nuevaEm.lng, usuario: nuevaEm.usuario } 
-                                            }]
-                                        });
-                                    } else if ("Notification" in window && Notification.permission === "granted") {
-                                        new Notification("🚨 ¡S.O.S. CERCANO!", {
-                                            body: mensajeSOS,
-                                            icon: "https://cdn-icons-png.flaticon.com/512/1008/1008044.png" 
-                                        });
-                                    }
-                                }
-                            } catch(e) { console.error("Error midiendo distancia para SOS:", e); }
-                        }
-                    })
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'emergencias_activas' }, payload => {
-                        if(payload.new.activa === false) {
-                            capas['sos'].clearLayers();
-                            escucharEmergenciasEnVivo();
-                        }
-                    })
-                    .subscribe();
-            }
-        }
-
-        async function reportarFalsaAlarma(uidSender, idEmergencia) {
-            if(!confirm("¿Estás seguro de que esta alerta es falsa? Se penalizará al usuario.")) return;
-            
-            await supabaseClient.from('emergencias_activas').update({ activa: false }).eq('id', idEmergencia);
-            
-            try {
-                const { error } = await supabaseClient.rpc('reportar_falsa_alarma_seguro', {
-                    target_uid: uidSender
-                });
-
-                if (error) throw error;
-
-                mostrarToast("Reporte de falsa alarma enviado al servidor.", "✅");
-            } catch(e) {
-                console.error("Error al reportar:", e);
-                mostrarToast("Hubo un error al procesar el reporte.", "❌");
-            }
-        }
-
-        async function registrarAyudante(idEmergencia) {
-            const user = firebase.auth().currentUser;
-            await supabaseClient.from('emergencias_activas').update({ 
-                helper_uid: user.uid, 
-                helper_nombre: user.displayName 
-            }).eq('id', idEmergencia);
-        }
-
-        async function cancelarMiEmergencia(idEmergencia) {
-            if(!confirm("¿Seguro que deseas cancelar la alerta?")) return;
-            
-            await supabaseClient.from('emergencias_activas').update({ activa: false }).eq('id', idEmergencia);
-            
-            mostrarToast("Alerta S.O.S cancelada. Menos mal fue falsa alarma.", "✅");
-            
-            if(map) map.closePopup();
-            
-            const btnRescate = document.getElementById('btn-finalizar-rescate');
-            if (btnRescate) btnRescate.remove();
-        }
-
-        async function enviarCalificacion() {
-            if (estrellasSeleccionadas === 0) {
-                mostrarToast("Por favor, selecciona de 1 a 5 estrellas.", "⚠️");
-                return; 
-            }
-
-            const modal = document.getElementById('modal-calificar-helper');
-
-            try {
-                mostrarToast("Guardando calificación...", "⏳");
-                
-                const { error } = await supabaseClient.rpc('calificar_rescatista', {
-                    target_uid: currentHelperUid,
-                    estrellas: estrellasSeleccionadas
-                });
-
-                if (error) throw error;
-
-                mostrarToast(`Calificaste con ${estrellasSeleccionadas} estrellas. ¡Gracias!`, "⭐");
-                
-            } catch(e) {
-                console.error("Error al calificar:", e);
-                mostrarToast("Fallo en la base de datos, pero cerraremos la ventana.", "❌");
-            } finally {
-                if(modal) {
-                    modal.style.opacity = '0';
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex'); 
-                    }, 300);
-                }
-                
-                estrellasSeleccionadas = 0; 
-                setStars(0); 
-            }
-        }
-async function reportarRobo() {
-            if(!confirm("ALERTA CRÍTICA: ¿Estás seguro de que este usuario te robó/agredió? Su cuenta será bloqueada permanentemente.")) return;
-            
-            if (!currentHelperUid) {
-                mostrarToast("No se pudo identificar al agresor.", "❌");
-                return;
-            }
-
-            mostrarToast("Procesando expulsión definitiva...", "⏳");
-
-            try {
-                console.log("Buscando identidad del agresor UID:", currentHelperUid);
-                
-                // 1. BUSCAMOS LA IDENTIDAD REAL EN usuarios_progreso
-                const { data: helperData, error: helperError } = await supabaseClient
-                    .from('usuarios_progreso')
-                    .select('nombre, email')
-                    .eq('uid', currentHelperUid)
-                    .maybeSingle();
-
-                if (helperError) {
-                    console.warn("No se pudo obtener el nombre real, usando valores por defecto.");
-                }
-
-                // 2. EXTRAEMOS LOS VALORES (O USAMOS POR DEFECTO SI FALLA)
-                const nombreReal = helperData?.nombre || "Usuario Desconocido";
-                const correoReal = helperData?.email || "Sin correo registrado";
-
-                console.log("Identidad encontrada:", nombreReal, correoReal);
-
-                // 3. SUPABASE: Bloqueo garantizado con sus datos reales
-                const { error } = await supabaseClient.rpc('reportar_robo_seguro', {
-                    target_uid: currentHelperUid,
-                    target_nombre: nombreReal, 
-                    target_email: correoReal
-                });
-
-                if (error) {
-                    alert("Detalle del error en base de datos: " + error.message);
-                    throw error; 
-                }
-
-                mostrarToast("Agresor bloqueado exitosamente.", "🚨");
-                console.log("Bloqueo exitoso en BD.");
-                
-                const modal = document.getElementById('modal-calificar-helper');
-                if(modal) {
-                    modal.style.opacity = '0';
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex'); 
-                    }, 300);
-                }
-
-                try {
-                    const eliminarFn = firebase.functions().httpsCallable('eliminarUsuarioFisicamente');
-                    await eliminarFn({ targetUid: currentHelperUid });
-                } catch(firebaseError) { }
-                
-            } catch(e) {
-                console.error("Fallo crítico:", e);
-                mostrarToast("Error en el servidor al intentar bloquear.", "❌");
-            }
-        }
-
-        async function desactivarEmergencia(id) {
-            await supabaseClient.from('emergencias_activas').update({ activa: false }).eq('id', id);
-            mostrarToast("Alerta S.O.S cancelada", "✅");
-            if(map) map.closePopup();
-        }
-
-        function escucharReportesEnVivo() {
-            const iconFoto = L.divIcon({html: '<div class="text-3xl drop-shadow-lg filter hover:scale-110 transition cursor-pointer">📷</div>', className: '', iconSize: [30, 30]});
-            
-            supabaseClient
-                .from('reportes_ciudadanos')
-                .select('*')
-                .order('fecha', { ascending: false })
-                .then(({ data, error }) => {
-                    if (data) {
-                        capas['fotos'].clearLayers();
-                        data.forEach((foto) => {
-                            if(foto.lat && foto.lng) {
-                                const currentUser = firebase.auth().currentUser;
-                                const esDueno = currentUser && (currentUser.uid === foto.uid || foto.uid === 'user-anonimo');
-                                
-                                let btnBorrar = "";
-                                if(esDueno) {
-                                    btnBorrar = `<button onclick="eliminarReporteMap('${foto.id}')" class="mt-2 w-full bg-red-50 text-red-600 border border-red-200 font-bold py-1.5 rounded-lg text-[11px] hover:bg-red-100 transition shadow-sm">🗑️ Borrar mi reporte</button>`;
-                                }
-
-                                const marker = L.marker([foto.lat, foto.lng], {icon: iconFoto}).bindPopup(`
-                                    <div class="text-center font-sans p-2 min-w-[160px]">
-                                        <b class="text-purple-700 text-sm font-black">Reporte Ciudadano</b><br>
-                                        <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Por: ${foto.usuario}</span>
-                                        <img src="${foto.img_data}" class="w-full h-28 object-cover rounded-xl mt-1 mb-2 shadow-sm border border-gray-100">
-                                        <p class="text-xs text-gray-600 italic font-medium">"${foto.descripcion}"</p>
-                                        ${btnBorrar}
-                                    </div>
-                                `);
-                                capas['fotos'].addLayer(marker);
-                            }
-                        });
-                    }
-                });
-
-            if(!window.suscripcionSupabase) {
-                window.suscripcionSupabase = supabaseClient
-                    .channel('realtime_fotos')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'reportes_ciudadanos' }, payload => {
-                        escucharReportesEnVivo(); 
-                    })
-                    .subscribe();
-            }
-        }
-
-        async function cargarNegocios(){
-            try {
-                const res = await fetch("https://raw.githubusercontent.com/chars34/IRRIX-MEDIC/main/denue_salud.json"); 
-                const data = await res.json();
-                
-                for(let n of data) {
-                    const lat = parseFloat(n.lat || n.latitud); 
-                    const lng = parseFloat(n.lng || n.longitud); 
-                    if(isNaN(lat) || isNaN(lng)) continue; 
-                    
-                    let c = (n.codigo_scian || n.codigo_act || "").toString(); 
-                    let cat = null; let catName = ""; let emoji = "";
-
-                    if(c.startsWith("621") || c.startsWith("622")) { cat = "hospital"; catName = "Asistencia Médica"; emoji = "🏥"; }
-                    else if(c.startsWith("46411")) { cat = "pharmacy"; catName = "Farmacia"; emoji = "💊"; }
-                    else if(c.startsWith("462")) { cat = "supermarket"; catName = "Supermercado"; emoji = "🛒"; }
-                    else if(c.startsWith("71394")) { cat = "gym"; catName = "Gimnasio"; emoji = "🏋️"; }
-                    else if(c.startsWith("72251")) { cat = "cafe"; catName = "Cafetería"; emoji = "☕"; }
-                    else if(c.startsWith("722")) { cat = "restaurant"; catName = "Restaurante"; emoji = "🍽️"; }
-                    
-                    if(cat) { 
-                        let colorMarker = cat === "hospital" ? "#dc2626" : "#3b82f6";
-                        const marker = L.circleMarker([lat,lng], {radius: 6, color: colorMarker, weight: 2.5, fillOpacity: 1, fillColor: "#ffffff"}); 
-                        
-                        let nombreLugar = n.nombre || n.nom_estab || "Establecimiento";
-                        let popupHtml = "";
-
-                        if (cat === "hospital") {
-                            const hospitalIcon = L.divIcon({ html: '<div class="text-3xl drop-shadow-md hover:scale-110 transition-transform cursor-pointer" style="transform: translateY(-10px);">🏥</div>', className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [18, 18] });
-                            const marker = L.marker([lat, lng], { icon: hospitalIcon });
-                            let tel = n.telefono || n.numero_telefono || null;
-                            let btnLlamar = "";
-                            
-                            if (tel && tel.trim() !== "") { btnLlamar = `<a href="tel:${tel}" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📞</span> Llamar</a>`; } 
-                            else { btnLlamar = `<a href="tel:911" class="flex-1 bg-red-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-red-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">🚨</span> 911</a>`; }
-
-                         let msgWhatsApp = encodeURIComponent(`🚨 Necesito ayuda médica. Estoy cerca del hospital: ${nombreLugar}.\n\nMi ubicación exacta es:\n📍 https://maps.google.com/?q=${lat},${lng}`);  
-                            popupHtml = `<div class="min-w-[220px] font-sans"><div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-3"><div class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border border-red-100 flex-shrink-0 animate-pulse">🏥</div><div class="flex-1"><b class="text-gray-800 text-sm leading-tight block">${nombreLugar}</b><span class="text-[9px] text-red-500 font-bold uppercase tracking-widest block mt-1">Asistencia Médica</span></div></div><div class="flex gap-2 mb-2">${btnLlamar}<button onclick="iniciarRutaSeleccionada(map.getCenter().lat, map.getCenter().lng, ${lat}, ${lng}, '${nombreLugar}')" class="flex-1 bg-blue-600 text-white py-2.5 px-2 rounded-xl text-[11px] font-black shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-1.5"><span class="text-sm">📍</span> Ir allá</button></div><a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-3 rounded-xl text-[11px] font-black shadow-md hover:bg-[#1ebe57] transition flex items-center justify-center gap-2"><span class="text-sm">💬</span> Enviar ubicación a familiar</a></div>`;
-                            
-                            marker.bindPopup(popupHtml, { className: 'hospital-popup' }); capas[cat].addLayer(marker);
-                        } else {
-                            const marker = L.circleMarker([lat,lng], {radius: 4, color: "#2563eb", weight: 1, fillOpacity: 0.8}); marker.bindPopup(`<b>${nombreLugar}</b>`); capas[cat].addLayer(marker); 
-                        }
-                    }
-                }
-            } catch (e) { console.warn("Modo offline: Negocios no cargados"); }
-        }
-
-        async function cargarCiclovias() {
-            try {
-                const res = await fetch("./Red_Infraestructura_Ciclista_2026_febrero.geojson"); const data = await res.json();
-                const capaLineas = L.geoJSON(data, { pointToLayer: function (feature, latlng) { return null; }, style: function (f) { return { color: "#0ea5e9", weight: 5, opacity: 0.85, dashArray: '8, 8' }; } });
-                capas.ciclovias.addLayer(capaLineas);
-            } catch(e) {}
-        }
-
-        function agregarLeyenda(){
-            const legend = L.control({position:"bottomleft"});
-            legend.onAdd = function(){
-                const div = L.DomUtil.create("div","info legend");
-                div.innerHTML = `<div style="background:rgba(255,255,255,0.9); padding:10px; border-radius:10px; font-size:11px; margin-left:10px; margin-bottom:20px;"><b>Riesgo Urbano</b><br><span style="color:#2ecc71">■</span> Bajo <br><span style="color:#f1c40f">■</span> Medio <br><span style="color:#e67e22">■</span> Alto <br><span style="color:#e74c3c">■</span> Crítico</div>`;
-                return div;
-            }; legend.addTo(map);
-        }
 
         let routingControl = null; window.markersParquesBuscados = null; let modoRutaActivo = false;
 
@@ -3021,6 +2546,7 @@ async function reportarRobo() {
             }
         }
 
+        let pedometroActivo = false;
         function iniciarRastreoPedometro(metaPasos, destino) {
             if (pedometroActivo) return;
             if (typeof pedometer !== "undefined") {
@@ -3130,12 +2656,11 @@ async function reportarRobo() {
             if(chartInstance) chartInstance.destroy(); 
             chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Bajo', 'Medio', 'Alto', 'Crítico'], datasets: [{ data: [counts.bajo, counts.medio, counts.alto, counts.critico], backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'] }] } });
         }
-// Función para abrir/cerrar el panel del perfil
+
         function toggleMenuPerfil() {
             const menu = document.getElementById('menu-perfil');
             if (menu.classList.contains('hidden')) {
                 menu.classList.remove('hidden');
-                // Pequeño retraso para que la animación CSS funcione
                 setTimeout(() => {
                     menu.style.opacity = '1';
                     menu.style.transform = 'scale(1)';
@@ -3147,17 +2672,13 @@ async function reportarRobo() {
             }
         }
 
-        // Función directa para cerrar sesión
         function cerrarSesion() {
             auth.signOut().then(() => {
-                // Limpiamos los datos locales de sesión
                 localStorage.removeItem('iarri_sesion_activa');
-                misRescatesRealizados = 999;
                 perfilCargado = false;
                 
                 mostrarToast("Sesión cerrada", "👋");
                 
-                // Mostramos pantalla de login y recargamos
                 const loginScreen = document.getElementById('login-screen');
                 loginScreen.classList.remove('hidden');
                 setTimeout(() => {
@@ -3166,6 +2687,7 @@ async function reportarRobo() {
                 }, 400);
             });
         }
+
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { const splash = document.getElementById('splash-screen'); if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.classList.add('hidden'), 700); } }, 1800);
             cargarTipDiario(); verificarRacha(); updateLevel(); updateUI(); cargarMunicipiosCalculadora(); renderMisiones(); checkLogros(); renderizarCursos(); cargarRanking();
